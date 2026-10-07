@@ -1,0 +1,1733 @@
+## [0.39.3] - 2026-10-07
+### Fixed
+- Send the Sentry log when user opts in to error reporting
+
+## [0.39.2] - 2026-10-07
+### Added 
+- Log when user toggle Sentry
+
+## [0.39.1] - 2026-10-06
+### Added
+- #4809 Add Sentry error reporting preference and consent handling
+- Add a twake-qa compatible QA environment
+
+### Fixed
+- Fix grammar in Profiles settings subtitle and permanent-delete toasts
+- Fix 'has invited you in to a meeting' typo in English strings
+- Use plural form for permanent-delete toast on a single message
+- 2509 Restrict which links open externally from email content
+- 2509 Allow sms, webcal and geo links and warn when a link is refused
+- 2509 Restrict openApp deep links to allow-listed hosts, require https
+- 2509 Sanitize nested CSS at-rules and drop remote url() inside them
+
+### Changed
+- Translate vi, ru, fr, mn
+- Bump tmail-backend docker image to 1.0.21.2
+
+## [0.39.0] - 2026-10-02
+### Added
+- Support iOS app builds on Xcode 27.0 and macOS Golden Gate 27.0
+- #4843 Handle EmailSubmission/set invalidRecipients in composer
+- #4672 Hide calendar button when ecosystem URL template is unset
+
+### Fixed
+- #4859 Validate iframe message shape in HTML viewer before handling
+- Support domainPart in URL templates
+- Gate premium CTA on being inside Cozy
+- Strip bidi and control characters from attachment names
+- Escape notification text; private lock-screen visibility
+- Never send credentials with WebFinger discovery requests
+- Escape header fields in EML preview; remove unused PDF viewer
+- Try DNS-over-HTTPS before system DNS for JMAP discovery
+- Return to app base, not host root, after logout
+- Drop redirect_uri handling from the logout callback
+- Pin pica/dotlottie at build time and serve CanvasKit locally
+
+### Changed
+- #4861 Localize file size formatter tests with Intl.defaultLocale
+- #4815 Test switched identity and signature survive web reload
+- #4837 Drop no-op selection-list reorder, add category order test
+- Translate vi, ru, fr, mn
+- Bump tmail-backend docker image to 1.0.21.1
+- Run every test in CI without registration
+
+## [0.38.0] - 2026-09-23
+### Fixed
+- #4802 Update Twake Calendar footer separator
+- #4838 Resolve Workplace FQDN from the Linagora ecosystem fallback
+- #4678 Fix sidebar header icon sizing and long-press on touch platforms
+
+### Changed
+- #4623 Integrate design system event card invitation
+- Translate vi, ru, fr, mn
+
+## [0.37.2] - 2026-09-15
+### Added
+- Allow workplace to refresh jmap token
+
+### Fixed
+- Hide the premium CTA when no paywall url is configured
+
+### Changed
+- #4817 Improve premium CTA ecosystem handling
+- Translate id, lb, de, ga, zh_Hans
+
+## [0.37.1] - 2026-09-14
+
+### Fixed
+- #4820 Change arrow size to 16
+
+## [0.37.0] - 2026-09-14
+### Added
+- Add Brazilian Portuguese localization
+- Implement fetchJson for workplace web
+
+### Fixed
+- #4790 Fix attachment upload failing to retry after a mobile 401
+- #4799 Fix HTML Mail being truncated in width
+- #4805 Clear iframes only when the SelectableRegion node itself takes focus
+- Restore legacy icons for mailbox actions
+- Hide Twake Calendar visio section when rendering ICS description
+
+### Changed
+- Translate vi, ru, fr, mn
+
+## [0.36.0] - 2026-08-28
+### Added
+- #4678 Deep sidebar tree navigation for mailboxes, no more horizontal scrolling
+- #4728 Attach files from Twake Drive in the composer
+
+### Fixed
+- #4472 Fix draft save failure dialog
+- #4678 Fix duplicate mailbox sidebar IDs, spacing, and icon behavior
+- HOTFIX Support Android API 36
+
+### Changed
+- Translate vi, ru, fr, mn
+
+## [0.35.1] - 2026-08-21
+### Fixed
+- (fix) Mobile search result not updated
+
+### Changed
+- TF-4728 Size limit for add as attachment from Drive
+
+## [0.35.0] - 2026-08-17
+### Fixed
+- Fix auth: force logout when mobile refresh rejected by token endpoint
+- Fix auth: stop double-reporting rejected mobile token refresh to Sentry
+- Fix search result/state leaks: resize, system-back, search URL labelId
+- HOTFIX Flaky search email with tag test
+
+### Changed
+- TF-4644 Apply Riverpod SSOT to advanced search and web search filter
+- TF-4645 Migrate mobile search to the central executor
+- TF-4646 Add search view-state SSOT with Riverpod (web)
+- TF-4647 Wire dashboard filter into search SSOT, remove position
+- TF-4744 Inherit typography from design system TwakeInter
+- TF-4758 Default DriveAttachmentConfig.isEnabled to true
+- TF-4726 Composable validator
+- TF-4727 Web OPFS drive file stager and strategy selection
+
+## [0.34.0] - 2026-08-10
+### Fixed
+- #4664 Fix can't set my break line in my answer where I want
+
+## [0.33.0] - 2026-07-31
+### Added
+- #4739 Enable mobile drive picker
+- Add logo drive loading
+
+### Fixed
+- #4738 Fix response view blocking drive picker while it loads
+- #4720 Fix signature is not well displayed
+- Fix Drive picker stuck 20s on readyTimeout when token_exchange/page load fails
+
+### Changed
+- #4742 Drive picker theme
+- Translate de, ga, zh_Hans
+
+## [0.32.0] - 2026-07-27
+### Added
+- TF-4660 Drive loading skeleton while the Drive intent webview is loading
+- TF-4684 Add drive card hover close button
+
+### Fixed
+- #4721 Handle yield* error inside interactor
+- #4717 InvalidStateError in IndexDatabase prevent state be updated
+
+### Changed
+- #4716 Handle add as attachment in development
+- Translate vi, ru, fr, mn
+
+## [0.31.0] - 2026-07-22
+### Added
+- #4410 ADR for attach as attachment from Drive
+
+### Fixed
+- #4674 Handle Download file without putting wrong extension
+- #4213 Align Keyboard shortcut view in Settings
+- #4709 Handle style for link card UI
+
+### Changed
+- Reduce flaky in E2E: not depend on toast in assertion 
+
+## [0.30.3] - 2026-07-15
+### Added
+- TF-4661 Drive Link attachments as a cardview in email content
+- TF-4661 Drive button pixelate
+
+## [0.30.2] - 2026-07-13
+### Fixed
+- TF-4679 Silence transient SSO session recovery errors
+- TF-4546 Fix Android selection handles overlapping composer menu
+- TF-4673 PDF preview error handling
+- Fix sharing text variety mime type
+- Urgent-exception handling for Riverpod flows
+- HOTFIX Enable mobile experimental toggle
+
+### Changed
+- Rename AiScribeConstants to AiCapabilities and move it to the model package
+
+## [0.30.1] - 2026-07-06
+### Added
+- TF-4484 Propose ADR for TWP warning banners and header cache consolidation
+- TF-4449 Propose ADR for external drive attachments via Intent webview
+
+### Fixed
+- TF-4667 Do not fall back to Basic Auth when SSO is detected
+- Fix Calendar error minified in Sentry reports
+- Fix UnsupportedError in FixedLengthListMixin.clear
+
+### Changed
+- TF-4643 Add search executor with pagination and concurrency guards
+- TF-4642 Add search filter mutation with pagination intent and spec
+- TF-4421 Update search filter ADRs for cursor model and notifier mixin
+- Remove cancel button on send
+- (e2e) Mobile test with Firebase Test Lab
+- (CI) Run web E2E tests in release build too
+
+## [0.30.0] - 2026-06-30
+### Added
+- Add Mongolian 
+- Drive integration
+
+### Fixed
+- #4538 Hide drop zone overlay after dropping files in composer
+- #4651 Search filter cursor be leak when load more in `oldest` sort
+
+## [0.29.9] - 2026-06-24
+### Fixed
+- Load more in search for oldest
+- SortOrder not retrieved well
+
+## [0.29.8] - 2026-06-17
+### Changed
+- Translation vi, ru, fr
+
+## [0.29.7] - 2026-06-16
+### Fixed
+- flaky mobile e2e test
+
+## [0.29.6] - 2026-06-13
+### Fixed
+- fix: cannot download because of no way to get token from corrupt box
+
+### Changed
+- #4429 Change UI of label search
+
+## [0.29.5] - 2026-06-12
+### Fixed
+- fix: ios build failed with `didReceiveRemoteNotification` in xcode 26
+
+## [0.29.4] - 2026-06-11
+
+### Fixed
+- TF-4540 Fix left margin of email truncated on email view
+- TF-4592 Fix EXC_BAD_ACCESS crash on iOS foreground FCM push
+- TF-4491 Fix reversed semantic in label action toast messages
+- #4582 Bound Email/changes pagination to stop request storm
+- #4578 Do not double escape text in Scribe
+- Map HttpException/HandshakeException to ConnectionError
+- Keep session on PlatformException(token_failed) network failure
+
+### Changed
+- Upgrade flutter_riverpod to ^3.3.1 with @riverpod codegen
+- Migrate ComposerAutoSaveNotifier and LocalSettingsNotifier to @riverpod
+- #4565 (e2e) Web coverage: personal folder and search tests
+
+## [0.29.3] - 2026-05-29
+
+### Fixed
+- #4529 Fix email subject not copyable on mobile
+- #4558 Calendar event HTML description rendered as plain text
+- #4520 Team mailbox folder should be sorted correctly
+- Fix auto-load-more over-trigger and infinite loop on large screens
+- #4559 Handle refresh token failure on web
+- Fix FCM token retry with exponential backoff and delivery state
+- Fix notification removal guard against PlatformException
+- #4482 Fix invitation email overflowing on narrow mobile screens
+- Fix Flutter 3.38.9 DART_DEFINES build regression
+
+### Added
+- #4535 Enable label classification in preferences
+- Cap push notifications at 20 per burst
+
+## [0.29.0] - 2026-05-22
+### Fixed
+- Sentry noisy error cleanup 
+- #4524 Blank plain-text email not render by backslash 
+- #4532 Cannot scroll to the end of advertisement email
+- #4488 Ctrl+k/Cmd+k in composer
+- #4081 Prevent network error logout user in mobile
+- #4426 warning user when creating rule to drop email
+
+### Added
+- CollapsedThread on email list
+
+### Changed
+- From mono repo into workspace 
+
+## [0.28.19] - 2026-05-15
+
+### Fixed
+- Upgrade open_file to iOS 26
+- upgrade to iOS notification in iOS26
+- Double slash in JMAP session
+- Refresh BlobId of attachment in composer when saving draft multiple times
+- Display orphaned inline image
+- Upgrade to fix Android notification
+
+## [0.28.18] - 2026-05-11
+
+### Fixed
+- TF-4473 Auto save composer to Hive Cache when app in background
+- Fix iOS 26 build
+
+### Changed
+- TF-4444 Can untag Action Required
+- Translation pt, ir, fr, vi
+
+## [0.28.12] - 2026-05-05
+
+### Changed
+- Upgrade to Xcode 26
+- Fix the fastlane for Android + iOS
+
+## [0.28.9] - 2026-05-05
+
+### Added
+- TF-4269 Integrate Sentry into iOS NSE with automated dSYM upload
+- TF-4363 [Thread] Display by collapsed thread in search
+- [ADR-0078] Unified logging pipeline with Sentry handlers and breadcrumbs
+- [ADR-0080] Patrol web integration test setup
+- [ADR-0081] Patrol web test architecture
+- [ADR-0082] Patrol web test migration guide
+- [ADR-0083] Patrol web test migration plan
+- [ADR-0084] Sentry release version strategy for mobile
+- [ADR-0086] Android composer draft loss on background
+
+### Fixed
+- TF-4475 Fix mobile misplaced inline when picked
+- [ADR-0076] Reduce Sentry noise with targeted error reporting
+
+## [0.28.3] - 2026-04-17
+
+### Added
+- TF-4308: Create new label in Choose Label
+- TF-4301: Create new label in EmailView
+- TF-4268: Initialize Sentry from Linagora Ecosystem config
+- ADR-0072: Prevent notification storm on Android
+- TF-4265: Attachment reminder — exclude/include keyword lists, custom config, Main Thread regex caching, integration test on mobile
+- Add ESC keyboard shortcut and shortcuts dictionary to close email detail view in Settings
+- TF-4356: Add filter event mail in search
+
+### Fixed
+- TF-4343: Fix load Sentry from Sentry CDN
+- TF-4301: Block barrier dismissal while label creation is in progress, dedup before appending label to list
+- Fix issue #4292
+- TF-4343: Self-host Sentry JS via DOM interceptor to bypass CDN blockers
+- TF-4284: Fix refreshing causes "virtual mailboxes" to be hidden
+- TF-4358: Remove mail in trash by default in search result
+- TF-4425: Fix load more not triggered on iOS 18 when fast scrolling to bottom
+- Fix stale `worker_manager` git ref; reduce worker_manager memory allocation
+- TF-2316: Can not delete folder when its children are hidden
+
+## [0.27.2] - 2026-04-02
+
+### Added
+- TF-4392 [Team Mailbox] Hide `Recover deleted messages` and `Archive message` actions in team mailbox
+- TF-4392 [Team Mailbox] Full trash management: delete emails, empty trash, move emails to trash from list and detail views
+- TF-4392 [Team Mailbox] Folder management according to user rights: create subfolder, rename folder, delete folder
+- TF-4392 [Team Mailbox] Edit emails in Drafts/Template folder as new in composer; auto-save drafts when editing
+- ADR-71 Collapse Thread view
+- TF-4370 Add description field to Label creation modal
+- TF-4383 Handle read-only labels
+- Label: Add "Label as" context menu for email items in list, thread, and search views
+- AI Scribe mobile: sparkle button in app bar, bottomsheet UI, inline button on tablet with correct positioning
+- AI Scribe: Fetch prompts from `scribePromptUrl` via LinagoraEcosystem; manage prompts as messages lifecycle
+- AI Scribe: Add Improve button, quick action toolbar on suggestion, toast when copying suggestion
+- AI Scribe: Display AI Scribe toggle in mobile preferences
+
+### Fixed
+- TF-4385 Fix spam banner to show only once per day
+- TF-4391 Fix last menu item inaccessible due to system navigation bar overlap
+- TF-4404 Fix missing subject when performing `Mail to attendees` action in event email
+- Translate Scribe for vi, ru
+
+## [0.26.8] - 2026-03-26
+### Fixed
+- Fix translation for Label (French)
+
+## [0.26.6] - 2026-03-24
+### Fixed
+- Download unknown name attachment
+
+## [0.26.5] - 2026-03-23
+### Fixed
+- #4394 Preview for plain text file without format bytes
+- #4384 Page not found when reload Label page
+- #4368 Cannot load more because the wrong condition in Email/query + get 
+
+## [0.26.1] - 2026-03-10
+### Fixed
+- Source code be totally minified by dart2js: concrete `toString` to every exception 
+
+## [0.26.0] - 2026-03-05
+### Added
+- TF-4303 Change order for label action
+- Implement auto sync label changes from websocket
+
+### Fixed
+- TF-4354 Activate Label by default for all users
+
+## [0.24.14] - 2026-02-27
+### Fixed
+- TF-4350 cannot focus in folder creator modal and create rule modal in Safari when email open
+
+## [0.24.13] - 2026-02-25
+### Fixed
+- TF-4344 Selected language not reflect current language
+
+## [0.24.12] - 2026-02-24
+### Fixed
+- TF-4336 Inbox should be above Favorite folder
+- TF-4337 Translate in Fr
+- TF-4339 CORS issue with open-configuration
+
+## [0.24.11] - 2026-02-12
+### Fixed
+- Fix email list does not automatically refill after bulk delete (#4323)
+- TF-4329 Fix rogue mailbox set request for favorite
+- Fix infinitive loop when 401 before expired token
+- Handle 400 error during token refresh flow
+- TF-4314 Fix unread emails disappear blink (#4316)
+- Fix Scribe translations by using multiple_localization package
+- Fix create identity memory leak (#4295)
+
+### Added
+- Sentry integration & upload source map (#4311)
+- TF-4306 Update icon for Label in left menu
+
+## [0.24.8] - 2026-01-30
+### Fixed 
+- #4283 fix: normalize "$needs-action" keyword to "needs-action"
+- #4282 sort of quick search must be the same with sort in search result 
+
+### Added
+- add `FORCE_EMAIL_QUERY` to `env.file` to apply Email query whenever switch mailbox
+- #4274 clear cache when f5/refresh/logout
+
+## [0.24.1] - 2026-01-28
+### Added
+- enable source map when building web application
+- Translate vi, ru, fr
+
+## [0.24.0] - 2026-01-27
+### Added
+- TF-4169: Add Labels module with JMAP Label/get, Label/set, Label/changes methods
+- TF-4171: Display labels/tags in mailbox and search list
+- TF-4174: Display labels/tags in opened email view
+- TF-4178: Create new label with color picker
+- TF-4179: Display sorted label list in sidebar
+- TF-4193: Add Label visibility toggle in Settings
+- TF-4195: Add "Label as" context menu to assign labels to emails and threads
+- TF-4227: Open and display all emails filtered by a specific label
+- TF-4229: Search emails by label filter with quick search button
+- TF-4233: Edit label name and color
+- TF-4236: Remove a label from an email or thread with batch processing
+- TF-4243: Delete a label
+- TF-4141: Add AI "Action Required" virtual folder with action tags in email list
+- TF-4136: Integrate Sentry error tracking with unified logging
+
+### Fixed
+- TF-4272: Fix calendar events always displaying email body instead of description
+- TF-4224: Fix ReDoS vulnerability in regex patterns
+- TF-4223: Fix welcome email not displayed correctly
+- Fix email content not rendering after switching folder with thread view enabled
+- Fix blank screen when opening emails repeatedly on iPad
+- Fix unable to select another email on iPad
+- Fix email content not displayed due to HTML sanitization
+- Fix unwanted word-break in table elements
+
+## [0.23.1] - 2025-12-29
+### Fixed
+- Memory leak in Mobile editor
+- Position of Scribe button for long content in composer
+- Safari input keyboard for scribe
+
+## [0.23.0] - 2025-12-19
+### Added
+- Persist company info when user login to company's server
+- AI Scribe: Translate, Correct Grammar, Custom prompt, Improve, Change tone 
+
+## [0.22.1] - 2025-11-21
+### Added
+- Translation: vi, ru, fr, uk, cn
+
+### Fixed
+- Memory leak in focus node in ThreadDetailController
+- Storage full message
+- Empty state when no email in Favorites
+- Cannot open inserted link in composer 
+- Resize image in composer
+- Tooltip for link 
+
+## [0.22.0] - 2025-11-17
+### Added
+  - TF-4148: Add link to common settings in mobile application
+  - TF-4145: Add OIDC user info endpoint & paywall URL with FQDN validation
+  - TF-4142: Implement hyperlink insertion in composer
+  - TF-4064: Support drag & drop email addresses in composer on mobile
+  - TF-4082: Save and restore text formatting menu state in composer
+  - TF-4050: Preview and download uploaded files in composer on web
+  - TF-1715: Add Favorite folder with star email support
+  - TF-4053: Implement move folder content feature
+  - TF-4011: Support Tab shortcut key in tag input field
+  - TF-4122: Display CTA to download mobile application
+  - TF-3996: Add dividers for items in context menu on desktop
+  - TF-3976: Support native DNS resolvers without Cloudflare/Google dependency
+  - TF-3911: Add keyboard shortcuts support & shortcuts dictionary in settings
+
+  ## Fixed
+  - TF-4146: Handle time for email view
+  - TF-4139: Fix attachment reminder mistakenly shown when replying
+  - TF-4128: Separate download handling into independent class on web
+  - TF-4124: Fix localhost addresses email validation
+  - TF-4122: Replace deprecated apple-mobile-web-app-capable meta tag
+  - TF-4117: Fix UI blocking when opening recipient modal in composer
+  - TF-4004: Apply new UI for delete rule email dialog as confirm modal
+  - TF-3976: Fix URL lookup failure when DNS resolution fails
+  - TF-3871: Fix blue bar displays wrongly for event counter
+  - Fix email subject text cut off at the bottom on web
+  - Fix duplicated email subject after enabling thread mode
+  - Fix hide storage section when quota is empty
+
+## [0.20.1] - 2025-10-24
+### Added
+- Translation: Chinese, French, Vietnamese, Russian, Ukrainian, Irish
+
+## [0.20.0] - 2025-10-17
+### Fixed
+- #4045 Display storage only when storage exceeds 80% of total storage
+- #4049 Pre-fill OIDC login form
+- #4058 Support 16kb page size for Android
+- #4066 Simplify filters
+- #4068 Change profile doesn’t work
+- #4069 Automatically reply should be deactivated after end date
+- #4084 Cannot read or scroll emails when opening them in Twake Mail on Android chrome mobile browser
+- #4093 Make interface more compact
+- #4102 Don't display free-busy on IMIP responses (accepted, tentative, rejected)
+- White overlay hides bottom action in create identity view
+- Email content disappears after marking as `star/unstar` when thread is disabled
+
+## [0.19.6] - 2025-10-12
+### Fixed
+- Remove Reply-to in one-line field
+
+## [0.19.5] - 2025-10-10
+### Fixed
+- Fix bug relate to recipients 
+
+## [0.19.4] - 2025-10-08
+### Changed
+- #4075 Move Attachment panel to top on web view
+
+### Fixed
+- Drag & drop text in composer must be move, not copy
+- #4013 Remove prefix in recipient fields when it is not focus
+
+## [0.19.3] - 2025-09-26
+### Added
+- Translation vi, en, ru, fr, uk
+
+### Fixed
+- gray screen when comeback app from background
+- rule filter dialog auto close when click outside
+- Server setting for readonly fields
+
+## [0.19.2] - 2025-09-19
+### Fixed
+- Cannot Next/Previous email when thread disabled on web
+
+## [0.19.1] - 2025-09-19
+### Fixed
+- Fix cannot send email after close attachment reminder dialog
+- Fix thread detail next/previous
+- Fix email content is broken when perform previous/next email then back to app
+- Fix click twice on the signature collapse button to view signature when composer has Cc or Bcc
+- TF-4029 Fix singular vs plural for attachments
+- Translated using Weblate (Ukrainian)
+
+## [0.19.0] - 2025-09-17
+### Added
+- #4004 Rule filter: loading bar, preview/hide conditions, redesigned create rule view (web & mobile), new empty state
+- #4009 Attachment text detector
+- #3985 Premium capability for paywall when running in SaaS mode
+- #3977 Option for Disable/Enable Spam banner 
+- #3996 Group context menu actions
+
+### Changed
+- #4002 Change folder creation modal 
+
+### Fixed
+- Fix cannot drag & drop attachment from email detailed view to composer on web
+- Fix cannot open email on tablet/iPad
+- #4014 Fix copy & paste images broken after going full screen
+- #4011 Support arrow keys to regain focus after deleting a recipient
+- #3894 Fix blank email content when opening email (stalwart)
+- #4000 Improve attachment handling in detailed view (show all button hidden by default)
+- #3998 Reduce size of toggle in vacation settings
+- #3989 Open email modal with single click on mobile & web
+- HOTFIX: Enable reply toggle regardless of thread setting
+- HOTFIX: Enable iOS quote toggle
+- HOTFIX: Realtime update while searching on mobile
+- HOTFIX: Next/Previous navigation broken after realtime update (#3990)
+
+### Tests
+- Added numerous E2E and integration tests:
+  - Mailbox actions: switch, pull to refresh, toggle read/star/spam, mark unread, move/delete, quick filter, count real-time update, subfolder management
+  - Composer: read receipt, attachment & inline
+  - Email view: view inline images, download attachment, scroll long/short/XSS content, copy email address, display address info
+  - Rule creation: by email address, list redesign, no-content state
+  - Reply email with Reply-To
+  - Trash/Spam mailbox empty & recover
+  - Team mailbox receive email, quota view increase, search mailbox
+  - Logout flow
+
+## [0.18.4] - 2025-08-28
+### Fixed
+- Handle color picker in vacation, identity
+- Cursor jumping in composer
+
+## [0.18.3] - 2025-08-27
+### Fixed
+- Translation Portuguese, French, Irish, Chinese, Vietnamese, Russian
+- Safari input
+- Sort order in advanced search
+- Close color picker
+- Integration tests
+- Icons in editing rule
+- Handle popback in deleting identity, email rule
+
+## [0.18.2] - 2025-08-22
+### Fixed
+- Hot fix pod.lock to build iOS
+
+## [0.18.1] - 2025-08-22
+#### Changed
+- Revert `Build gz files during build, not during startup (Closes: #3920)` to find better solution to have also correct env files in build
+
+## [0.18.0] - 2025-08-22
+### Added
+- #3834 Remember user sort
+- #3912 [Thread Detail] Real time update issue
+- #3914 Apply new style for action on hover in list
+- #3919 Change logo for `Download Twake Mail application` banner on web mobile app
+- #2948 Apply New Identity view
+- #2666 Edit one recipient in cc, bcc, to
+- Update Cozy integration doc (#3905)
+- Build gz files during build, not during startup (Closes: #3920)
+- Auto create email address tag for input field
+- Apply new design for recover deleted emails
+- Support vertical scrolling email view when cursor is over calendar event description
+- Support vertical scrolling of all information between app bar and bottom bar in email view
+- Translated using Weblate (Chinese (Simplified Han script))
+- Translated using Weblate (French)
+- Translated using Weblate (Irish)
+- Translated using Weblate (Russian)
+- Translated using Weblate (Vietnamese)
+
+### Changed
+- #3586 [Bug] Can not open links on mail in mobile device after taking a scroll action
+- Change order of attachment and mail body on desktop and mobile
+- Update Thread Detail Reply toggle design
+- Update toast message when start download all attachment
+
+### Fixed
+- #3963 Context menu actions
+- #3964 [BUG] Text is not well displayed when preview email
+- #3953 Close modal when user clicks out of modal
+- #3944 Update new style for  Composer
+- #3924 [Thread Detail] Blinking when loading thread
+- #3947 [Thread Detail] [Part 2] Thread level actions
+- #3941 [Thread Detail] [Part-1] Thread level actions
+- #3940 Browser back button doesn't work as expected when inside Cozy dashboard
+- #3939 Display minor action on '…' menu in mobile view
+- #3936 [Thread Detail] Hide app bar icons when thread is disabled
+- #3933 Avoid load fonts from `https://fonts.gstatic.com`
+- #3956 Adjust UI for Vacation section in setting
+- #3952 Change new UI/UX for Forwarding section in setting
+- #3950 Apply new style for Folder visibility
+- #3945 Change style for Signature Composer
+- #3918 Email text be overlapped in body
+- #3889 Phone: Cannot see input when typing email body with attachments
+- #3864 [MANAGEMENT] Pasting address with display name
+- #3833 Failed to keep mobile app connect after network issue
+- #3294 BLUE-BAR mail to attentees: duplicated recipients
+- HOTFIX Thread Detail show actions when setting enabled
+- HOTFIX Compile error
+- HOTFIX Update flutter docker image for 3.27.4
+- Hot fix green background signature in profile setting
+- Fix attachments cannot be export multiple times in mobile
+- Remove files are not used
+- Apply new style for create identity view on mobile
+- Apply new style for create identity view on desktop
+- Set padding for email address tag in input field
+- Reuse widgets for advanced search form view
+- Use common `FilterField` & `EmailReceiveTimeType` objects for the entire app
+- Avoid calling `getMinInputLengthAutocomplete` multiple times from session
+
+## [0.17.2] - 2025-07-24
+### Fixed
+- Safari long email content be clipped
+- Safari drag n drop image be placed under signature
+- Remove space in Re/Fwd and `:` in French
+
+## [0.17.1] - 2025-07-21
+### Fixed
+- Blank email in thread detail after open email from notification
+- Content spacing between email in thread detail
+- Temporary disable Toggle quote in iOS (due to platform issue: click link in web view)
+
+## [0.17.0] - 2025-07-20
+### Added
+- TF-3881 Thread Detail improvements and fixes.
+- TF-3878 Thread Detail content and setting fixes.
+- TF-3699 Thread Detail next/previous actions.
+- TF-3731 Thread Detail email cache optimization.
+- TF-3837 Thread Detail offline view adjustment.
+- TF-3804 Thread Detail parallel email loading.
+- TF-3844 Thread Detail context menu style fix.
+- TF-3845 Thread Detail blue bar scroll fix.
+- TF-3775 Thread Detail UI and functionality improvements.
+- TF-3720 Thread Detail email display refinements.
+- TF-3698 Thread Detail refactoring and real-time updates.
+- TF-3769 Thread Detail comprehensive UI/UX and performance enhancements.
+- TF-3697 Open specific thread detail email.
+- TF-3724 Thread Detail UI and action optimizations.
+- TF-3715 Thread Detail extensive bug fixes and action refinements.
+- TF-3644 Thread Detail scroll handling.
+- TF-3643 Thread Detail extensive UI/UX, performance, and data handling improvements.
+
+### Fixed
+- TF-3835 Android font selection fix.
+- HOTFIX Integration tests and Patrol version updates.
+- Spam banner/alert UI updates.
+- TF-3847 Stalwart server avatar fix.
+- Profile and Language settings UI/UX improvements.
+- Font rendering consistency.
+- Advanced search tag handling fix.
+- Preferences and Settings UI redesign.
+- Modal and dialog UI updates.
+- TF-3846 Notion email mobile view fix.
+- Custom font loading optimization.
+- TF-3826 Webfinger and network error handling for login.
+- #3885 Fix language default 
+- Android API 35 support
+
+## [0.16.4] - 2025-07-01
+### Fixed
+- Changing from Hive to HiveCE for fixing synchronizing issues when multiple isolate access to db
+- Cursor pointer is wrong color
+- #3819 Fix modified signature not saved in Draft
+- Incorrect Support button alignment
+- #3822 Quota view misaligned
+- #3792 Hide button in blue bar if user is not a participant
+- #3177 Fix drag n drop image make double signature
+
+## [0.16.3] - 2025-06-20
+### Added
+- Translation
+
+### Fixed
+- lottie not work in EML preview
+- style for Trash/Spam banner mobile
+- #3791 sending queue email lost body
+
+## [0.16.2] - 2025-06-20
+### Fixed
+- [iOS] update privacy manifest for lottie library
+- Translation
+- #3792 Reply email with only blobId or partId
+
+## [0.16.1] - 2025-06-19
+### Fixed
+- [iOS] Update new profiles for iOS release
+
+## [0.16.0] - 2025-06-18
+### Fixed
+- #3772 Change Splash screen
+- #3795 Fix cannot send emails with stalwart
+- #3712 Common settings for language
+- #3603 Cozy app bar
+- #3766 Change context menu for mobile
+- #3759 Change context menu for web app
+- #3763 Update style for Advanced search form
+- #3767 Recent items for search history
+- #3765 Change dialog style
+- #3786 Add Return-Path header when request read receipt (- #3790)
+- #3764 Empty view for folder
+- #3758 Update Mailbox View
+- #3773 Change banner of Trash/Spam folder
+- #3761 Fix correct size for search icon in mailbox search
+- #3752 Better error handling when updating recipients in Forwarding
+- #3760 Change style of input dialog on web
+- #3717 Allow access settings when own email address is null (Stalwart interopability)
+- #3484 Try get oidc configuration if possible when web finger is not available (Stalwart interopability)
+- #3762 Update style for `Clean` button of Trash/Spam folder
+- #3675 Remove mark all read button
+
+## [0.15.5] - 2025-05-19
+### Fixed
+- Changing position of Get help button in Left menu
+- Open email in new tab Safari v16.6
+- #3735 Clearer warning message in composer when adding recipient
+- #3740 Duplicate signature when changing From field
+- Back button in Search list mobile
+- #3701 Translation for favorite toggle 
+
+## [0.15.4] - 2025-05-19
+### Fixed
+- #3691 support html escape in search result
+- #3703 Some mail still have scroll left in mobile to see content
+- #3696 Upgreade ios build with xcode 18
+- Missing signature in mobile
+- #3684 Signature in wrong place if move inline image
+- #3671 Composer are blocked without network
+- #3704 Rearrange mailbox view
+- #3683 Fix draft save toast only show one time
+- #3685 `From` is displayed incorrectly in Draft on mobile
+- #3719 Handling `notFound` in Email/get
+- #3719 Handling requestTooLarge error 
+- #3678 Support semantic for Set as default identity
+- Translation
+
+### Added
+- #3707 Add Mailbox/clear to clear mailbox
+- #3515 Save as template
+
+## [0.15.3] - 2025-04-22
+### Fixed
+- #3670 Forwarding email make attachment bar disappear
+- #3661 Fix memory leak for file picker
+- #3674 Refactor reply email base on thunderbird logic
+- Handle session in case of using isolate for Mark as Read, Empty Trash, Empty Spam
+
+## [0.15.2] - 2025-04-15
+### Added
+- #3578 Blue bar: free and busy status
+- #3589 Add CalendarAttendance method
+- #3591 Add Calendar Counter event action
+
+### Fixed
+- Mobile E2E tests: forward email,
+- #3501 Inlined answer mus be shown on base level
+- #3601 Height Limit in webview in iOS
+- Try to wrap content for text/plain
+- #3487 Error handling for some cases: get email content, refreshing, get mailbox
+- #3623 Duplicate confirm buttons in creating identity
+- #3640 Increase composer size in case of singel composer
+- #3621 Fix search return wrong result with Doesn't have 
+- #3622 Display exceeded image 
+- #3507 Pull to refresh to resolve missing cache in mobile
+- #3647 Disable email zoom in mobile
+- Handling refreshToken in composers
+- #3651 Support mailto url from Openpaas
+- Reply to own sent email
+- #3656 Fix identities was not updated between Settings and Dashboard 
+- #3659 Cannot remove forward
+- #3627 Standalize scrollbar for composer 
+- Suppport preview image with mimeType application/octet-stream
+- #3665 Autocomplete position
+
+## [0.15.1] - 2025-04-01
+### Changed
+- Update User guide
+
+### Fixed 
+- Display name of auto completion
+- #3584 PDF viewer in old Safari (16.6)
+- #3585 Read receipt was not showed in mobile
+- #3593 Close composer after reload maybe lost email
+
+## [0.15.0] - 2025-03-19
+### Added
+- #1192 Support multiple composer
+- #3450 Preview of other simple attachments (`image/*`, `text/plain`, `text/markdown`, `application/json`)
+- Translation zh_Hans, ga, de
+
+### Fixed
+- #3410 Reduce color noise
+- #3511 Android email view system back action
+- #3502 Composer image loading icon
+- #3533 Migrate android gradle plugins
+- #3548 Handle exceeded quota
+- Disable charset detector on iOS as workaround to fix build ios fail
+
+## [0.14.15] - 2025-03-10
+### Added
+- #3349 Sender can set priority in composer
+- #3349 Display priority in Email list 
+
+### Fixed
+- #3517 Fix "Reply to *me*" field is added when save an email as draft
+- #3407 Enable SelectableText for email display name in EmailAddressDialogBuilder
+- #3318 Fix black pixel when clicking on attachment with long name
+- #3316 Fix inconsistent vacation message
+- #3293 Fix blue bar cannot select action banner text
+- #3461 Add sort by message size
+- #3472 Only display attachment in one line
+- #3514 Detect base64 image and transform to CID attachment
+- #3539 Autocomplete not show display name
+- #3539 Can not paste emails in mouse out focus and tab button
+
+## [0.14.14] - 2025-02-25
+### Added
+- Translation vi, ta, ru, fr, de
+
+### Fixed
+- Send email in Cyrus
+
+
+## [0.14.13] - 2025-02-19
+### Fixed
+- #3298 blink when refresh mail list
+- #3291 Search with multiple from address
+- #3264 Fix composer drag n drop
+- #3292 Search by date and sort with relevance is not working
+- #3294 Fix duplicate email in Blue bar: Mail to attendee
+- #3295 Clickable in mail address in Blue bar
+- #3296 Search with star filter
+- #3315 Email display table correctly
+- #3219 Display limit of email recovery
+- #3275 iOS foreground desync
+- #3312 Fix logout dialog for mobile app
+- #3181 Display contact support for mobile
+- #3290 Only show reconnection confirm dialog when composer is opened
+- #3189 new option to enable/disable subaddressing for a personal folder
+- #3260 Display App Grid Linagora Ecosystem
+- #3454 Download all attachments as ZIP
+- #2469 Fix email set into root mailbox's SENT instead of team mailbox's SENT (#3482)
+- #3488 Add hide download taskbar feature
+- #3466 Fix refresh folds folder
+- #3444 Fix could not expand folder tree in folder visibility on iOS
+- #2305 Cyrus support
+- #3345 Fix sort order blinks when deleting emails in search
+
+### Added
+- #3278 Handle open app from TWP page
+- Upgrade with Flutter 3.24.5
+
+## [0.14.12] - 2025-01-23
+### Fixed 
+- #3267 Preview HTML for mobile
+
+## [0.14.11] - 2025-01-21
+### Fixed
+- #3430 Reply/Forward indicator will be synced after sent email
+- #3408 Support load more in auto complete
+- #3337 Reduce unnessary JMAP request for vacation when open Setting pages
+- #3424 Preserve format for text/plain email
+
+### Added
+- #3416 Preview EML
+- #3267 Preview HTML
+- #3406 Edit as a email
+- #3427 Print composing
+
+## [0.14.10] - 2025-01-10
+### Fixed
+- Editor height is infinite
+
+## [0.14.9] - 2025-01-10
+### Fixed
+- #3396 Call latest change and update relevant state (ca51f78f0)
+
+## [0.14.8] - 2025-01-09
+### Fixed
+- #3396 Fetch latest change when open the app 
+- #3385 Fix loading forever after delete all email in one folder
+- #3323 Handle reconnect websocket in somecases: laptop in sleep, network change
+- #3413 Add Reply to list button
+- #3399 Fix focus in composer in mobile browser
+
+## [0.14.7] - 2025-01-05
+### Fixed
+- Delegate cache control from Flutter to browser
+
+## [0.14.6] - 2025-01-03
+### Fixed
+- #3372 Paging empty trash
+- #3370 Limit Email/set with limit is min of (50, maxObjectsInSet)
+- #3379 Show replyAll button in case recipients not include me
+- #3385 Realtime update UI base on Email/set
+- #3344 Paste recipients to composer
+
+## [0.14.5] - 2024-12-26
+### Fixed 
+- #3336 Make Echo ping of web socket optional
+- #3347 Format Calendar event description
+- #3341 Enable Web socket for mobile in foreground
+- #3334 Remove all own resynch after any actions in mailbox, email
+- #3333 Remove Mailbox/query for spam banner when reload app
+- #3332 Remove resynch when switching mailbox
+- #3372 Remove Mailbox resynch when Emptying trash
+- #3369 Display CID without disposition as an attachment
+
+### Added
+- #3181 Contact support 
+
+## [0.14.4] - 2024-12-18
+### Fixed
+- #3349 Sanitize HTML when forward/reply/replyAll an email
+- #3349 Sanitize HTML when print email
+- #3349 Add recipients information to the email body when forward/reply/replyAll an email
+
+## [0.14.3] - 2024-12-16
+### Fixed
+- Disable Spell check API 
+
+## [0.14.2] - 2024-11-20
+### Added
+- #3010 Highlight search result with SearchSnippet method
+- Translate vi, ru, fr
+
+### Fixed
+- #3253 Fix body content is lost
+- Close keyboard when login in iOS
+- #3250 Fix share file from external app to Twake Mail
+- #2528 Sorting email by order ids list of Email/query
+- #3221 handle mailto with additional cc and bcc
+- #3276 Fix debouncer in Quick Search web app
+- #3256 Fix cache config for static file in web app
+
+## [0.14.1] - 2024-11-13
+### Changed
+- Integrate with TWP production
+
+## [0.14.0] - 2024-11-09
+### Added
+- #2387 TWP Registration from mobile 
+- #3157 Web socket to replace FCM in web app
+- #2953 Mobile integration test with Patrol 
+
+### Fixed
+- #3244 `To` filter should apply also for `cc` `bcc`
+- #3243 some tags still be in sanitizing
+- #3178 Only Space in Name verification for Identity, Rule Filter, Vacation
+- 3D links not work on mobile
+- Focus problem in `tab` in Basic Auth login form
+- #3225 Print button blink blink
+- #3222 Hide reply calendar event action button
+- #3247 Cc is lost if open email from Quick search result
+- #3200 Update option menu for personal folders
+- Support German
+
+## [0.13.6] - 2024-11-07
+### Fixed
+- Remove app grid in mobile
+
+## [0.13.5] - 2024-10-24
+### Fixed
+- Sanitize html 
+
+## [0.13.4] - 2024-10-17
+### Added
+- Configuration for deploy platform 
+
+### Fixed
+- Change logos to beta and move position of version label on web
+
+## [0.13.3] - 2024-10-16
+### Fixed
+- \#3002 \[SEARCH\] More filters
+- \#3004 \[SEARCH\] Fix open close advanced search looses data
+- \#3005 \[SEARCH\] Easily clear From and To search result header
+- \#3006 \[SEARCH\] mail address handling in quick search bar
+- \#3007 \[SEARCH\] Support drag and drop between From & To field
+- \#3025 \[SEARCH\] Mark as read/unread/important/unimportant action refresh email view, reset selection in Search
+- \#3192 \[SEARCH\] Update highlight style as design
+- \[SEARCH\] Add suggestion for From/To dialog when input is new email address
+- \#3045 Hide compose button situationally on mobile
+- Show app version on login view
+- \#2983 Fix download EML with special character
+- Fix alignment receive time in email view
+- Remove space when subject is empty or null
+- Remove blink blink of next & previous button in Email View
+- Fix hyperlink iOS still show full link
+- Replace dart:ui to dart:ui\_web when platformViewRegistry in dart:ui is deprecated
+- \#3183 Clean up draft after email sent
+- \#3034 Prevent duplicate draft warning
+- \#3171 Fix duplicate signature button on Composer view changed
+- Simplified the prebuild script
+- Translation vi, ru, fr, de
+
+## [0.13.2] - 2024-09-18
+### Added
+- User guide
+- Todo list for Release
+
+### Fixed
+- Fix identity creator view on mobile
+- #3088 Ending date of date picker is not correct
+- #3077 Remove stacktrace from error toast
+- #3113 Cannot empty spam on mobile by isolate
+- #2769 Weird toast when upload attachment failed on mobile by isolate
+- #3082 Caching editor when user edit identity
+- Replace !is with is!
+- #3051 Prevent creating email rule with no action
+- #3035 Store identity in draft
+- #3087 Add email address to the suggestion list when user input email address in the composer
+- #3123 Fix load more button show irrelevant
+- #2903 Fix 3D links in email
+- #2602 Detect charset for text attachment
+- #2965 Handle error for checking OIDC failure
+- #3114 Prevent buttons is covered by keyboard in identity creator view 
+- #2940 Add speller check for some other place: identity creator, subject email composer, vacation form
+- Update README.md
+- Translation vi, ru, fr, 
+
+## [0.13.1] - 2024-08-28
+### Fixed
+- Get SMime signature status in headers parsed value
+
+## [0.13.0] - 2024-08-23
+### Added
+- #2857 New icon for Twake Mail
+- #3023 Display SMime signature status in headers email
+- #2975 Change the layout main screen in mobile app
+- #3042 Support PublicAsset in Signature
+
+### Changed
+- Upgrade jmap_dart_client v0.2.0
+
+### Fixed
+- #2973 Adjust remove button in rule creator
+- #2806 Disable reload button of mailbox list in desktop layout
+- #2925 Handle of loading email list when switch mailbox
+- #2976 New design for email list in desktop layout
+- URL concat for APIs endpoint 
+- #2893 Standardize Appbar and App grid
+- #2676 Handling create identity with empty name
+- #2724 Fix automatically scroll down when user edit Identity
+- #2721 Fix show list email when user changed filter or sort order on iOS
+- #2951 Remove `Clean` button, `Empty Trash/Spam now` banner and `Filters` when there is no email in `Spam/Trash` folder
+- #2949 remove duplicated information in email of calendar event
+- #2931 Filter empty name identity 
+
+## [0.12.1] - 2024-07-18
+### Fixed
+- Upgrade minimumOS version to 12.0 [iOS]
+
+## [0.12.0] - 2024-07-18
+### Added
+- #2988 Upgrade to Flutter 3.22.2
+- Translation vi, ru, fr, mfe
+
+### Fixed
+- #2907 Disable `YES/NO/MAYBE` action for events when missing `METHOD/ORGANIZER/ATTENDEES`
+- #2945 Quick select for Request Read Receipt
+- #2989 Drag n Drop text in Email composer
+- #2946 Copy action for own email address in User information
+- #3000 Long list of recipients in reading email
+- #2871 Plain notificaiton for iOS
+- #2929 Button is truncated in French or long text in Vacation banner 
+- #2972 Change color for `Clean` button
+- #2928 Detect session expired and notice to user
+- #2930 Inline image in Draft 
+- MarkAsSpam not displayed when editing rule filter
+
+## [0.11.5001] - 2024-07-05
+### Added
+- #2877 Notification settings inside app
+- #2901 Store composer cache to prevent user losts input when token need refresh
+
+### Fixed
+- #2644 Warning when sending large Email
+- #2677 Handle sending/saving email failed with progress dialog
+- #2684 Select text in Blue bar
+- #2717 Improving Composer UI in mobile to have more space to input recipients
+- #2671 Handle signature sometimes disappear
+- #2215 Communicating l10n to remote servers
+- #2919 Handle composer stability: memory leak, inout many recipients
+- #2868 Bold curso should correspond to the typing text
+- #2827 Prevent clicking reply before content is loaded
+- #2532 Update Attachment flow in mobile app
+- #2584 Improve composer mobile in toolbox (Text style, Attachment, Inline image)
+- #2475 Rich text not work in composer
+
+## [0.11.4002] - 2024-06-04
+### Added
+- #2764 Add PDFViewer to view preview PDF in email
+- Translate vi, ru, fr
+
+
+## [0.11.4001] - 2024-05-22
+### Fixed
+- #2890 Remove fake reason in parsing cancelled calendar event
+
+## [0.11.4] - 2024-05-22
+### Fixed
+- #2599 Prevent notification flood by set silent for all notification except group notification
+- #2860 Improve notification for iOS to update with APN requirements
+- #2850 Replace new TWP app's icons
+- #825 Download email as EML file
+- #2858 Store CalendarEvent actions in `keywords`
+- #2859 Insert l10n in CalendarEvent actions
+- Translation vn, fr
+
+### Added
+- #2425 CalendarEvent actions: Adccept/Maybe/Reject
+
+## [0.11.3-patch4-16] - 2024-05-07
+### Fixed
+- #2835 Change properly exception handler for AuthenticationOIDCDatasource
+- #2830 Add forward recipient directly when click on Add recipient button
+
+## [0.11.3-patch4-15] - 2024-05-18
+### Fixed
+- Upgrade AppAuth library in iOS
+- Fix iOS build
+
+## [0.11.3-patch4-14] - 2024-05-03
+### Fixed
+- FR translation for read receipt
+- #2810 Handle crashed when no browser available for OIDC
+- #2533 Using `pagehide` instead of `beforeunload` to remove listener in composer to prevent memory leak
+- #2835 Fix multiple requests in onError queue make the refreshToken logic failed
+- #2831 Custom message for forwarding warning message
+- #2830 Improve adding recipient in forwarding
+- #2836 Remove button with no effect on mobile
+
+## [0.11.3-patch4-13] - 2024-04-15
+### Fixed 
+- #2533 Remove iframe listener in composer (memory leak in composer)
+- #2533 Remove file picker memory leak in composer
+- #2758 Use web view to display calendar description
+- #2785 Prevent user try to click on print email too early
+- #2310 Fix Hive check in some browser block web app loading
+
+## [0.11.3-patch4-12] - 2024-04-05
+### Fixed
+- #2774 Try to display big signature fit in composer
+- #2772 Fix printing a blank page in center of printed email
+- #2628 Disable PDF viewer in Web app
+- #2773 Fix text overflow in warning dialog of forwarding feature
+- #2533 Fix memory leak in Composer and Email view
+- Handle service worker in web app
+- Fix reload app still keep composer open
+
+## [0.11.3-patch4-11] - 2024-04-01
+### Fixed
+- #2460 Implement realtime update for web app in background
+- #2646 Change term `Select All` to `Select all message of this page`
+- #2694 Clear sort order in search when select another mailbox
+- #2754 Add handler to preview PDF in Edge, Opera
+- #2735 Add gesture back for composer in Android 14
+- #2658 Fix background color in data time picker
+
+## [0.11.3-patch4-10] - 2024-03-22
+### Fixed
+- #2730 Fallback value for Always read receipt settings is false
+- #2628 Disable view PDF file in mobile
+- #2726 Remove logo in printed email
+- #2737 View PDF in js to support download with name
+
+## [0.11.3-patch4-9] - 2024-03-15
+### Added
+- Always settings for read receipt request
+- Translate en, fr, ru, vi
+
+### Fixed
+- Copy/Drop text from LibreOffice files to composer
+- Download PDF file from Chrome viewer
+- Download attachment for mobile
+- Small improvement for Printing email
+
+## [0.11.3-patch4-7] - 2024-03-08
+### Fixed
+- #2597 Handle one action in the same time in composer
+- Handle crash in composer when try to open/close composer many times
+
+### Added
+- #2628 Download and Open PDF file: Open by clicking on file - Download by clicking on download icon
+- #2613 Warning when forwarding email to external email address
+- #2520 Print email in PDF 
+
+## [0.11.3-patch4-6] - 2024-02-26
+### Fixed
+- #2326 Display total count of Draft 
+- #2362 Auto load more in big screen
+- #2465 Fix wrong time format in Blue bar
+- #2633 Fix blink blink in composer [Web]
+- #2599 Resolve notification flood in Android
+
+## [0.11.3-patch4-5] - 2024-02-21
+### Fixed
+- #2611 Get only one by one in FULL level when receive changes in notification
+- #2502 Fix all day event in Blue bar
+- Fix text disappear in redirect banner
+- #2610 Standardize the way to display attachment
+- Translate Vietnamese
+- Translate French
+- Translate Russian
+- Translate Arabic
+- #2537 Fix app crash when trying attach file in mobile-browser
+
+## [0.11.3-patch4] - 2024-02-19
+### Fixed
+- #2564 Change logic empty folder (Spam/Trash) to avoid cache still has data
+- #2464 Fix wrong iOS notification when Email changes
+- #2596 mailto with multiple recipients
+- #2560 Fix wrong focus in composer make it can not close
+- #2536 Change the logic to get all mailbox
+- #2592 Hide toast message when get error token expired
+- #2565 Redirect banner on mobile web app
+- #2479 Hide marAsSpam action in `Email_view` & team-mailbox
+- #2540 Fix selected Email address at `to/cc/bcc` fields are moving too close to the bottom of input field
+- #2460 Cancel deleting firebase token after logout
+- #2539 Fix selected email address at `to/cc/bcc` fields are having weird border
+- #2538 Fix email suggestion list is having weird white overlapping
+- #2531 Fix cannot see all recipients list if email have a lot of recipients
+
+## [0.11.3] - 2024-01-12
+### Fixed
+- Get plain notification on iOS
+
+## [0.11.2] - 2024-01-12
+### Changed
+- Disable Work Manager in sending email automatically
+
+## [0.11.0] - 2024-01-09
+### Added
+- Larger scrollbar in email list view on web
+- Archive messages
+- Email recovery
+
+### Changed
+- Upgrade flutter version 3.16.0
+- Schedule build to run on workday end (11:00 UTC)
+- App Icon, Splash Screen, App Name, Notification Icon
+
+### Fixed
+- Sorting in search
+- Attachments are not displayed
+- Read receipt includes weird attachments that are impossible to download
+- Jumping screen when clicking on Cc, Bcc
+- Missing body when read mail with ics attachment
+- User cannot see the suggestion when recipient is longer than 10 on mobile
+- Recipient list in field Cc is not in correct position
+- Large image in identity
+- Cannot upload svg image as signature
+- Native browser navigation
+- Filter in quick search result on browser
+- Duplicate searching result after load more
+- Notification on mobile (Android/iOS)
+- Change language setting subtitle
+- Cannot clickable signature button in composer if the body is longer than 1 line
+
+## [0.10.5] - 2023-11-21
+### Added
+- Support multiple condition/actions for Filter Rule
+- Support Cyrus/Stalwart server
+- Sorting search results
+- Autocompleting people in quick search
+- JMAP endpoint auto discovery
+- Unsubscribe from email/mailing lists
+
+### Fixed
+- Suggestion displayed on top when having many recipients
+- Add field 'From' to composer
+- Change input suggestion field for fields 'From/To' in advance search
+- Spam banner
+- Mark as read when moved to spam
+- User has been log out once the network connection is not stable
+- Offline mode on iOS
+- Selection mode when dragging and moving email
+
+## [0.10.4] - 2023-10-31
+### Added
+- Communicating L18n to remote servers
+
+### Fixed
+- Mark as read multiple message have the trouble on mobile
+- Empty trash have the trouble on mobile
+- Upload image/attachment have the trouble on mobile
+
+## [0.10.3] - 2023-10-27
+### Fixed
+- Build release on iOS
+
+## [0.10.2] - 2023-10-27
+### Added
+- Change font size in composer
+- New attachment view
+- Scroll to top on web
+
+### Fixed
+- Message content is cutted
+- Signature button is included in email content
+- Download error when token refreshed
+- Upload failed when token expired
+
+## [0.10.1] - 2023-10-11
+### Added
+- Scroll up button
+- Privacy policy
+
+### Fixed
+- Email content is cut
+- Focus in email composer
+
+## [0.10.0] - 2023-10-09
+### Added
+- \#2116 Apply new design composer
+- \#2118 Support drag and drop attachments from my PC
+- \#2172 Support drag and drop attachments from other mail
+- \#2194 Add action new subfolder
+- Translated Vietnamese/German
+
+### Changed
+- \#2125 README: refresh roadmap
+- \#2126 README: Credit Linagora better
+
+### Fixed
+- Fix not found object in bindings
+- Fix can not open new tab for email
+- \#2120 Fix drag and drop text inside the composer on web
+- \#1608 Set References and In-Reply-To fields
+- \#2157 Remove collapsed/expanded signature in EmailView
+- \#2168 Invalid recipient from mailto router
+- \#2167 Support CTRL+SHIFT+Z shortcut in composer on web
+- \#2176 Fix app grid on the tmail.linagora.com sometimes is outdated
+- \#2160 \[Mobile\] A part of the bottom of email content has been cut off, only happen with long email html template
+- \#2179 \[UI\] Some screen having menu label is overlap on Russian languages
+- \#2180 \[UI\] Suggestion list being hidden once user use device with small screen
+- \#2199 \[UX\] \[Suggestion\] User cannot see the email suggestion if that email is new with our system
+- \#2202 \[Offline\] Sending email failed when network is corrupted but wifi still in full
+- \#2189 \[Offline\] While app in offline, After click on send button in composer, dialog show, but when click outside the dialog, all disappear
+- \#2188 \[Offline\] Sending queue item sent failed but still in Sending queue
+- \#2190 \[Offline\] Offline proceed dialog is overlapped
+- \#2187 \[Offline\] Click on back button in Sending Queue mailbox then close the app
+- \#2182 \[BLUE-BAR\] No blue bar for Office 365 events
+
+### Security
+- \#2163 Add a security.md file
+
+## [0.9.3] - 2023-09-19
+### Fixed
+- \[HOT-FIX\] Fix built release but nginx route 404 not found on web
+
+## [0.9.2] - 2023-09-14
+### Changed
+- \#2134 \[WEB\] mailto URL
+- Translate Russian/French/German
+- \#2124 Add badges for downloads (#2140)
+- \#2123 Change license to AGPL-V3 - drop the OpenPaaS clause
+
+### Fixed
+- \#1844 Fix \[AdvanceSearch\] User cannot get the advance searching result once user use Enter without the clicking Search button
+- \#1845 Fix \[AdvanceSearch\] The searching result is not correct with the condition which mention in the description
+- \#1977 Fix clickable logo
+- \#1984 Fix \[Barcamp\] Counter for Trash/Spam + empty action for Trash/Spam
+- \#2026 Fix \[COMPOSER\] Save as draft should not close the composer
+- \#2129 Fix \[Attach image\] I cannot attach image
+- \#2135 Add Splash Screen for user to prevent blank page in the first time loading TeamMail app
+- \#2089 Add dash-dash-space to signature delimiter
+- Fix the login screen freezes when pasting the link in the browser address bar
+- Fix TextEditingController was used after being disposed in LoginView
+- Fix oidc refresh token on mobile
+
+## [0.9.1] - 2023-08-23
+### Fixed
+- \#1974 Fix refreshToken with OIDC on jmap.linagora.com/oidc
+- \#2099 Fix quota information are missing
+
+## [0.9.0] - 2023-08-18
+### Added
+- \#1710 Delete all spam emails
+- \#2064 Display banner when the quota reaches the limit
+- \#2078 Add calendar Yes/No/Maybe options
+
+### Changed
+- Upgrade flutter version to 3.10.6
+
+### Fixed
+- \#2047 Can not see the link when type is text/plain in email view
+- \#1981 Spam banner is too big
+- \#2066 Calendar not apply on version 0.8.9 when upgrade from old version
+- \#2067 Disable swipe left/right to next/previous email in email view
+- \#2068 Calendar banner widget is gray bar
+- Change SERVER\_URL to deployment PR success
+- \#1982 Change mailboxes label to folder
+- \#1714 Refreshing mailbox: display an animation while loading
+- \#2087 \[IOS/ ANDROID\] The Status Bar is missing when user change Dark theme mode in device system
+- \#1983 Create folder - How to create filter easier
+- \#2089 Fix pull-to-refresh in mailbox view
+- \#2092 Signature delimiter should be dash - dash - space
+- \#1961 Email text content could be temporarily truncated
+
+## [0.8.9] - 2023-07-31
+### Added
+- Translate Russian and French
+- Apply new view calendar event
+
+### Fixed
+- \#2052 Fix TeamMailbox email address alignment is incorrect
+- If no refreshToken return, maybe the old refreshToken still available
+
+## [0.8.8] - 2023-07-20
+### Fixed
+- \#2046 App crashes when login account information is incorrect on web
+
+## [0.8.7] - 2023-07-19
+### Fixed
+- \#1912 Fix rendering issue on TMail when reading an email
+- Fix re-login app when token expires in OIDC
+
+## [0.8.6] - 2023-07-14
+### Added
+- \#1486 Support inserting images in identity
+
+### Fixed
+- \#1868 Hide parent - show child: nothing displayed in the side bad
+- \#1898 There is no notification badge only on IOS
+- \#1985 Hoover to see the selection
+- \#1993 Has attachment checkbox is overflow once it be translated in russia
+- \#1994 Long press to copy an email address
+- \#2008 Instead of toasting for network connection, we should show a very small UI at the top of the list
+- \#2030 Turn off composer logs by defaults
+
+## [0.8.5] - 2023-07-14
+### Added
+- Translation (Arabic/Russian)
+
+### Fixed
+- \#1683 Remove Plain text option of message in VacationView
+- \#1895 \[Animation\] The screen seem be black before loading the email content successfully
+
+## [0.8.4] - 2023-07-07
+### Fixed
+- \#1932 Turn off notifications after emailing
+- \#1963 Bypass the Screen with button Single sign-on when OIDC flow is detected
+- \#1829 App crash upon 401
+- \#1933 The inbox and sending queue is highlight once some emails in sending queue was sent in the same time
+- \#1877 \[Composer\] Text Style is not changed correctly once user change the focus
+- \#1952 Display signature in composer on mobile
+- \#1974 RefreshToken with OIDC on jmap.linagora.com/oidc
+- \#1708 \[UI\] \[Change languages\] Translating system mailboxes (INBOX, etc…)
+- \#1957 \[RTL\] Email subjects are displayed overlap email content
+- \#1957 \[RTL\] Name of attachments are reversed
+- \#1958 \[RTL\] 'To' and 'Cc' fields are not displayed in the single line
+- \#1959 \[RTL\] Invalid email red border is displayed over the address field
+- \#1960 \[RTL\] Cannot edit signature in Profile Identity
+
+## [0.8.3] - 2023-06-27
+### Fixed
+- \#1878 Fix font family not changed correctly in composer
+- \#1913 Fix Email/changes is called multiple times when an error cannotCalculateChanges is returned
+- \#1931 Fix user cannot do infinity scroll when he turn off network and reconnect again
+- \#1923 Fix user cannot view that email content by click on the notification in Offline Mode
+
+## [0.8.2] - 2023-06-15
+### Fixed
+- Fix select font style always default when changed
+- Fix attachments not show when click ShowAll button
+- Fix alignment delete button in attachment item file of email view in RTL mode
+- Hide keyboard when open choose attachment dialog on mobile
+
+## [0.8.1] - 2023-06-15
+### Added
+- Support RTL mode
+- Dockerfile - Add new stage for minify js file
+- \[Docs\] Configure OIDC
+- Support configuration for OIDC scopes
+
+### Fixed
+- Fix disable connected network toast notification
+
+## [0.8.0] - 2023-06-12
+### Added
+- \#1786 Write stories for swipe in email item in ThreadView
+- Support Sending emails when offline
+- Support manage the sending queue
+- Support view/modify SendingQueue entries
+
+### Fixed
+- \#1862 Fix right click on email item in email list view
+- \#1851 Fix \[COMPOSER\] Selected rich text menu do not match current text status
+- \#1851 Fix \[COMPOSER\] Need to apply color twice for bold
+
+## [0.7.11] - 2023-06-05
+### Changed
+- Upgrade version flutter-typeahead
+
+## [0.7.10] - 2023-06-05
+### Added
+- Keep N recently opened email in the cache
+- Reading recent emails when on slow network/offline
+- Config work manager on mobile
+
+### Changed
+- Split the test report job for forks
+
+### Fixed
+- Force browsers to re-validate cache before reuse
+
+## [0.7.9] - 2023-05-08
+### Added
+- \#1792 Add option 'Empty Trash' in folder menu
+
+### Changed
+- \#1755 Use TupleKey('ObjectId\|AccountId\|UserName') store data to cache
+
+### Fixed
+- \#1385 Fix \[Email rule\] Icon edit and delete might be seen as disable
+- \#1677 Fix \[ManageAccount\]\[Forwarding\] Email validation is not working well
+- \#1687 Fix \[UI\] Unread counter and mailbox name are displayed not in single line
+- \#1735 Fix filters not applied to search
+- \#1743 Fix horizontal scroll bar in Email detail view
+- \#1798 Fix \[Toast\] Error message is displayed behind the keyboard on IOS platform only
+- \#1803 Fix advanced search can't clear 'Have the world'
+- \#1806 Fix impossible to disable used fonts in email composer
+
+## [0.7.8] - 2023-04-24
+### Added
+- Added workflow to create a deployment on PR
+
+### Fixed
+- \#1711 Fix the label is displayed overlap the button in France, Italian, Russia languages
+- \#1740 Fix double scrollbar in composer web
+- \#1759 Fix reply all do not always include me in recipients
+- \#1763 Fix duplicated email suggestion in the list
+- \#1767 Fix Reply/Forward: original message should be marked, not the sent one
+- \#1778 Fix system not display signature in email which has been sent
+- \#1779 Fix logic of replacing dot in long email
+
+## [0.7.7] - 2023-04-14
+### Added
+- \#1599 Remove notification when read and delete permanent email
+- \#1100 Display Answered / Forwarded keywords
+- \#1600 No notification for content of Draft, Sent, Outbox, email already seen
+
+### Changed
+- \#1598 Dismiss should mark emails in the spam box as seen
+
+### Fixed
+- \#1613 When network is down, Tmail shouldn't prompt for a password
+- \#1699 Support hide suggestion when scrolling list email to, cc, bcc.
+- \#1681 Add a dot at the end of the description
+- \#1687 Set name email and counter displayed in a single line
+- \#1685 Fix hover and click to button show all or hide attachments
+- \#1694 The Cancel/Save button is hidden in IdentityCreatorView
+- \#1688 \[Identity\] \[Crashed\] Tmail UI is broken after user create identity successfully by html style
+- \#1684 \[Identity\] User click on blank area but system redirect user to 404 not found page <weird link>
+- \#1679 \[Identity\] Button 'X' : Sometime it's hidden, sometime it's displayed
+- \#1693 \[Identity\] There are 2 cursors on Create Identity screen
+- \#1667 \[Energy-Economy\] Do not request spam on every email I move
+- \#1698 \[Mailbox\] System not redirect correct url when user double click many times to view email in mailbox
+- \#1677 \[ManageAccount\]\[Fowarding\] Email validation is not working well
+- \#1655 Add a line break after signature in composer
+- \#1665 App grid: Manage 3 apps and less beautifully
+- \#1544 \[UX\] User can not move to another fields by press TAB
+- \#1663 \[Compose\] Use cannot click to compose after system display an error message
+- \#1654 \[SLO\] Redirect to SLO page of the OIDC provider
+- \#1631 \[Notification\] User cannot receive new email notification
+- \#1666 \[COMPOSER\] Keyboard overriding rich text context menu on mobile
+- \#1569 \[BackgroundApp\] Android system keeps showing an app that run at background
+- \#1749 \[Drats\] User cannot save drafts or send email if that email already at drafts mailbox
+
+## [0.7.6] - 2023-04-06
+### Added
+- \#1510 right click for app grid item
+- Handle text, contact in Share with TeamMail in Android
+- Translation
+- \#1581 Support RTL
+- \#1606 support relative path in Session
+
+### Changed
+- \#1487 upgrade to Flutter 3.7.5
+- Update the error handler with BadCredentialException
+- Increase minimum supported iOS version to 11
+- Cache settings for nginx
+- \#997 new design for date-range-picker
+
+### Fixed
+- Auto scroll when expand mailbox
+- \#1472 fix position of Toast in mobile
+- \#1513 richtext toolbar is lost in mobile
+- \#1477 fix search
+- \#1521 fix can not scroll to read long email in Android
+- \#1527 fix focus in composer
+- \#1162 fix open link
+- \#1549 fix overlapped long text
+- \#1539 support space for inputing name in auto suggestion in Search
+- \#1528 input indicator is cut at the bottom of composer
+- \#1594 can not send email because Controller is killed
+- Fix drag n drop email
+- \#1573 fix cursor in Android
+- \#1611 prevent blocking when user input html in vacation
+- \#1604 missing capability for team mailbox
+- \#1440 user can not sign in with OIDC when press back button in auth page
+- \#1657 fix broked infinite scroll
+
+### Removed
+- Remove menu action of Team Mailbox
+- \#1508 setBackgroundMessageHandler
+- \#1512 remove plain text input for signature
+- \#1469 remove animation when navigating screen
+
+[0.13.4]: https://github.com/linagora/tmail-flutter/releases/tag/v0.13.4
+[0.13.3]: https://github.com/linagora/tmail-flutter/releases/tag/v0.13.3
+[0.11.4002]: https://github.com/linagora/tmail-flutter/releases/tag/v0.11.4002
+[0.11.4001]: https://github.com/linagora/tmail-flutter/releases/tag/v0.11.4001
+[0.11.3]: https://github.com/linagora/tmail-flutter/releases/tag/v0.11.3
+[0.11.2]: https://github.com/linagora/tmail-flutter/releases/tag/v0.11.2
+[0.11.0]: https://github.com/linagora/tmail-flutter/releases/tag/v0.11.0
+[0.10.5]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.5
+[0.10.4]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.4
+[0.10.3]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.3
+[0.10.2]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.2
+[0.10.1]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.1
+[0.10.0]: https://github.com/linagora/tmail-flutter/releases/tag/v0.10.0
+[0.9.3]: https://github.com/linagora/tmail-flutter/releases/tag/v0.9.3
+[0.9.2]: https://github.com/linagora/tmail-flutter/releases/tag/v0.9.2
+[0.9.1]: https://github.com/linagora/tmail-flutter/releases/tag/v0.9.1
+[0.9.0]: https://github.com/linagora/tmail-flutter/releases/tag/v0.9.0
+[0.8.9]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.9
+[0.8.8]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.8
+[0.8.7]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.7
+[0.8.6]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.6
+[0.8.5]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.5
+[0.8.4]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.4
+[0.8.3]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.3
+[0.8.2]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.2
+[0.8.1]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.1
+[0.8.0]: https://github.com/linagora/tmail-flutter/releases/tag/v0.8.0
+[0.7.11]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.11
+[0.7.10]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.10
+[0.7.9]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.9
+[0.7.8]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.8
+[0.7.7]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.7
+[0.7.6]: https://github.com/linagora/tmail-flutter/releases/tag/v0.7.6

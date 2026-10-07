@@ -1,0 +1,1497 @@
+import 'package:core/data/model/source_type/data_source_type.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:jmap_dart_client/jmap/core/id.dart';
+import 'package:jmap_dart_client/jmap/core/state.dart';
+import 'package:jmap_dart_client/jmap/mail/email/email.dart';
+import 'package:jmap_dart_client/jmap/mail/mailbox/mailbox.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:tmail_ui_user/features/mailbox/data/datasource/state_datasource.dart';
+import 'package:tmail_ui_user/features/thread/data/datasource/thread_datasource.dart';
+import 'package:tmail_ui_user/features/thread/data/model/email_change_response.dart';
+import 'package:tmail_ui_user/features/thread/data/repository/thread_repository_impl.dart';
+import 'package:tmail_ui_user/features/thread/domain/constants/thread_constants.dart';
+import 'package:tmail_ui_user/features/thread/domain/model/email_filter.dart';
+import 'package:tmail_ui_user/features/thread/domain/model/email_response.dart';
+import 'package:tmail_ui_user/features/thread/domain/model/filter_message_option.dart';
+import 'package:tmail_ui_user/features/thread/domain/model/get_email_request.dart';
+
+import '../../../../fixtures/account_fixtures.dart';
+import '../../../../fixtures/session_fixtures.dart';
+import 'thread_repository_impl_test.mocks.dart';
+
+@GenerateNiceMocks([
+  MockSpec<ThreadDataSource>(),
+  MockSpec<StateDataSource>(),
+])
+void main() {
+  late MockThreadDataSource threadDataSource;
+  late MockStateDataSource stateDataSource;
+  late ThreadRepositoryImpl threadRepository;
+
+  setUp(() {
+    threadDataSource = MockThreadDataSource();
+    stateDataSource = MockStateDataSource();
+    threadRepository = ThreadRepositoryImpl(
+      {
+        DataSourceType.network: threadDataSource,
+        DataSourceType.local: threadDataSource,
+      },
+      stateDataSource,
+    );
+  });
+
+  tearDown(() {
+    reset(threadDataSource);
+    reset(stateDataSource);
+  });
+
+  void stubLocalEmailCache(List<Email> emails) {
+    when(threadDataSource.getAllEmailCache(
+      any,
+      any,
+      filterOption: anyNamed('filterOption'),
+      inMailboxId: anyNamed('inMailboxId'),
+      limit: anyNamed('limit'),
+      sort: anyNamed('sort'),
+    )).thenAnswer((_) => Future.value(emails));
+    when(threadDataSource.getAllEmailCache(any, any))
+        .thenAnswer((_) => Future.value(emails));
+  }
+
+  void stubLocalState([String value = 'local_state']) {
+    when(stateDataSource.getState(any, any, any))
+        .thenAnswer((_) => Future.value(State(value)));
+  }
+
+  void stubGetAllEmailChanges(EmailChangeResponse response) {
+    when(threadDataSource.getAllEmailChanges(
+      any,
+      any,
+      any,
+      propertiesCreated: anyNamed('propertiesCreated'),
+      propertiesUpdated: anyNamed('propertiesUpdated'),
+    )).thenAnswer((_) => Future.value(response));
+  }
+
+  void stubGetAllEmailChangesError(Object error) {
+    when(threadDataSource.getAllEmailChanges(
+      any,
+      any,
+      any,
+      propertiesCreated: anyNamed('propertiesCreated'),
+      propertiesUpdated: anyNamed('propertiesUpdated'),
+    )).thenThrow(error);
+  }
+
+  Future<List<EmailsResponse>> getAllEmailWithLatestChanges() => threadRepository
+      .getAllEmail(
+        SessionFixtures.aliceSession,
+        AccountFixtures.aliceAccountId,
+        getLatestChanges: true,
+      )
+      .toList();
+
+  void verifyGetAllEmailChanges() => verify(
+        threadDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        ),
+      ).called(1);
+
+  group('getAllEmail:', () {
+    test('when local cache is empty should fetch from network', () async {
+      // Arrange
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value([]));
+
+      when(stateDataSource.getState(any, any, any))
+          .thenAnswer((_) => Future.value(null));
+
+      final networkEmails = List.generate(
+        20, 
+        (index) => Email(id: EmailId(Id('network_$index')))
+      );
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+          emailList: networkEmails,
+          state: State('network_state'))));
+
+      // Act
+      final responses = await threadRepository
+        .getAllEmail(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+        )
+        .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, networkEmails);
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+      ));
+      verify(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test('when local cache has fewer than default limit emails '
+         'and no need getLatestChanges '
+         'should fetch from network '
+         'and state should not be saved',
+        () async {
+      // Arrange
+      final localEmails =
+          List.generate(5, (index) => Email(id: EmailId(Id('local_$index'))));
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+        .thenAnswer((_) => Future.value(State('local_state')));
+
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value as int,
+        (index) => Email(id: EmailId(Id('network_$index')))
+      );
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+          emailList: networkEmails,
+          state: State('network_state'))));
+
+      // Act
+      final responses = await threadRepository
+        .getAllEmail(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+          getLatestChanges: false,
+        )
+        .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, networkEmails);
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+      ));
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test('when local cache has sufficient emails '
+         'and no need getLatestChanges '
+         'should not fetch from network ',
+        () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value as int,
+        (index) => Email(id: EmailId(Id('local_$index')))
+      );
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+        .thenAnswer((_) => Future.value(State('local_state')));
+
+      // Act
+      final responses = await threadRepository
+        .getAllEmail(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+          getLatestChanges: false
+        )
+        .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, localEmails);
+      verifyNever(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      ));
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test('when local cache has insufficient emails '
+         'and no need getLatestChanges '
+         'should fetch from network '
+         'and state should not be saved',
+        () async {
+      // Arrange
+      final localEmails = List.generate(
+        5,
+        (index) => Email(id: EmailId(Id('local_$index')))
+      );
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+        .thenAnswer((_) => Future.value(State('local_state')));
+
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value as int,
+        (index) => Email(id: EmailId(Id('network_$index')))
+      );
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+          emailList: networkEmails,
+          state: State('network_state'))));
+
+      // Act
+      final responses = await threadRepository
+        .getAllEmail(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+          getLatestChanges: false
+        )
+        .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, networkEmails);
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+      ));
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    // why need to fetch first page if filter option is not "all"?
+    // try to cache all data of this folder, not miss any messages
+    test('when filter option is not "all" '
+         'and no need getLatestChanges '
+         'should fetch first page of all messages for this folder', () async {
+      // Arrange
+      final mailboxId = MailboxId(Id('mailbox_id'));
+      final localEmails = List.generate(
+        10,
+        (index) => Email(id: EmailId(Id('local_$index')))
+      );
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+        .thenAnswer((_) => Future.value(State('local_state')));
+
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value as int,
+        (index) => Email(id: EmailId(Id('network_$index')))
+      );
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+          emailList: networkEmails,
+          state: State('network_state'))));
+
+      // Act
+      final responses = await threadRepository
+        .getAllEmail(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+          emailFilter: EmailFilter(filterOption: FilterMessageOption.unread, mailboxId: mailboxId),
+          getLatestChanges: false,
+        )
+        .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      verify(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        filter: anyNamed('filter'),
+      )).called(2); // Once for initial fetch, once for first page
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+      )).called(2);
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test('when local has mail in cache and getLatestChanges is true should synchronize cache', () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value as int,
+        (index) => Email(id: EmailId(Id('local_$index'))));
+      final changedEmails =
+          List.generate(5, (index) => Email(id: EmailId(Id('changed_$index'))));
+      stubLocalEmailCache(localEmails);
+      stubLocalState();
+      stubGetAllEmailChanges(EmailChangeResponse(
+        hasMoreChanges: false,
+        created: changedEmails,
+        newStateEmail: State('new_state'),
+      ));
+
+      // Act
+      final responses = await getAllEmailWithLatestChanges();
+
+      // Assert
+      expect(responses.length, 2);
+      verifyNever(threadDataSource.getAllEmail(any, any));
+      verifyGetAllEmailChanges();
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: changedEmails,
+      ));
+      verify(stateDataSource.saveState(any, any, any));
+    });
+
+    test('when getChanges has more changes should fetch all changes', () async {
+      // Arrange
+      final localEmails = List.generate(
+          ThreadConstants.defaultLimit.value as int,
+          (index) => Email(id: EmailId(Id('local_$index'))));
+      final firstChanges = List.generate(
+          5, (index) => Email(id: EmailId(Id('change1_$index'))));
+      final secondChanges = List.generate(
+          5, (index) => Email(id: EmailId(Id('change2_$index'))));
+      stubLocalEmailCache(localEmails);
+      stubLocalState();
+      stubGetAllEmailChanges(EmailChangeResponse(
+        hasMoreChanges: false,
+        created: [...firstChanges, ...secondChanges],
+        newStateChanges: State('final_state'),
+        newStateEmail: State('final_state_email'),
+      ));
+
+      // Act
+      final responses = await getAllEmailWithLatestChanges();
+
+      // Assert
+      expect(responses.length, 2);
+      verifyGetAllEmailChanges();
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+      ));
+      verify(stateDataSource.saveState(any, any, any));
+    });
+
+    test('when local has mail in cache but network errors '
+         'should return email from local', () async {
+      // Arrange
+      final localEmails = List.generate(
+          ThreadConstants.defaultLimit.value as int,
+          (index) => Email(id: EmailId(Id('local_$index'))));
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+          .thenAnswer((_) => Future.value(State('local_state')));
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenThrow(Exception('Network error'));
+
+      // Act
+      final responses = await threadRepository
+          .getAllEmail(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+            getLatestChanges: false,
+          )
+          .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, localEmails);
+      verifyNever(threadDataSource.getAllEmail(
+        any, 
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      ));
+      verifyNever(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+      ));
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+  });
+
+  group('The functions regard to updateEmailCache:', () {
+    test(
+        'when local cache is empty should fetch from network '
+        'and network has mail not found '
+        'should delete mail not found in cache', () async {
+      // Arrange
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value([]));
+
+      when(stateDataSource.getState(any, any, any))
+          .thenAnswer((_) => Future.value(null));
+
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+            (index) => Email(id: EmailId(Id('network_$index'))),
+      );
+
+      final networkNotFoundEmailIds = List.generate(
+        5,
+            (index) => EmailId(Id('network_not_found_$index')),
+      );
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        position: anyNamed('position'),
+        filter: anyNamed('filter'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+            emailList: networkEmails,
+            notFoundEmailIds: networkNotFoundEmailIds,
+            state: State('network_state'),
+          )));
+
+      // Act
+      final responses = await threadRepository
+          .getAllEmail(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+          )
+          .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, networkEmails);
+      expect(responses[0].notFoundEmailIds, networkNotFoundEmailIds);
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+        destroyed: networkNotFoundEmailIds,
+      ));
+      verify(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test(
+        'when filter option is not "all" '
+        'and no need getLatestChanges '
+        'then fetch first page of all messages for this folder '
+        'and network has mail not found '
+        'should delete mail not found in cache', () async {
+      // Arrange
+      final mailboxId = MailboxId(Id('mailbox_id'));
+      final localEmails = List.generate(
+        10,
+        (index) => Email(id: EmailId(Id('local_$index'))),
+      );
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+          .thenAnswer((_) => Future.value(State('local_state')));
+
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (index) => Email(id: EmailId(Id('network_$index'))),
+      );
+
+      final networkNotFoundEmailIds = List.generate(
+        5,
+        (index) => EmailId(Id('network_not_found_$index')),
+      );
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+            emailList: networkEmails,
+            notFoundEmailIds: networkNotFoundEmailIds,
+            state: State('network_state'),
+          )));
+
+      // Act
+      final responses = await threadRepository
+          .getAllEmail(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+            emailFilter: EmailFilter(
+              filterOption: FilterMessageOption.unread,
+              mailboxId: mailboxId,
+            ),
+            getLatestChanges: false,
+          )
+          .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      verify(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        filter: anyNamed('filter'),
+      )).called(2); // Once for initial fetch, once for first page
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+        destroyed: networkNotFoundEmailIds,
+      )).called(2);
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test(
+        'when local has mail in cache and getLatestChanges is true '
+        'and email change has destroyed mail '
+        'should delete destroyed mail in cache', () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (index) => Email(id: EmailId(Id('local_$index'))),
+      );
+      final changedEmails = List.generate(
+        5,
+        (index) => Email(id: EmailId(Id('changed_$index'))),
+      );
+      final destroyedEmailIds = List.generate(
+        5,
+        (index) => EmailId(Id('destroyed_mail_$index')),
+      );
+      stubLocalEmailCache(localEmails);
+      stubLocalState();
+      stubGetAllEmailChanges(EmailChangeResponse(
+        hasMoreChanges: false,
+        created: changedEmails,
+        destroyed: destroyedEmailIds,
+        newStateEmail: State('new_state'),
+      ));
+
+      // Act
+      final responses = await getAllEmailWithLatestChanges();
+
+      // Assert
+      expect(responses.length, 2);
+      verifyNever(threadDataSource.getAllEmail(any, any));
+      verifyGetAllEmailChanges();
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: changedEmails,
+        destroyed: destroyedEmailIds,
+      ));
+      verify(stateDataSource.saveState(any, any, any));
+    });
+
+    test(
+        'when local has mail in cache and getLatestChanges is true '
+        'and email change throw exception '
+        'should not update mail in cache', () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (index) => Email(id: EmailId(Id('local_$index'))),
+      );
+      stubLocalEmailCache(localEmails);
+      stubLocalState();
+      stubGetAllEmailChangesError(Exception('Too many items in get method'));
+
+      // Assert
+      expectLater(
+        () => getAllEmailWithLatestChanges(),
+        throwsA(isA<Exception>().having((e) => e.toString(), 'description', contains('Too many items in get method'))),
+      );
+      verifyNever(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+        destroyed: anyNamed('destroyed'),
+        updated: anyNamed('updated'),
+      ));
+      verifyNever(stateDataSource.saveState(any, any, any));
+    });
+
+    test(
+        'when getChanges has more changes should fetch all changes '
+        'and first email change has destroyed mail '
+        'should delete destroyed mail in cache', () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (index) => Email(id: EmailId(Id('local_$index'))),
+      );
+      final firstChanges = List.generate(
+        5,
+        (index) => Email(id: EmailId(Id('change1_$index'))),
+      );
+      final secondChanges = List.generate(
+        5,
+        (index) => Email(id: EmailId(Id('change2_$index'))),
+      );
+      final firstDestroyedEmailIds = List.generate(
+        5,
+        (index) => EmailId(Id('destroyed_mail_$index')),
+      );
+      stubLocalEmailCache(localEmails);
+      stubLocalState();
+      stubGetAllEmailChanges(EmailChangeResponse(
+        hasMoreChanges: false,
+        created: [...firstChanges, ...secondChanges],
+        destroyed: firstDestroyedEmailIds,
+        newStateChanges: State('final_state'),
+        newStateEmail: State('final_state_email'),
+      ));
+
+      // Act
+      final responses = await getAllEmailWithLatestChanges();
+
+      // Assert
+      expect(responses.length, 2);
+      verifyGetAllEmailChanges();
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+        destroyed: anyNamed('destroyed'),
+      ));
+      verify(stateDataSource.saveState(any, any, any));
+    });
+
+    test(
+        'when local has mail in cache but network errors '
+        'and return email from local '
+        'should not call update email cache', () async {
+      // Arrange
+      final localEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (index) => Email(id: EmailId(Id('local_$index'))),
+      );
+      when(threadDataSource.getAllEmailCache(
+        any,
+        any,
+        filterOption: anyNamed('filterOption'),
+        inMailboxId: anyNamed('inMailboxId'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+      )).thenAnswer((_) => Future.value(localEmails));
+
+      when(stateDataSource.getState(any, any, any))
+          .thenAnswer((_) => Future.value(State('local_state')));
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      )).thenThrow(Exception('Network error'));
+
+      // Act
+      final responses = await threadRepository
+          .getAllEmail(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+            getLatestChanges: false,
+          )
+          .toList();
+
+      // Assert
+      expect(responses.length, 2);
+      expect(responses[0].emailList, localEmails);
+      verifyNever(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      ));
+      verifyNever(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+        updated: anyNamed('updated'),
+        destroyed: anyNamed('created'),
+      ));
+      verifyNever(stateDataSource.saveState(
+        any,
+        any,
+        any,
+      ));
+    });
+
+    test(
+        'when fetching more emails '
+        'and network has mails and not found mails '
+        'should delete mail not found in cache', () async {
+      // Arrange
+      final networkEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+            (index) => Email(id: EmailId(Id('network_$index'))),
+      );
+
+      final networkNotFoundEmailIds = List.generate(
+        5,
+            (index) => EmailId(Id('network_not_found_$index')),
+      );
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        position: anyNamed('position'),
+        filter: anyNamed('filter'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+        emailList: networkEmails,
+        notFoundEmailIds: networkNotFoundEmailIds,
+        state: State('network_state'),
+      )));
+
+      // Act
+      final responses = await threadRepository
+          .loadMoreEmails(GetEmailRequest(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+          ))
+          .toList();
+
+      // Assert
+      expect(responses.length, 1);
+      expect(responses[0].emailList, networkEmails);
+      expect(responses[0].notFoundEmailIds, networkNotFoundEmailIds);
+      verify(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      ));
+      verify(threadDataSource.update(
+        any,
+        any,
+        created: networkEmails,
+        destroyed: networkNotFoundEmailIds,
+      ));
+    });
+
+    test(
+        'when fetching more emails and network errors '
+        'should not call update mail cache', () async {
+      // Arrange
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        position: anyNamed('position'),
+        filter: anyNamed('filter'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+        properties: anyNamed('properties'),
+      )).thenThrow(Exception('Network error'));
+
+      // Assert
+      expectLater(
+        () => threadRepository
+            .loadMoreEmails(GetEmailRequest(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+            ))
+            .toList(),
+        throwsA(isA<Exception>().having((e) => e.toString(), 'description', contains('Network error'))),
+      );
+      verifyNever(threadDataSource.getAllEmail(
+        any,
+        any,
+        limit: anyNamed('limit'),
+        position: anyNamed('position'),
+        sort: anyNamed('sort'),
+        filter: anyNamed('filter'),
+        properties: anyNamed('properties'),
+      ));
+      verifyNever(threadDataSource.update(
+        any,
+        any,
+        created: anyNamed('created'),
+        updated: anyNamed('updated'),
+        destroyed: anyNamed('created'),
+      ));
+    });
+
+    test(
+      'GIVEN server returns a full page and one email matches lastEmailId '
+      'WHEN loadMoreEmails strips the anchor '
+      'THEN serverEmailCount SHOULD equal the server count before stripping',
+    () async {
+      final anchorId = EmailId(Id('anchor'));
+      final serverEmails = [
+        Email(id: anchorId),
+        ...List.generate(
+          ThreadConstants.defaultLimit.value.toInt() - 1,
+          (i) => Email(id: EmailId(Id('email_$i'))),
+        ),
+      ];
+      // Capture before the call — removeWhere modifies serverEmails in-place
+      final expectedServerCount = serverEmails.length;
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        position: anyNamed('position'),
+        filter: anyNamed('filter'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+        emailList: serverEmails,
+        state: State('s1'),
+      )));
+
+      final responses = await threadRepository
+          .loadMoreEmails(GetEmailRequest(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+            lastEmailId: anchorId,
+          ))
+          .toList();
+
+      expect(responses.length, 1);
+      expect(responses[0].serverEmailCount, expectedServerCount);
+      expect(responses[0].emailList?.length, expectedServerCount - 1);
+    });
+
+    test(
+      'GIVEN server returns a full page and lastEmailId is absent from the response '
+      'WHEN loadMoreEmails finds nothing to strip '
+      'THEN serverEmailCount SHOULD equal emailList length',
+    () async {
+      final serverEmails = List.generate(
+        ThreadConstants.defaultLimit.value.toInt(),
+        (i) => Email(id: EmailId(Id('email_$i'))),
+      );
+
+      when(threadDataSource.getAllEmail(
+        any,
+        any,
+        position: anyNamed('position'),
+        filter: anyNamed('filter'),
+        limit: anyNamed('limit'),
+        sort: anyNamed('sort'),
+        properties: anyNamed('properties'),
+      )).thenAnswer((_) => Future.value(EmailsResponse(
+        emailList: serverEmails,
+        state: State('s1'),
+      )));
+
+      final responses = await threadRepository
+          .loadMoreEmails(GetEmailRequest(
+            SessionFixtures.aliceSession,
+            AccountFixtures.aliceAccountId,
+            lastEmailId: EmailId(Id('not_in_response')),
+          ))
+          .toList();
+
+      expect(responses.length, 1);
+      expect(responses[0].serverEmailCount, serverEmails.length);
+      expect(responses[0].emailList?.length, serverEmails.length);
+    });
+  });
+
+  group('ThreadRepositoryImpl::refreshChanges', () {
+    late ThreadRepositoryImpl refreshChangesThreadRepository;
+    late MockThreadDataSource networkDataSource;
+    late MockThreadDataSource localDataSource;
+    late MockStateDataSource refreshChangesStateDataSource;
+
+    setUp(() {
+      networkDataSource = MockThreadDataSource();
+      localDataSource = MockThreadDataSource();
+      refreshChangesStateDataSource = MockStateDataSource();
+
+      refreshChangesThreadRepository = ThreadRepositoryImpl(
+        {
+          DataSourceType.network: networkDataSource,
+          DataSourceType.local: localDataSource,
+        },
+        refreshChangesStateDataSource,
+      );
+    });
+
+    test(
+      'should call network when cache is empty',
+      () async {
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => []);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+            ));
+
+        when(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        )).thenAnswer((_) async => EmailsResponse(
+              emailList: [],
+              state: State('network_state'),
+            ));
+
+        final result = await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        verify(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        ));
+
+        expect(result, isA<EmailsResponse>());
+      },
+    );
+
+    test(
+      'should call network when cache smaller than defaultLimit',
+      () async {
+        final cacheEmails = List.generate(
+          5,
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => cacheEmails);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+            ));
+
+        when(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        )).thenAnswer((_) async => EmailsResponse(
+              emailList: cacheEmails,
+              state: State('network_state'),
+            ));
+
+        await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        verify(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        ));
+      },
+    );
+
+    test(
+      'should use cache when cache size >= defaultLimit',
+      () async {
+        final cacheEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => cacheEmails);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+            ));
+
+        final result = await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        verifyNever(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        ));
+
+        expect(result.emailList?.length, cacheEmails.length);
+      },
+    );
+
+    test(
+      'should merge changes when getChanges has multiple pages',
+      () async {
+        final cacheEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => cacheEmails);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+              created: [
+                Email(id: EmailId(Id('created1'))),
+                Email(id: EmailId(Id('created2'))),
+              ],
+              newStateChanges: State('final'),
+            ));
+
+        final result = await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        verify(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).called(1);
+
+        expect(result.emailChangeResponse, isNotNull);
+        expect(
+          result.emailChangeResponse?.created?.length,
+          equals(2),
+          reason: 'Should merge created emails from both pages',
+        );
+        final createdIds = result.emailChangeResponse?.created
+            ?.map((e) => e.id?.id.value)
+            .toSet();
+        expect(
+          createdIds,
+          containsAll(['created1', 'created2']),
+          reason: 'Should contain both created emails from different pages',
+        );
+      },
+    );
+
+    test(
+      'should handle when getChanges returns no changes',
+      () async {
+        final cacheEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => cacheEmails);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+            ));
+
+        final result = await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        expect(result.emailList, isNotNull);
+      },
+    );
+
+    test(
+      'should fetch first page with defaultLimit after changes shrink current list',
+      () async {
+        final cacheEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        final cacheAfterDestroyed = cacheEmails.skip(5).toList();
+
+        final destroyedIds = List.generate(
+          5,
+          (i) => EmailId(Id('cache_$i')),
+        );
+
+        int cacheCall = 0;
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async {
+          cacheCall++;
+          return cacheCall == 1 ? cacheEmails : cacheAfterDestroyed;
+        });
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+              destroyed: destroyedIds,
+              newStateEmail: State('new_state'),
+            ));
+
+        when(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        )).thenAnswer((_) async => EmailsResponse(
+              emailList: [],
+              state: State('network_state'),
+            ));
+
+        await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+            )
+            .first;
+
+        final capturedLimit = verify(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: captureAnyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+        )).captured.single;
+
+        expect(capturedLimit, ThreadConstants.defaultLimit);
+      },
+    );
+
+    test(
+      'SHOULD always call network\n'
+      'WHEN collapseThreads is true even if cache has enough emails',
+      () async {
+        final cacheEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('cache_$i'))),
+        );
+
+        when(localDataSource.getAllEmailCache(
+          any,
+          any,
+          filterOption: anyNamed('filterOption'),
+          inMailboxId: anyNamed('inMailboxId'),
+          limit: anyNamed('limit'),
+          sort: anyNamed('sort'),
+        )).thenAnswer((_) async => cacheEmails);
+
+        when(refreshChangesStateDataSource.getState(any, any, any))
+            .thenAnswer((_) async => State('cache_state'));
+
+        when(networkDataSource.getAllEmailChanges(
+          any,
+          any,
+          any,
+          propertiesCreated: anyNamed('propertiesCreated'),
+          propertiesUpdated: anyNamed('propertiesUpdated'),
+        )).thenAnswer((_) async => EmailChangeResponse(
+              hasMoreChanges: false,
+            ));
+
+        final networkEmails = List.generate(
+          ThreadConstants.defaultLimit.value.toInt(),
+          (i) => Email(id: EmailId(Id('collapsed_$i'))),
+        );
+
+        when(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+          collapseThreads: anyNamed('collapseThreads'),
+        )).thenAnswer((_) async => EmailsResponse(
+              emailList: networkEmails,
+              state: State('network_state'),
+            ));
+
+        final result = await refreshChangesThreadRepository
+            .refreshChanges(
+              SessionFixtures.aliceSession,
+              AccountFixtures.aliceAccountId,
+              State('initial'),
+              collapseThreads: true,
+            )
+            .first;
+
+        verify(networkDataSource.getAllEmail(
+          any,
+          any,
+          limit: anyNamed('limit'),
+          position: anyNamed('position'),
+          sort: anyNamed('sort'),
+          filter: anyNamed('filter'),
+          properties: anyNamed('properties'),
+          collapseThreads: true,
+        )).called(1);
+
+        expect(result.emailList, networkEmails);
+      },
+    );
+
+    tearDown(() {
+      reset(networkDataSource);
+      reset(localDataSource);
+      reset(refreshChangesStateDataSource);
+    });
+  });
+}

@@ -1,0 +1,54 @@
+import 'package:jmap_dart_client/jmap/mail/email/email.dart';
+import 'package:jmap_dart_client/jmap/mail/email/individual_header_identifier.dart';
+import 'package:jmap_dart_client/jmap/mail/mailbox/mailbox.dart';
+import 'package:tmail_ui_user/features/thread/data/model/email_cache.dart';
+import 'package:tmail_ui_user/features/thread/data/extensions/map_keywords_extension.dart';
+import 'package:tmail_ui_user/features/thread/data/extensions/email_address_extension.dart';
+import 'package:tmail_ui_user/features/thread/data/extensions/map_mailbox_id_extension.dart';
+
+extension EmailExtension on Email {
+
+  EmailCache toEmailCache() {
+    return EmailCache(
+      id!.id.value,
+      keywords: keywords?.toMapString(),
+      size: size?.value.round(),
+      receivedAt: receivedAt?.value,
+      hasAttachment: hasAttachment,
+      preview: preview,
+      subject: subject,
+      sentAt: sentAt?.value,
+      from: from?.map((emailAddress) => emailAddress.toEmailAddressHiveCache()).toList(),
+      to: to?.map((emailAddress) => emailAddress.toEmailAddressHiveCache()).toList(),
+      cc: cc?.map((emailAddress) => emailAddress.toEmailAddressHiveCache()).toList(),
+      bcc: bcc?.map((emailAddress) => emailAddress.toEmailAddressHiveCache()).toList(),
+      replyTo: replyTo?.map((emailAddress) => emailAddress.toEmailAddressHiveCache()).toList(),
+      mailboxIds: mailboxIds?.toMapString(),
+      threadId: threadId?.id.value,
+      headerCalendarEvent: headerCalendarEvent?.value != null
+        ? {IndividualHeaderIdentifier.headerCalendarEvent.value: headerCalendarEvent!.value}
+        : null,
+      blobId: blobId?.value,
+      xPriorityHeader: xPriorityHeader?.value != null
+        ? {IndividualHeaderIdentifier.xPriorityHeader.value: xPriorityHeader!.value}
+        : null,
+      importanceHeader: importanceHeader?.value != null
+        ? {IndividualHeaderIdentifier.importanceHeader.value: importanceHeader!.value}
+        : null,
+      priorityHeader: priorityHeader?.value != null
+        ? {IndividualHeaderIdentifier.priorityHeader.value: priorityHeader!.value}
+        : null,
+      unsubscribeHeader: listUnsubscribeHeader?.value != null
+        ? {IndividualHeaderIdentifier.listUnsubscribeHeader.value: listUnsubscribeHeader!.value}
+        : null,
+      messageId: messageId?.ids.toList(),
+      references: references?.ids.toList(),
+    );
+  }
+
+  bool belongTo(MailboxId mailboxId) {
+    return mailboxIds != null
+      && mailboxIds!.containsKey(mailboxId)
+      && mailboxIds![mailboxId] == true;
+  }
+}

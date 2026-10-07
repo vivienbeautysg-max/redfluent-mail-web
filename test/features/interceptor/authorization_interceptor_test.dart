@@ -1,0 +1,4507 @@
+
+import 'dart:async';
+import 'dart:io';
+
+import 'package:core/data/constants/constant.dart';
+import 'package:core/data/network/dio_client.dart';
+import 'package:core/utils/logging/app_logger_registry.dart';
+import 'package:core/utils/platform_info.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:jmap_dart_client/jmap/core/user_name.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:model/account/authentication_type.dart';
+import 'package:model/account/password.dart';
+import 'package:model/account/personal_account.dart';
+import 'package:model/oidc/token_id.dart';
+import 'package:model/oidc/token_oidc.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_appauth_platform_interface/flutter_appauth_platform_interface.dart';
+import 'package:tmail_ui_user/features/login/data/local/account_cache_manager.dart';
+import 'package:tmail_ui_user/features/login/data/local/token_oidc_cache_manager.dart';
+import 'package:tmail_ui_user/features/login/data/network/authentication_client/authentication_client_base.dart';
+import 'package:tmail_ui_user/features/login/data/network/interceptors/authorization_interceptors.dart';
+import 'package:tmail_ui_user/features/login/domain/exceptions/authentication_exception.dart';
+import 'package:tmail_ui_user/features/login/domain/exceptions/oauth_authorization_error.dart';
+import 'package:tmail_ui_user/features/login/domain/extensions/oidc_configuration_extensions.dart';
+import 'package:tmail_ui_user/main/exceptions/remote/authentication_exception.dart';
+import 'package:tmail_ui_user/features/push_notification/data/keychain/keychain_sharing_session.dart';
+import 'package:tmail_ui_user/main/utils/ios_sharing_manager.dart';
+
+import '../../fixtures/account_fixtures.dart';
+import '../../fixtures/capturing_log_handler.dart';
+import '../../fixtures/oidc_fixtures.dart';
+import 'authorization_interceptor_test.mocks.dart';
+
+/// Answers 401 to requests without Authorization, 200 otherwise; records each header.
+class _RecordingAdapter implements HttpClientAdapter {
+  final List<Object?> authHeaders = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final auth = options.headers[HttpHeaders.authorizationHeader];
+    authHeaders.add(auth);
+    return ResponseBody.fromString('{}', auth == null ? 401 : 200, headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+@GenerateMocks([
+  AuthenticationClientBase,
+  TokenOidcCacheManager,
+  AccountCacheManager,
+  IOSSharingManager
+])
+void main() {
+  late Dio dio;
+  late DioAdapter dioAdapter;
+  late MockAuthenticationClientBase authenticationClient;
+  late MockTokenOidcCacheManager tokenOidcCacheManager;
+  late MockAccountCacheManager accountCacheManager;
+  late IOSSharingManager iosSharingManager;
+  late AuthorizationInterceptors authorizationInterceptors;
+
+  const baseUrl = 'http://domain.com/jmap';
+  const responseStatusCode200 = 200;
+  const responseStatusCode401 = 401;
+  const responseStatusCode500 = 500;
+
+  DioException makeDioError401({String path = baseUrl}) => DioException(
+    error: {'message': 'Token Expired'},
+    requestOptions: RequestOptions(path: path, method: 'POST'),
+    response: Response(
+      statusCode: responseStatusCode401,
+      requestOptions: RequestOptions(path: path),
+    ),
+    type: DioExceptionType.badResponse,
+  );
+
+  final dioErrorRefresh400 = DioException(
+    error: {
+      'error': 'invalid_grant',
+      'error_description': 'Refresh token expired',
+    },
+    requestOptions: RequestOptions(path: '/token', method: 'POST'),
+    response: Response(
+      statusCode: 400,
+      requestOptions: RequestOptions(path: '/token'),
+      data: {'error': 'invalid_grant'},
+    ),
+    type: DioExceptionType.badResponse,
+  );
+
+  final dataRequestSuccessfully = {'message': 'Request successfully!'};
+
+  setUp(() {
+    final headers = <String, dynamic>{
+      HttpHeaders.acceptHeader: DioClient.jmapHeader,
+      HttpHeaders.contentTypeHeader: Constant.contentTypeHeaderDefault,
+    };
+    final baseOption = BaseOptions(headers: headers);
+
+    dio = Dio(baseOption)..options.baseUrl = baseUrl;
+
+    authenticationClient = MockAuthenticationClientBase();
+    tokenOidcCacheManager = MockTokenOidcCacheManager();
+    accountCacheManager = MockAccountCacheManager();
+    iosSharingManager = MockIOSSharingManager();
+
+    authorizationInterceptors = AuthorizationInterceptors(
+      dio,
+      authenticationClient,
+      tokenOidcCacheManager,
+      accountCacheManager,
+      iosSharingManager,
+    );
+    authorizationInterceptors.clear();
+
+    dio.interceptors.add(authorizationInterceptors);
+
+    dioAdapter = DioAdapter(dio: dio);
+    dioAdapter.reset();
+
+    dotenv.testLoad(mergeWith: {'PLATFORM': 'other'});
+  });
+
+  void stubAccountCache() {
+    var callCount = 0;
+    when(accountCacheManager.getCurrentAccount()).thenAnswer((_) async {
+      callCount++;
+      if (callCount == 1) return AccountFixtures.aliceAccount;
+      // Second call is the read-back in _verifyStoreTokenAndAccount.
+      // Return the PersonalAccount that _updateCurrentAccount would have
+      // constructed from newTokenOidc so the equality check passes.
+      return PersonalAccount(
+        OIDCFixtures.newTokenOidc.tokenIdHash,
+        AuthenticationType.oidc,
+        isSelected: true,
+        accountId: AccountFixtures.aliceAccountId,
+        apiUrl: AccountFixtures.aliceAccount.apiUrl,
+        userName: AccountFixtures.aliceAccount.userName,
+      );
+    });
+    when(accountCacheManager.deleteCurrentAccount(
+      AccountFixtures.aliceAccount.id,
+    )).thenAnswer((_) async {});
+    when(tokenOidcCacheManager.getTokenOidc(OIDCFixtures.newTokenOidc.tokenIdHash))
+        .thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+  }
+
+  void stubWebRefresh401ThenThrow(Object error) {
+    authorizationInterceptors.setTokenAndAuthorityOidc(
+      newToken: OIDCFixtures.tokenOidcExpiredTime,
+      newConfig: OIDCFixtures.oidcConfiguration,
+    );
+    dioAdapter.onPost(baseUrl,
+      (server) => server.throws(responseStatusCode401, makeDioError401()));
+    when(authenticationClient.refreshingTokensOIDC(
+      OIDCFixtures.oidcConfiguration.clientId,
+      OIDCFixtures.oidcConfiguration.redirectUrl,
+      OIDCFixtures.oidcConfiguration.discoveryUrl,
+      OIDCFixtures.oidcConfiguration.scopes,
+      OIDCFixtures.tokenOidcExpiredTime,
+    )).thenThrow(error);
+  }
+
+  // ============================================================
+  // validateToRefreshToken
+  // ============================================================
+  group('validateToRefreshToken', () {
+    test(
+      'should return TRUE when 401 + OIDC + has token + has refreshToken (expired)',
+      () {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final result = authorizationInterceptors.validateToRefreshToken(
+          responseStatusCode: responseStatusCode401,
+          tokenOIDC: OIDCFixtures.tokenOidcExpiredTime,
+        );
+
+        expect(result, true);
+      },
+    );
+
+    test(
+      'should return TRUE when 401 + OIDC + token NOT expired',
+      () {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final result = authorizationInterceptors.validateToRefreshToken(
+          responseStatusCode: responseStatusCode401,
+          tokenOIDC: OIDCFixtures.tokenOidcNotExpiredYet,
+        );
+
+        expect(result, true);
+      },
+    );
+
+    test('should return FALSE when status code is 500 (not 401)', () {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTime,
+        newConfig: OIDCFixtures.oidcConfiguration,
+      );
+
+      final result = authorizationInterceptors.validateToRefreshToken(
+        responseStatusCode: responseStatusCode500,
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTime,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when OidcConfiguration is null', () {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTime,
+        newConfig: null,
+      );
+
+      final result = authorizationInterceptors.validateToRefreshToken(
+        responseStatusCode: responseStatusCode401,
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTime,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when token is empty', () {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTimeAndTokenEmpty,
+        newConfig: OIDCFixtures.oidcConfiguration,
+      );
+
+      final result = authorizationInterceptors.validateToRefreshToken(
+        responseStatusCode: responseStatusCode401,
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTimeAndTokenEmpty,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when refreshToken is empty', () {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTimeAndRefreshTokenEmpty,
+        newConfig: OIDCFixtures.oidcConfiguration,
+      );
+
+      final result = authorizationInterceptors.validateToRefreshToken(
+        responseStatusCode: responseStatusCode401,
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTimeAndRefreshTokenEmpty,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when authenticationType is basic', () {
+      authorizationInterceptors.setBasicAuthorization(
+        UserName('alice'),
+        Password('password'),
+      );
+
+      final result = authorizationInterceptors.validateToRefreshToken(
+        responseStatusCode: responseStatusCode401,
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTime,
+      );
+
+      expect(result, false);
+    });
+  });
+
+  // ============================================================
+  // validateToRetryTheRequestWithNewToken
+  // ============================================================
+  group('validateToRetryTheRequestWithNewToken', () {
+    test(
+      'should return TRUE when 401, auth header present, token updated, and token not expired',
+      () {
+        final result =
+            authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+          responseStatusCode: 401,
+          authHeader: 'Bearer old_token',
+          tokenOIDC: OIDCFixtures.newTokenOidc,
+        );
+
+        expect(result, true);
+      },
+    );
+
+    test('should return FALSE when status code is not 401 (e.g. 500)', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: 500,
+        authHeader: 'Bearer old_token',
+        tokenOIDC: OIDCFixtures.newTokenOidc,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when status code is null', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: null,
+        authHeader: 'Bearer old_token',
+        tokenOIDC: OIDCFixtures.newTokenOidc,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when auth header is null', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: 401,
+        authHeader: null,
+        tokenOIDC: OIDCFixtures.newTokenOidc,
+      );
+
+      expect(result, false);
+    });
+
+    test(
+      'should return FALSE when token is same as in auth header (not updated)',
+      () {
+        final result =
+            authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+          responseStatusCode: 401,
+          authHeader: 'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          tokenOIDC: OIDCFixtures.newTokenOidc,
+        );
+
+        expect(result, false);
+      },
+    );
+
+    test('should return FALSE when token is expired', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: 401,
+        authHeader: 'Bearer some_other_token',
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTime,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when token is empty', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: 401,
+        authHeader: 'Bearer some_token',
+        tokenOIDC: OIDCFixtures.tokenOidcExpiredTimeAndTokenEmpty,
+      );
+
+      expect(result, false);
+    });
+
+    test('should return FALSE when tokenOIDC is null', () {
+      final result =
+          authorizationInterceptors.validateToRetryTheRequestWithNewToken(
+        responseStatusCode: 401,
+        authHeader: 'Bearer some_token',
+        tokenOIDC: null,
+      );
+
+      expect(result, false);
+    });
+  });
+
+  // ============================================================
+  // onError: refresh and retry flow
+  // ============================================================
+  group('onError: refresh and retry flow', () {
+    test(
+      'WHEN 401 with expired token\n'
+      'THEN refresh returns new token\n'
+      'AND retry succeeds with 200',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(baseUrl);
+
+        expect(response.statusCode, responseStatusCode200);
+        expect(response.data, dataRequestSuccessfully);
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+      },
+    );
+
+    test(
+      'WHEN 401 with NOT-expired token (server-side revocation)\n'
+      'THEN refresh returns new token\n'
+      'AND retry succeeds with 200',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcNotExpiredYet.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcNotExpiredYet,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(baseUrl);
+
+        expect(response.statusCode, responseStatusCode200);
+        expect(response.data, dataRequestSuccessfully);
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcNotExpiredYet,
+        )).called(1);
+      },
+    );
+
+    test(
+      'WHEN 401 and refresh returns same token (duplicate)\n'
+      'THEN propagate original 401 error without retrying',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.tokenOidcExpiredTime);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN a skipAuthorization request gets 401\n'
+      'THEN it is neither refreshed nor retried with a token',
+      () async {
+        final adapter = _RecordingAdapter();
+        dio.httpClientAdapter = adapter;
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          dio.get(
+            'https://autodiscover.example.org/.well-known/webfinger',
+            options: Options(
+              extra: {AuthorizationInterceptors.skipAuthorizationKey: true},
+            ),
+          ),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        expect(adapter.authHeaders, [null]);
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          any, any, any, any, any,
+        ));
+      },
+    );
+  });
+
+  group('onError: _updateCurrentAccount persists token before account', () {
+    // Drives a full successful refresh so onError → _refreshTokenThenRetry →
+    // _updateCurrentAccount runs, then asserts the crash-safe contract.
+    Future<void> arrangeSuccessfulRefresh() async {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTime,
+        newConfig: OIDCFixtures.oidcConfiguration,
+      );
+
+      dioAdapter.onPost(
+        baseUrl,
+        (server) => server.throws(responseStatusCode401, makeDioError401()),
+        headers: {
+          HttpHeaders.authorizationHeader:
+              'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+        },
+      );
+      dioAdapter.onPost(
+        baseUrl,
+        (server) =>
+            server.reply(responseStatusCode200, dataRequestSuccessfully),
+        headers: {
+          HttpHeaders.authorizationHeader:
+              'Bearer ${OIDCFixtures.newTokenOidc.token}',
+        },
+      );
+
+      when(authenticationClient.refreshingTokensOIDC(
+        OIDCFixtures.oidcConfiguration.clientId,
+        OIDCFixtures.oidcConfiguration.redirectUrl,
+        OIDCFixtures.oidcConfiguration.discoveryUrl,
+        OIDCFixtures.oidcConfiguration.scopes,
+        OIDCFixtures.tokenOidcExpiredTime,
+      )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+      stubAccountCache();
+    }
+
+    // The account _updateCurrentAccount builds from the refreshed token + the
+    // current account (aliceAccount).
+    final expectedAccount = PersonalAccount(
+      OIDCFixtures.newTokenOidc.tokenIdHash,
+      AuthenticationType.oidc,
+      isSelected: true,
+      accountId: AccountFixtures.aliceAccountId,
+      apiUrl: AccountFixtures.aliceAccount.apiUrl,
+      userName: AccountFixtures.aliceAccount.userName,
+    );
+
+    test(
+      'WHEN refresh succeeds\n'
+      'THEN the new token is persisted AND the new account is set',
+      () async {
+        await arrangeSuccessfulRefresh();
+
+        final response = await dio.post(baseUrl);
+        expect(response.statusCode, responseStatusCode200);
+
+        verify(tokenOidcCacheManager
+                .persistOneTokenOidc(OIDCFixtures.newTokenOidc))
+            .called(1);
+        verify(accountCacheManager.setCurrentAccount(expectedAccount))
+            .called(1);
+      },
+    );
+
+    test(
+      'WHEN refresh succeeds\n'
+      'THEN the token is persisted BEFORE the account is set\n'
+      '(crash-safe: token box is never the empty one mid-update)',
+      () async {
+        await arrangeSuccessfulRefresh();
+
+        await dio.post(baseUrl);
+
+        verifyInOrder([
+          accountCacheManager.getCurrentAccount(),
+          tokenOidcCacheManager.persistOneTokenOidc(OIDCFixtures.newTokenOidc),
+          accountCacheManager.setCurrentAccount(expectedAccount),
+        ]);
+      },
+    );
+
+    test(
+      'WHEN refresh succeeds\n'
+      'THEN the redundant pre-delete of the current account is NOT performed\n'
+      '(setCurrentAccount already replaces it — no destroy-before-write window)',
+      () async {
+        await arrangeSuccessfulRefresh();
+
+        await dio.post(baseUrl);
+
+        verifyNever(
+            accountCacheManager.deleteCurrentAccount(AccountFixtures.aliceAccount.id));
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared while the token is being persisted\n'
+      'THEN the account cache is never written\n'
+      'AND the token just persisted is deleted (detector undoes its own write)\n'
+      'SO a logout racing the persist step cannot be resurrected',
+      () async {
+        final persistGate = Completer<void>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        when(accountCacheManager.getCurrentAccount())
+            .thenAnswer((_) async => AccountFixtures.aliceAccount);
+        when(tokenOidcCacheManager.persistOneTokenOidc(any))
+            .thenAnswer((_) => persistGate.future);
+        when(tokenOidcCacheManager.deleteTokenOidc(any))
+            .thenAnswer((_) async {});
+
+        final pending = authorizationInterceptors.requestTokenRefresh();
+        await pumpEventQueue();
+        authorizationInterceptors.clear();
+        persistGate.complete();
+
+        await expectLater(pending, throwsA(isA<StaleSessionRefreshException>()));
+        verifyNever(accountCacheManager.setCurrentAccount(any));
+        verify(tokenOidcCacheManager.deleteTokenOidc(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+        )).called(1);
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared while the account cache is being written\n'
+      'THEN the refresh surfaces as stale, not as a usable token\n'
+      'AND the account just written is deleted (detector undoes its own write)\n'
+      'SO the caller never treats an account write racing logout as success',
+      () async {
+        final setAccountGate = Completer<void>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        when(accountCacheManager.getCurrentAccount())
+            .thenAnswer((_) async => AccountFixtures.aliceAccount);
+        when(accountCacheManager.setCurrentAccount(any))
+            .thenAnswer((_) => setAccountGate.future);
+        when(accountCacheManager.deleteCurrentAccount(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+        )).thenAnswer((_) async {});
+
+        final pending = authorizationInterceptors.requestTokenRefresh();
+        await pumpEventQueue();
+        authorizationInterceptors.clear();
+        setAccountGate.complete();
+
+        await expectLater(pending, throwsA(isA<StaleSessionRefreshException>()));
+        verify(accountCacheManager.deleteCurrentAccount(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+        )).called(1);
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: refresh fails with DioException
+  // ============================================================
+  group('onError: refresh fails with DioException', () {
+    test(
+      'WHEN refresh fails with 400 (Invalid Grant)\n'
+      'THEN reject with RefreshTokenFailedException\n'
+      'AND clear interceptor state',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh400);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.type == DioExceptionType.badResponse &&
+                e.error is RefreshTokenFailedException &&
+                e.response?.statusCode == 400;
+          })),
+        );
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh fails with 401 DioException\n'
+      'THEN propagate refreshError directly (not stale 401)\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        final dioErrorRefresh401 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: responseStatusCode401,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh401);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh fails with 403 DioException\n'
+      'THEN propagate refreshError directly\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        const responseStatusCode403 = 403;
+
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        final dioErrorRefresh403 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: responseStatusCode403,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh403);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode403,
+          )),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh fails with 500 DioException\n'
+      'THEN propagate refreshError directly (not stale 401)\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        final dioErrorRefresh500 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: 500,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh500);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          // must carry 500 (own response), not stale 401 → would trigger BadCredentialsException
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode500,
+          )),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: refresh fails with non-DioException (outer catch)
+  // ============================================================
+  group('onError: refresh fails with non-DioException (outer catch)', () {
+    test(
+      'WHEN refresh throws ServerError\n'
+      'THEN outer catch wraps it in DioException with error = ServerError',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(const ServerError());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.error is ServerError && e.response == null,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws TemporarilyUnavailable\n'
+      'THEN outer catch wraps it in DioException with error = TemporarilyUnavailable',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(const TemporarilyUnavailable());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.error is TemporarilyUnavailable && e.response == null,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws non-DioException (AccessTokenInvalidException) [mobile]\n'
+      'THEN outer catch wraps it in fresh DioException with NO HTTP response\n'
+      'AND original 401 is NOT preserved — mobile keeps session; web would logout',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(AccessTokenInvalidException());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is AccessTokenInvalidException && e.response == null;
+          })),
+        );
+
+        // Mobile deliberately diverges from web here, which logs out on this
+        // same error. The divergence is only real if the session survives, so
+        // assert it rather than leaving the claim to the test name.
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: refresh fails with PlatformException (network failure)
+  // ============================================================
+  group('onError: refresh fails with PlatformException (network failure)', () {
+    test(
+      'WHEN refresh throws PlatformException(token_failed) due to network error\n'
+      'THEN propagates as DioException with type=connectionError (no response)\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(PlatformException(
+          code: 'token_failed',
+          message: 'Failed to get token: [error: null, description: Network error]',
+          details: 'Unable to resolve host "sso.linagora.com": No address associated with hostname',
+        ));
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.type == DioExceptionType.connectionError &&
+                e.error is PlatformException &&
+                e.response == null;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: skip refresh scenarios
+  // ============================================================
+  group('onError: skip refresh scenarios', () {
+    test(
+      'WHEN error is 500 (not 401)\n'
+      'THEN no refresh attempt, propagate error directly',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final dioError500 = DioException(
+          error: {'message': 'Internal Server Error'},
+          requestOptions: RequestOptions(path: baseUrl, method: 'POST'),
+          response: Response(
+            statusCode: responseStatusCode500,
+            requestOptions: RequestOptions(path: baseUrl),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode500, dioError500),
+        );
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode500,
+          )),
+        );
+
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        ));
+      },
+    );
+
+    test(
+      'WHEN authenticationType is basic and error is 401\n'
+      'THEN no refresh attempt, propagate error',
+      () async {
+        authorizationInterceptors.setBasicAuthorization(
+          UserName('alice'),
+          Password('password'),
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN OIDC config is null and error is 401\n'
+      'THEN no refresh attempt, propagate error',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: null,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        ));
+      },
+    );
+
+    test(
+      'WHEN _refreshAttemptedKey is already set on request\n'
+      'THEN skip both retry and refresh checks\n'
+      'AND propagate error directly',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Use server.reply(401) instead of server.throws() so that Dio
+        // creates the DioException from the ORIGINAL request options,
+        // preserving the _refreshAttemptedKey extra.
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+        );
+
+        await expectLater(
+          () => dio.post(
+            baseUrl,
+            options: Options(
+              extra: {'_authInterceptorRefreshAttempted': true},
+            ),
+          ),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        ));
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: multiple queued requests
+  // ============================================================
+  group('onError: multiple queued requests', () {
+    test(
+      'GIVEN 2 sequential requests with expired token\n'
+      'WHEN Request 1 refreshes token successfully\n'
+      'THEN Request 2 uses new token directly\n'
+      'AND refresh is called only once',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Request 1: old token → 401
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.throws(
+            responseStatusCode401,
+            makeDioError401(path: '$baseUrl/1'),
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Request 1 retry: new token → 200
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        // Request 2: after Request 1 completes, onRequest uses new token → 200
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response1 = await dio.post('$baseUrl/1');
+        final response2 = await dio.post('$baseUrl/2');
+
+        // Refresh called only once by Request 1
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+
+        expect(response1.statusCode, equals(HttpStatus.ok));
+        expect(
+          response1.requestOptions.headers[HttpHeaders.authorizationHeader],
+          equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+        );
+
+        expect(response2.statusCode, equals(HttpStatus.ok));
+        expect(
+          response2.requestOptions.headers[HttpHeaders.authorizationHeader],
+          equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+        );
+      },
+    );
+
+    test(
+      'GIVEN request with expired token\n'
+      'WHEN refresh fails with non-DioException\n'
+      'THEN error is propagated via outer catch',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.throws(
+            responseStatusCode401,
+            makeDioError401(path: '$baseUrl/1'),
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(AccessTokenInvalidException());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post('$baseUrl/1'),
+          throwsA(predicate<DioException>(
+            (e) => e.error is AccessTokenInvalidException,
+          )),
+        );
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+      },
+    );
+
+    test(
+      'GIVEN 2 concurrent requests with expired token\n'
+      'WHEN both get 401 and enter onError queue\n'
+      'THEN Request 1 refreshes token\n'
+      'AND Request 2 retries with new token via validateToRetryTheRequestWithNewToken\n'
+      'AND refresh is called only once',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Use server.reply(401) so Dio creates DioException from
+        // original requestOptions (preserving auth header from onRequest)
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        // Retry handlers: new token → 200
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        // Fire both requests concurrently
+        final future1 = dio.post('$baseUrl/1');
+        final future2 = dio.post('$baseUrl/2');
+        final responses = await Future.wait([future1, future2]);
+
+        // Refresh should be called only once (by whichever enters onError first)
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+
+        expect(responses[0].statusCode, equals(HttpStatus.ok));
+        expect(responses[1].statusCode, equals(HttpStatus.ok));
+
+        expect(
+          responses[0].requestOptions.headers[HttpHeaders.authorizationHeader],
+          equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+        );
+        expect(
+          responses[1].requestOptions.headers[HttpHeaders.authorizationHeader],
+          equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+        );
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests with expired token\n'
+      'WHEN all get 401\n'
+      'THEN only first request triggers refresh\n'
+      'AND other 2 retry with new token without refreshing\n'
+      'AND refresh is called exactly once',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // All 3 requests with old token → 401
+        for (final i in [1, 2, 3]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+          // Retry with new token → 200
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) =>
+                server.reply(responseStatusCode200, dataRequestSuccessfully),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.newTokenOidc.token}',
+            },
+          );
+        }
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final responses = await Future.wait([
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+        ]);
+
+        // Refresh called exactly once regardless of how many requests queued
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+
+        for (final response in responses) {
+          expect(response.statusCode, equals(HttpStatus.ok));
+          expect(
+            response.requestOptions.headers[HttpHeaders.authorizationHeader],
+            equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+          );
+        }
+      },
+    );
+
+    test(
+      'GIVEN 2 concurrent requests with expired token\n'
+      'WHEN both get 401\n'
+      'AND Request 1 refresh fails with 400 (state cleared)\n'
+      'THEN Request 1 rejects with RefreshTokenFailedException\n'
+      'AND Request 2 also fails (state cleared, no retry possible)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Both requests with old token → 401
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh400);
+        stubAccountCache();
+
+        // Fire both requests concurrently
+        final future1 = dio.post('$baseUrl/1');
+        final future2 = dio.post('$baseUrl/2');
+
+        // Request 1: refresh fails with 400 → RefreshTokenFailedException
+        DioException? error1;
+        DioException? error2;
+        try {
+          await future1;
+        } on DioException catch (e) {
+          error1 = e;
+        }
+        try {
+          await future2;
+        } on DioException catch (e) {
+          error2 = e;
+        }
+
+        expect(error1, isNotNull);
+        expect(error1?.error, isA<RefreshTokenFailedException>());
+        expect(error1?.response?.statusCode, 400);
+
+        // Request 2: state was cleared by Request 1, so no refresh/retry
+        // possible → propagates original 401
+        expect(error2, isNotNull);
+
+        // State should be cleared
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'GIVEN sequential requests after state cleared by 400\n'
+      'WHEN first request refresh fails with 400 and clears state\n'
+      'AND second request is made afterwards\n'
+      'THEN second request fails immediately (no OIDC, no refresh)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Request 1: old token → 401
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.throws(
+            responseStatusCode401,
+            makeDioError401(path: '$baseUrl/1'),
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh400);
+        stubAccountCache();
+
+        // Request 1 fails with RefreshTokenFailedException
+        await expectLater(
+          () => dio.post('$baseUrl/1'),
+          throwsA(predicate<DioException>(
+            (e) => e.error is RefreshTokenFailedException,
+          )),
+        );
+
+        // State is now cleared
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+
+        // Request 2: no auth header added (type is none), server returns 401
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+        );
+
+        // Request 2 fails — no OIDC config, no refresh possible
+        await expectLater(
+          () => dio.post('$baseUrl/2'),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        // Refresh should NOT be called again (state cleared)
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1); // only the first call
+      },
+    );
+
+    test(
+      'GIVEN 2 concurrent requests with expired token\n'
+      'WHEN both get 401\n'
+      'AND refresh returns duplicate token each time\n'
+      'THEN both requests propagate 401 (token duplicated)\n'
+      'AND no infinite loop occurs',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Both requests → 401
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        var refreshCallCount = 0;
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async {
+          refreshCallCount++;
+          return OIDCFixtures.tokenOidcExpiredTime; // same token → duplicate
+        });
+        stubAccountCache();
+
+        final future1 = dio.post('$baseUrl/1');
+        final future2 = dio.post('$baseUrl/2');
+
+        DioException? error1;
+        DioException? error2;
+        try {
+          await future1;
+        } on DioException catch (e) {
+          error1 = e;
+        }
+        try {
+          await future2;
+        } on DioException catch (e) {
+          error2 = e;
+        }
+
+        // Both should fail with 401
+        expect(error1, isNotNull);
+        expect(error1!.response?.statusCode, responseStatusCode401);
+
+        expect(error2, isNotNull);
+        expect(error2!.response?.statusCode, responseStatusCode401);
+
+        // Both requests independently attempt refresh (duplicate didn't
+        // update _token, so second request can't detect the first's attempt).
+        // Key assertion: no infinite loop — each request tries once and stops.
+        expect(refreshCallCount, 2);
+        // The shared acquire step persists regardless of duplicate; only the
+        // retry decision is skipped — once per independent attempt.
+        verify(tokenOidcCacheManager.persistOneTokenOidc(any)).called(2);
+        verify(accountCacheManager.setCurrentAccount(any)).called(2);
+      },
+    );
+  });
+
+  // ============================================================
+  // requestTokenRefresh: concurrent callers dedup
+  // ============================================================
+  group('requestTokenRefresh: concurrent callers dedup', () {
+    test(
+      'GIVEN two concurrent direct callers of requestTokenRefresh\n'
+      'WHEN both call before the first refresh resolves\n'
+      'THEN refresh is invoked exactly once\n'
+      'AND both callers receive the same new token',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        final refreshCompleter = Completer<TokenOIDC>();
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) => refreshCompleter.future);
+        stubAccountCache();
+
+        final firstCall = authorizationInterceptors.requestTokenRefresh();
+        final secondCall = authorizationInterceptors.requestTokenRefresh();
+        refreshCompleter.complete(OIDCFixtures.newTokenOidc);
+        final results = await Future.wait([firstCall, secondCall]);
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+        expect(results[0].token, equals(OIDCFixtures.newTokenOidc.token));
+        expect(results[1].token, equals(OIDCFixtures.newTokenOidc.token));
+      },
+    );
+
+    test(
+      'GIVEN a lib request 401s through onError\n'
+      'AND an external caller (e.g. Workplace, on its own unwired Dio) calls\n'
+      '    requestTokenRefresh at the same time\n'
+      'WHEN both race before refresh resolves\n'
+      'THEN refresh is invoked exactly once\n'
+      'AND the external caller resolves to the same token used to retry the lib request',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        final refreshCompleter = Completer<TokenOIDC>();
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) => refreshCompleter.future);
+        stubAccountCache();
+
+        // Workplace-style caller races the interceptor's reactive onError path.
+        final workplaceRefresh = authorizationInterceptors.requestTokenRefresh();
+        final libRequest = dio.post(baseUrl);
+        refreshCompleter.complete(OIDCFixtures.newTokenOidc);
+
+        final response = await libRequest;
+        final workplaceToken = await workplaceRefresh;
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+        expect(response.statusCode, equals(HttpStatus.ok));
+        expect(workplaceToken.token, equals(OIDCFixtures.newTokenOidc.token));
+      },
+    );
+  });
+
+  // ============================================================
+  // requestTokenRefresh: owns the fatal-vs-transient decision
+  // ============================================================
+  group('requestTokenRefresh: owns the fatal-vs-transient decision', () {
+    void stubRefreshThrowing(Object error) {
+      authorizationInterceptors.setTokenAndAuthorityOidc(
+        newToken: OIDCFixtures.tokenOidcExpiredTime,
+        newConfig: OIDCFixtures.oidcConfiguration,
+      );
+      when(authenticationClient.refreshingTokensOIDC(
+        OIDCFixtures.oidcConfiguration.clientId,
+        OIDCFixtures.oidcConfiguration.redirectUrl,
+        OIDCFixtures.oidcConfiguration.discoveryUrl,
+        OIDCFixtures.oidcConfiguration.scopes,
+        OIDCFixtures.tokenOidcExpiredTime,
+      )).thenThrow(error);
+    }
+
+    test(
+      'GIVEN a direct caller (e.g. Workplace)\n'
+      'WHEN the token endpoint rejects the refresh token (invalid_grant)\n'
+      'THEN the session is cleared and RefreshTokenFailedException is thrown',
+      () async {
+        stubRefreshThrowing(const OAuthAuthorizationError(
+          error: 'invalid_grant',
+          errorDescription: 'The refresh token has been revoked',
+        ));
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenFailedException>()),
+        );
+
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.none);
+        verifyNever(tokenOidcCacheManager.persistOneTokenOidc(any));
+      },
+    );
+
+    test(
+      'GIVEN a direct caller (e.g. Workplace)\n'
+      'WHEN the refresh fails transiently\n'
+      'THEN the original error is rethrown and the session is kept',
+      () async {
+        const transient = ServerError();
+        stubRefreshThrowing(transient);
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(same(transient)),
+        );
+
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+        expect(authorizationInterceptors.currentToken, OIDCFixtures.tokenOidcExpiredTime);
+      },
+    );
+
+    test(
+      'GIVEN a JMAP 401 already cleared the session on a rejected refresh\n'
+      'WHEN a second caller (e.g. Workplace, whose 401 arrived moments later)\n'
+      '    calls requestTokenRefresh on the now-empty session\n'
+      'THEN it fails with RefreshTokenFailedException, not a raw TypeError\n'
+      'SO the Drive failure can be classified urgent and routed to logout',
+      () async {
+        stubRefreshThrowing(const OAuthAuthorizationError(
+          error: 'invalid_grant',
+          errorDescription: 'The refresh token has been revoked',
+        ));
+
+        // First caller: the JMAP 401 path kills the session.
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenFailedException>()),
+        );
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.none);
+
+        // Second caller races in after the session is already gone.
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenFailedException>()),
+        );
+      },
+    );
+
+    test(
+      'GIVEN a direct caller on web, where Drive attach ships\n'
+      'WHEN flutter_appauth_web rejects the refresh with a non-Dio ArgumentError\n'
+      'THEN the web classifier still calls it a server rejection\n'
+      'AND the session is cleared with RefreshTokenFailedException',
+      () async {
+        PlatformInfo.isTestingForWeb = true;
+        addTearDown(() => PlatformInfo.isTestingForWeb = false);
+        stubRefreshThrowing(ArgumentError(
+          'Failed to get token: [error: token_failed, description: invalid_request]',
+        ));
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenFailedException>()),
+        );
+
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.none);
+        verifyNever(tokenOidcCacheManager.persistOneTokenOidc(any));
+      },
+    );
+
+    test(
+      'GIVEN a direct caller on web\n'
+      'WHEN the refresh fails with an error the web classifier does not own\n'
+      'THEN the original error is rethrown and the session is kept',
+      () async {
+        PlatformInfo.isTestingForWeb = true;
+        addTearDown(() => PlatformInfo.isTestingForWeb = false);
+        final transient = ArgumentError('Failed to get token: [error: network_error]');
+        stubRefreshThrowing(transient);
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(same(transient)),
+        );
+
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+      },
+    );
+
+    test(
+      'GIVEN an OIDC session whose token carries no refresh token\n'
+      'WHEN a caller asks for a refresh\n'
+      'THEN nothing is sent and the session is kept\n'
+      'SO a Drive-only 401 cannot earn a server rejection that logs the user out',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTimeAndRefreshTokenEmpty,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenUnavailableException>()),
+        );
+
+        verifyNever(authenticationClient.refreshingTokensOIDC(any, any, any, any, any));
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+        expect(
+          authorizationInterceptors.currentToken,
+          OIDCFixtures.tokenOidcExpiredTimeAndRefreshTokenEmpty,
+        );
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared before it resolves\n'
+      'THEN the token is dropped instead of re-arming a logged-out interceptor\n'
+      'AND nothing is persisted over the wiped caches',
+      () async {
+        final gate = Completer<TokenOIDC>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) => gate.future);
+
+        final pending = authorizationInterceptors.requestTokenRefresh();
+        authorizationInterceptors.clear();
+        gate.complete(OIDCFixtures.tokenOidcNotExpiredYet);
+
+        await expectLater(pending, throwsA(isA<StaleSessionRefreshException>()));
+        expect(authorizationInterceptors.currentToken, isNull);
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.none);
+        verifyNever(tokenOidcCacheManager.persistOneTokenOidc(any));
+        verifyNever(accountCacheManager.setCurrentAccount(any));
+      },
+    );
+
+    test(
+      'GIVEN a refresh whose new token already arrived\n'
+      'WHEN the session is cleared while the account cache is being read\n'
+      'THEN nothing is written back into the caches logout just wiped\n'
+      'SO the next launch cannot restore the account the user logged out of',
+      () async {
+        final accountGate = Completer<PersonalAccount>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) async => OIDCFixtures.tokenOidcNotExpiredYet);
+        when(accountCacheManager.getCurrentAccount())
+            .thenAnswer((_) => accountGate.future);
+
+        final pending = authorizationInterceptors.requestTokenRefresh();
+        await pumpEventQueue();
+        authorizationInterceptors.clear();
+        accountGate.complete(AccountFixtures.aliceAccount);
+
+        await expectLater(pending, throwsA(isA<StaleSessionRefreshException>()));
+        verifyNever(tokenOidcCacheManager.persistOneTokenOidc(any));
+        verifyNever(accountCacheManager.setCurrentAccount(any));
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared and a new one signs in\n'
+      'THEN the next caller starts its own refresh instead of joining the dead one\n'
+      'AND the stale result does not kill the new session',
+      () async {
+        final gate = Completer<TokenOIDC>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) => gate.future);
+
+        final stale = authorizationInterceptors.requestTokenRefresh();
+        authorizationInterceptors.clear();
+
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) async => OIDCFixtures.tokenOidcNotExpiredYet);
+        when(accountCacheManager.getCurrentAccount())
+            .thenAnswer((_) async => AccountFixtures.aliceAccount);
+
+        final fresh = authorizationInterceptors.requestTokenRefresh();
+        gate.complete(OIDCFixtures.tokenOidcNotExpiredYet);
+
+        await expectLater(stale, throwsA(isA<StaleSessionRefreshException>()));
+        expect(await fresh, OIDCFixtures.tokenOidcNotExpiredYet);
+        verify(authenticationClient.refreshingTokensOIDC(any, any, any, any, any)).called(2);
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared, a new one signs in,\n'
+      '    and only then the token endpoint rejects the old refresh\n'
+      'THEN the rejection is not the new session\'s verdict\n'
+      'SO the freshly signed-in session is neither cleared nor logged out',
+      () async {
+        final gate = Completer<TokenOIDC>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) => gate.future);
+
+        final stale = authorizationInterceptors.requestTokenRefresh();
+        authorizationInterceptors.clear();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.newTokenOidc,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        gate.completeError(const OAuthAuthorizationError(
+          error: 'invalid_grant',
+          errorDescription: 'The refresh token has been revoked',
+        ));
+
+        await expectLater(stale, throwsA(isA<StaleSessionRefreshException>()));
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+        expect(authorizationInterceptors.currentToken, OIDCFixtures.newTokenOidc);
+      },
+    );
+
+    test(
+      'GIVEN a refresh in flight\n'
+      'WHEN the session is cleared, a new one signs in,\n'
+      '    and only then the token endpoint answers 400 as a DioException\n'
+      'THEN the stale answer never reaches the mobile 400 logout mapping\n'
+      'SO the freshly signed-in session survives',
+      () async {
+        final gate = Completer<TokenOIDC>();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) => gate.future);
+
+        final stale = authorizationInterceptors.requestTokenRefresh();
+        authorizationInterceptors.clear();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.newTokenOidc,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        gate.completeError(DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/token'),
+            statusCode: 400,
+            data: {'error': 'invalid_grant'},
+          ),
+          type: DioExceptionType.badResponse,
+        ));
+
+        await expectLater(stale, throwsA(isA<StaleSessionRefreshException>()));
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+        expect(authorizationInterceptors.currentToken, OIDCFixtures.newTokenOidc);
+      },
+    );
+
+    test(
+      'GIVEN a request that 401ed and is awaiting a refresh from its own session\n'
+      'WHEN the user logs out and a new session signs in before that refresh lands\n'
+      'THEN the leftover request fails without a session verdict\n'
+      'SO it cannot force the freshly signed-in session to log out.',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        final gate = Completer<TokenOIDC>();
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenAnswer((_) => gate.future);
+
+        // The request is now parked inside onError, awaiting the refresh.
+        final leftoverRequest = dio.post(baseUrl).then<Object?>(
+              (_) => null,
+              onError: (Object e) => e,
+            );
+        await pumpEventQueue();
+
+        // The user logs out and someone else signs in on the same interceptor.
+        authorizationInterceptors.clear();
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.newTokenOidc,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        gate.complete(OIDCFixtures.tokenOidcNotExpiredYet);
+
+        final failure = await leftoverRequest;
+        final surfaced = failure is DioException ? failure.error : failure;
+
+        // Any of these three reaches BaseController.validateUrgentException and
+        // logs the new user out; a stale answer is not a session verdict.
+        expect(surfaced, isNot(isA<RefreshTokenFailedException>()));
+        expect(surfaced, isNot(isA<RefreshTokenDuplicatedException>()));
+        expect(surfaced, isNot(isA<BadCredentialsException>()));
+
+        // The new session must be untouched by the old request's failure.
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+        expect(authorizationInterceptors.currentToken, OIDCFixtures.newTokenOidc);
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: retry fails (separate Dio error handling)
+  // ============================================================
+  group('onError: retry fails (separate Dio error handling)', () {
+    test(
+      'WHEN refresh succeeds but retry with new token gets 401\n'
+      'THEN error is propagated via retry catch block\n'
+      'AND no deadlock occurs',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Old token → 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Retry with new token → also 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(
+            responseStatusCode401,
+            makeDioError401(),
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(isA<DioException>()),
+        );
+
+        // Refresh was called once
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+      },
+    );
+
+    test(
+      'WHEN refresh succeeds but retry gets 500\n'
+      'THEN propagated error carries 500 (not stale 401)\n'
+      'AND OIDC state is preserved',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final dioError500 = DioException(
+          error: {'message': 'Internal Server Error'},
+          requestOptions: RequestOptions(path: baseUrl, method: 'POST'),
+          response: Response(
+            statusCode: responseStatusCode500,
+            requestOptions: RequestOptions(path: baseUrl),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        // Old token → 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Retry with new token → 500
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode500, dioError500),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          // must carry 500, not stale 401 → would trigger BadCredentialsException
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode500,
+          )),
+        );
+
+        // OIDC state should NOT be cleared (only 400 clears state)
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'GIVEN 2 concurrent requests\n'
+      'WHEN Request 1 refreshes and retries successfully\n'
+      'AND Request 2 retries with new token but gets 500\n'
+      'THEN Request 1 succeeds\n'
+      'AND Request 2 error is propagated',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final dioError500 = DioException(
+          error: {'message': 'Internal Server Error'},
+          requestOptions: RequestOptions(path: '$baseUrl/2', method: 'POST'),
+          response: Response(
+            statusCode: responseStatusCode500,
+            requestOptions: RequestOptions(path: '$baseUrl/2'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        // Request 1: old token → 401
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Request 1 retry: new token → 200
+        dioAdapter.onPost(
+          '$baseUrl/1',
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        // Request 2: old token → 401
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.reply(
+            responseStatusCode401,
+            {'error': 'Unauthorized'},
+          ),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Request 2 retry: new token → 500
+        dioAdapter.onPost(
+          '$baseUrl/2',
+          (server) => server.throws(responseStatusCode500, dioError500),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final future1 = dio.post('$baseUrl/1');
+        final future2 = dio.post('$baseUrl/2');
+
+        final response1 = await future1;
+        expect(response1.statusCode, responseStatusCode200);
+
+        await expectLater(
+          () => future2,
+          throwsA(isA<DioException>()),
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: token duplicate prevents infinite loop
+  // ============================================================
+  group('onError: token duplicate prevents infinite loop', () {
+    test(
+      'WHEN refresh returns same token as current\n'
+      'THEN "Token duplicated" detected\n'
+      'AND original error propagated\n'
+      'AND refresh called exactly once',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        var refreshCallCount = 0;
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcNotExpiredYet,
+        )).thenAnswer((_) async {
+          refreshCallCount++;
+          return OIDCFixtures.tokenOidcNotExpiredYet; // same token → duplicate
+        });
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+
+        expect(refreshCallCount, 1);
+        // _refreshTokenThenRetry detects the duplicate itself (access token
+        // unchanged) AFTER the shared acquire step already persisted.
+        verify(tokenOidcCacheManager
+                .persistOneTokenOidc(OIDCFixtures.tokenOidcNotExpiredYet))
+            .called(1);
+        verify(accountCacheManager.setCurrentAccount(any)).called(1);
+      },
+    );
+
+    test(
+      'GIVEN a direct requestTokenRefresh caller (e.g. Workplace)\n'
+      'WHEN refresh returns the current access token\n'
+      'THEN the token is still returned and persisted\n'
+      'SO a caller comparing a different field (e.g. id token) is not blocked',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcNotExpiredYet,
+        )).thenAnswer((_) async => OIDCFixtures.tokenOidcNotExpiredYet);
+        stubAccountCache();
+
+        final refreshed = await authorizationInterceptors.requestTokenRefresh();
+
+        expect(refreshed, OIDCFixtures.tokenOidcNotExpiredYet);
+        verify(tokenOidcCacheManager
+                .persistOneTokenOidc(OIDCFixtures.tokenOidcNotExpiredYet))
+            .called(1);
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.oidc);
+      },
+    );
+  });
+
+  group('onError [mobile]: refresh network timeout does NOT carry stale 401', () {
+    final refreshTimeoutError = DioException(
+      requestOptions: RequestOptions(path: '/token'),
+      type: DioExceptionType.connectionTimeout,
+    );
+
+    test(
+      'WHEN 401 with expired token\n'
+      'AND refresh call times out (connectionTimeout, response=null)\n'
+      'THEN propagated error carries NO HTTP response\n'
+      '(regression: stale 401 must NOT reach RemoteExceptionThrower → would logout)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(refreshTimeoutError);
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.response == null)),
+        );
+      },
+    );
+
+    test(
+      'WHEN server-side 401 (token not locally expired)\n'
+      'AND refresh call times out\n'
+      'THEN propagated error carries NO HTTP response',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcNotExpiredYet.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcNotExpiredYet,
+        )).thenThrow(refreshTimeoutError);
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null;
+          })),
+        );
+      },
+    );
+
+  });
+
+  group('onError [mobile/web]: retry network timeout does NOT carry stale 401', () {
+    test(
+      'WHEN 401 with expired token\n'
+      'AND refresh succeeds\n'
+      'AND retry call times out (connectionTimeout, response=null)\n'
+      'THEN propagated error carries NO HTTP response\n'
+      '(regression: stale 401 must NOT reach RemoteExceptionThrower → would logout)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+
+        final retryTimeoutError = DioException(
+          requestOptions: RequestOptions(path: baseUrl),
+          type: DioExceptionType.connectionTimeout,
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(0, retryTimeoutError),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.response == null)),
+        );
+      },
+    );
+
+  });
+
+  group(
+    'onError [mobile]: FlutterAppAuthPlatformException from OIDC refresh '
+    'does not preserve original 401',
+    () {
+      // _appAuth.token() OIDC no-internet: native SDK throws
+      // FlutterAppAuthPlatformException(error: null) — transport failure.
+      // details==null path rethrows raw PlatformException instead.
+      // Both handled identically by outer catch.
+      final platformNetworkException = FlutterAppAuthPlatformException(
+        code: 'network_error',
+        message: 'Failed to connect to token endpoint',
+        platformErrorDetails: FlutterAppAuthPlatformErrorDetails(
+          error: null, // null = pure transport failure, not an OAuth error
+        ),
+      );
+
+      test(
+        'WHEN 401 with expired token\n'
+        'AND refresh throws FlutterAppAuthPlatformException (no internet)\n'
+        'THEN propagated DioException has NO HTTP response\n'
+        'AND error is FlutterAppAuthPlatformException\n'
+        '(regression: stale 401 must NOT reach RemoteExceptionThrower → would logout)',
+        () async {
+          authorizationInterceptors.setTokenAndAuthorityOidc(
+            newToken: OIDCFixtures.tokenOidcExpiredTime,
+            newConfig: OIDCFixtures.oidcConfiguration,
+          );
+
+          dioAdapter.onPost(
+            baseUrl,
+            (server) =>
+                server.throws(responseStatusCode401, makeDioError401()),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+
+          when(authenticationClient.refreshingTokensOIDC(
+            OIDCFixtures.oidcConfiguration.clientId,
+            OIDCFixtures.oidcConfiguration.redirectUrl,
+            OIDCFixtures.oidcConfiguration.discoveryUrl,
+            OIDCFixtures.oidcConfiguration.scopes,
+            OIDCFixtures.tokenOidcExpiredTime,
+          )).thenThrow(platformNetworkException);
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.response == null &&
+                  e.error is FlutterAppAuthPlatformException;
+            })),
+          );
+        },
+      );
+
+      test(
+        'WHEN server-side 401 (token not locally expired)\n'
+        'AND refresh throws FlutterAppAuthPlatformException (no internet)\n'
+        'THEN propagated DioException has NO HTTP response',
+        () async {
+          authorizationInterceptors.setTokenAndAuthorityOidc(
+            newToken: OIDCFixtures.tokenOidcNotExpiredYet,
+            newConfig: OIDCFixtures.oidcConfiguration,
+          );
+
+          dioAdapter.onPost(
+            baseUrl,
+            (server) =>
+                server.throws(responseStatusCode401, makeDioError401()),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcNotExpiredYet.token}',
+            },
+          );
+
+          when(authenticationClient.refreshingTokensOIDC(
+            OIDCFixtures.oidcConfiguration.clientId,
+            OIDCFixtures.oidcConfiguration.redirectUrl,
+            OIDCFixtures.oidcConfiguration.discoveryUrl,
+            OIDCFixtures.oidcConfiguration.scopes,
+            OIDCFixtures.tokenOidcNotExpiredYet,
+          )).thenThrow(platformNetworkException);
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.response == null &&
+                  e.error is FlutterAppAuthPlatformException;
+            })),
+          );
+        },
+      );
+
+      test(
+        'WHEN refresh throws raw PlatformException (invokeMethod details==null path)\n'
+        'THEN propagated DioException has NO HTTP response',
+        () async {
+          authorizationInterceptors.setTokenAndAuthorityOidc(
+            newToken: OIDCFixtures.tokenOidcExpiredTime,
+            newConfig: OIDCFixtures.oidcConfiguration,
+          );
+
+          dioAdapter.onPost(
+            baseUrl,
+            (server) =>
+                server.throws(responseStatusCode401, makeDioError401()),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+
+          // e.details==null → invokeMethod rethrows PlatformException → handleException passes through → outer catch → fresh DioException(response: null)
+          when(authenticationClient.refreshingTokensOIDC(
+            OIDCFixtures.oidcConfiguration.clientId,
+            OIDCFixtures.oidcConfiguration.redirectUrl,
+            OIDCFixtures.oidcConfiguration.discoveryUrl,
+            OIDCFixtures.oidcConfiguration.scopes,
+            OIDCFixtures.tokenOidcExpiredTime,
+          )).thenThrow(PlatformException(
+            code: 'network_error',
+            message: 'Failed to connect to token endpoint',
+          ));
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.response == null && e.error is PlatformException;
+            })),
+          );
+        },
+      );
+
+      test(
+        'WHEN refresh throws OAuthAuthorizationError (e.g. invalid_grant)\n'
+        'THEN the session is torn down and RefreshTokenFailedException is raised\n'
+        'AND the propagated DioException still has NO HTTP response',
+        () async {
+          authorizationInterceptors.setTokenAndAuthorityOidc(
+            newToken: OIDCFixtures.tokenOidcExpiredTime,
+            newConfig: OIDCFixtures.oidcConfiguration,
+          );
+
+          dioAdapter.onPost(
+            baseUrl,
+            (server) =>
+                server.throws(responseStatusCode401, makeDioError401()),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+
+          // FlutterAppAuthPlatformException(error:'invalid_grant') → handleException() → OAuthAuthorizationError
+          when(authenticationClient.refreshingTokensOIDC(
+            OIDCFixtures.oidcConfiguration.clientId,
+            OIDCFixtures.oidcConfiguration.redirectUrl,
+            OIDCFixtures.oidcConfiguration.discoveryUrl,
+            OIDCFixtures.oidcConfiguration.scopes,
+            OIDCFixtures.tokenOidcExpiredTime,
+          )).thenThrow(const OAuthAuthorizationError(
+            error: 'invalid_grant',
+            errorDescription: 'The refresh token has been revoked',
+          ));
+
+          stubAccountCache();
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.response == null &&
+                  e.error is RefreshTokenFailedException;
+            })),
+          );
+
+          expect(
+            authorizationInterceptors.authenticationType,
+            AuthenticationType.none,
+          );
+        },
+      );
+
+    },
+  );
+
+  group('onError: multiple requests all fail 401', () {
+    test(
+      'GIVEN 4 concurrent requests with expired token\n'
+      'WHEN all get 401\n'
+      'THEN only first request triggers refresh\n'
+      'AND other 3 retry with new token without refreshing\n'
+      'AND refresh is called exactly once',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        for (final i in [1, 2, 3, 4]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) =>
+                server.reply(responseStatusCode200, dataRequestSuccessfully),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.newTokenOidc.token}',
+            },
+          );
+        }
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final responses = await Future.wait([
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+          dio.post('$baseUrl/4'),
+        ]);
+
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+
+        for (final response in responses) {
+          expect(response.statusCode, equals(HttpStatus.ok));
+          expect(
+            response.requestOptions.headers[HttpHeaders.authorizationHeader],
+            equals('Bearer ${OIDCFixtures.newTokenOidc.token}'),
+          );
+        }
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests with expired token\n'
+      'WHEN all get 401\n'
+      'AND refresh fails with connectionTimeout (no HTTP response)\n'
+      'THEN all 3 requests fail with response=null\n'
+      'AND none carry the original 401 response (no spurious logout)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        for (final i in [1, 2, 3]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+        }
+
+        final refreshTimeoutError = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          type: DioExceptionType.connectionTimeout,
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(refreshTimeoutError);
+        stubAccountCache();
+
+        final futures = [
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+        ];
+
+        final errors = <DioException>[];
+        for (final future in futures) {
+          try {
+            await future;
+          } on DioException catch (e) {
+            errors.add(e);
+          }
+        }
+
+        expect(errors.length, 3);
+        for (final error in errors) {
+          expect(error.response, isNull,
+              reason: 'Must not carry original 401 response');
+        }
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests with expired token\n'
+      'WHEN all get 401\n'
+      'AND refresh fails with PlatformException (mobile: no internet)\n'
+      'THEN all 3 requests fail with response=null\n'
+      'AND none carry the original 401 response (no spurious logout)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        for (final i in [1, 2, 3]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+        }
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(PlatformException(
+          code: 'network_error',
+          message: 'Failed to connect to token endpoint',
+        ));
+        stubAccountCache();
+
+        final futures = [
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+        ];
+
+        final errors = <DioException>[];
+        for (final future in futures) {
+          try {
+            await future;
+          } on DioException catch (e) {
+            errors.add(e);
+          }
+        }
+
+        expect(errors.length, 3);
+        for (final error in errors) {
+          expect(error.response, isNull,
+              reason: 'Must not carry original 401 response');
+          expect(error.error, isA<PlatformException>());
+        }
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests with expired token\n'
+      'WHEN all get 401\n'
+      'AND refresh fails with 400 (invalid grant)\n'
+      'THEN all 3 requests fail\n'
+      'AND auth state is cleared (none)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        for (final i in [1, 2, 3]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+        }
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenThrow(dioErrorRefresh400);
+        stubAccountCache();
+
+        final futures = [
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+        ];
+
+        final errors = <DioException>[];
+        for (final future in futures) {
+          try {
+            await future;
+          } on DioException catch (e) {
+            errors.add(e);
+          }
+        }
+
+        expect(errors, isNotEmpty);
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests: 2 fail 401 + 1 fails 500\n'
+      'WHEN processed concurrently\n'
+      'THEN 401 requests attempt refresh and retry with new token\n'
+      'AND 500 request propagates directly without touching refresh logic',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final dioError500 = DioException(
+          requestOptions: RequestOptions(path: '$baseUrl/500', method: 'POST'),
+          response: Response(
+            statusCode: responseStatusCode500,
+            requestOptions: RequestOptions(path: '$baseUrl/500'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        // 2 requests get 401 with expired token
+        for (final i in [1, 2]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+            },
+          );
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) =>
+                server.reply(responseStatusCode200, dataRequestSuccessfully),
+            headers: {
+              HttpHeaders.authorizationHeader:
+                  'Bearer ${OIDCFixtures.newTokenOidc.token}',
+            },
+          );
+        }
+
+        // 1 request gets 500 (not related to auth)
+        dioAdapter.onPost(
+          '$baseUrl/500',
+          (server) => server.throws(responseStatusCode500, dioError500),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final future1 = dio.post('$baseUrl/1');
+        final future2 = dio.post('$baseUrl/2');
+        final future500 = dio.post('$baseUrl/500');
+
+        final response1 = await future1;
+        final response2 = await future2;
+        DioException? error500;
+        try {
+          await future500;
+        } on DioException catch (e) {
+          error500 = e;
+        }
+
+        expect(response1.statusCode, responseStatusCode200);
+        expect(response2.statusCode, responseStatusCode200);
+
+        expect(error500, isNotNull);
+        expect(error500?.response?.statusCode, responseStatusCode500);
+
+        // refresh called at most once (concurrent 401 requests share one refresh)
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+      },
+    );
+
+    test(
+      'GIVEN 3 concurrent requests with basic auth (not OIDC)\n'
+      'WHEN all get 401\n'
+      'THEN no refresh attempted\n'
+      'AND all 3 fail with 401',
+      () async {
+        authorizationInterceptors.setBasicAuthorization(
+          UserName('alice'),
+          Password('password'),
+        );
+
+        for (final i in [1, 2, 3]) {
+          dioAdapter.onPost(
+            '$baseUrl/$i',
+            (server) => server.reply(
+              responseStatusCode401,
+              {'error': 'Unauthorized'},
+            ),
+          );
+        }
+
+        final futures = [
+          dio.post('$baseUrl/1'),
+          dio.post('$baseUrl/2'),
+          dio.post('$baseUrl/3'),
+        ];
+
+        final errors = <DioException>[];
+        for (final future in futures) {
+          try {
+            await future;
+          } on DioException catch (e) {
+            errors.add(e);
+          }
+        }
+
+        expect(errors.length, 3);
+        for (final error in errors) {
+          expect(error.response?.statusCode, responseStatusCode401);
+        }
+
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        ));
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: refresh side-effect failures
+  // ============================================================
+  group('onError: refresh side-effect failures', () {
+    test(
+      'WHEN refresh succeeds but _updateCurrentAccount throws (cache failure)\n'
+      'THEN outer catch wraps cache error in fresh DioException\n'
+      'AND propagated error has NO HTTP response (no stale 401 → no logout)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        when(accountCacheManager.getCurrentAccount())
+            .thenAnswer((_) async => AccountFixtures.aliceAccount);
+        when(tokenOidcCacheManager.persistOneTokenOidc(OIDCFixtures.newTokenOidc))
+            .thenThrow(Exception('Cache write failure'));
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null && e.error is Exception;
+          })),
+        );
+      },
+    );
+
+    test(
+      'WHEN platform is iOS\n'
+      'AND refresh succeeds but Keychain save throws\n'
+      'THEN outer catch wraps keychain error in fresh DioException\n'
+      'AND propagated error has NO HTTP response',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+        );
+
+        // iOS: keychain returns null → server refresh path
+        when(iosSharingManager.getKeychainSharingSession(AccountFixtures.aliceAccountId))
+            .thenAnswer((_) async => null);
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+        final expectedPersonalAccount = PersonalAccount(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+          AuthenticationType.oidc,
+          isSelected: true,
+          accountId: AccountFixtures.aliceAccountId,
+          apiUrl: AccountFixtures.aliceAccount.apiUrl,
+          userName: AccountFixtures.aliceAccount.userName,
+        );
+        when(iosSharingManager.saveKeyChainSharingSession(expectedPersonalAccount))
+            .thenThrow(Exception('Keychain access denied'));
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null && e.error is Exception;
+          })),
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: upload retry with attachment extras
+  // ============================================================
+  group('onError: upload retry with attachment extras', () {
+    test(
+      'WHEN web receives 401 on upload request with uploadAttachmentExtraKey + filePath\n'
+      'AND refresh succeeds\n'
+      'THEN upload-specific retry path is taken (uses retryDio.request, not fetch)\n'
+      'AND retry succeeds with 200',
+      () async {
+        PlatformInfo.isTestingForWeb = true;
+        addTearDown(() => PlatformInfo.isTestingForWeb = false);
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // filePath='' triggers the streamData fallback inside _getDataUploadRequest.
+        // streamData is null → retryDio.request is called with data=null, still
+        // exercising the upload branch (vs fetch branch).
+        final uploadExtras = <String, dynamic>{
+          'upload-attachment': <String, dynamic>{
+            'path': '',
+            'streamData': null,
+          },
+        };
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(
+          baseUrl,
+          options: Options(extra: uploadExtras),
+        );
+
+        expect(response.statusCode, responseStatusCode200);
+        expect(response.data, dataRequestSuccessfully);
+      },
+    );
+
+    test(
+      'WHEN upload extras has invalid map shape\n'
+      'AND refresh succeeds\n'
+      'THEN _getDataUploadRequest returns null but retry still completes\n'
+      '(defensive: malformed extras must not crash the interceptor)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final malformedExtras = <String, dynamic>{
+          'upload-attachment': 'not a map',
+        };
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(
+          baseUrl,
+          options: Options(extra: malformedExtras),
+        );
+
+        expect(response.statusCode, responseStatusCode200);
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: iOS keychain refresh path
+  // ============================================================
+  group('onError: iOS keychain refresh path', () {
+    setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
+    tearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    test(
+      'WHEN platform is iOS\n'
+      'AND keychain contains a newer non-expired token (rotated by another app process)\n'
+      'THEN use keychain token without calling refreshingTokensOIDC\n'
+      'AND retry succeeds with 200',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        final keychainSession = KeychainSharingSession(
+          accountId: AccountFixtures.aliceAccountId,
+          userName: AccountFixtures.aliceAccount.userName!,
+          authenticationType: AuthenticationType.oidc,
+          apiUrl: AccountFixtures.aliceAccount.apiUrl!,
+          tokenOIDC: OIDCFixtures.newTokenOidc,
+        );
+        when(iosSharingManager
+                .getKeychainSharingSession(AccountFixtures.aliceAccountId))
+            .thenAnswer((_) async => keychainSession);
+
+        final expectedPersonalAccount = PersonalAccount(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+          AuthenticationType.oidc,
+          isSelected: true,
+          accountId: AccountFixtures.aliceAccountId,
+          apiUrl: AccountFixtures.aliceAccount.apiUrl,
+          userName: AccountFixtures.aliceAccount.userName,
+        );
+        when(iosSharingManager
+                .saveKeyChainSharingSession(expectedPersonalAccount))
+            .thenAnswer((_) async {});
+        stubAccountCache();
+
+        final response = await dio.post(baseUrl);
+
+        expect(response.statusCode, responseStatusCode200);
+        verifyNever(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        ));
+      },
+    );
+
+    test(
+      'WHEN platform is iOS\n'
+      'AND keychain returns expired tokenOIDC\n'
+      'THEN fallback to server refreshingTokensOIDC\n'
+      'AND retry succeeds with 200',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        final expiredKeychainToken = TokenOIDC(
+          'expired_keychain_token',
+          TokenId('expired_keychain_token'),
+          'older_refresh',
+          expiredTime: DateTime.now().subtract(const Duration(days: 2)),
+        );
+        final keychainSession = KeychainSharingSession(
+          accountId: AccountFixtures.aliceAccountId,
+          userName: AccountFixtures.aliceAccount.userName!,
+          authenticationType: AuthenticationType.oidc,
+          apiUrl: AccountFixtures.aliceAccount.apiUrl!,
+          tokenOIDC: expiredKeychainToken,
+        );
+        when(iosSharingManager
+                .getKeychainSharingSession(AccountFixtures.aliceAccountId))
+            .thenAnswer((_) async => keychainSession);
+
+        final expectedPersonalAccount = PersonalAccount(
+          OIDCFixtures.newTokenOidc.tokenIdHash,
+          AuthenticationType.oidc,
+          isSelected: true,
+          accountId: AccountFixtures.aliceAccountId,
+          apiUrl: AccountFixtures.aliceAccount.apiUrl,
+          userName: AccountFixtures.aliceAccount.userName,
+        );
+        when(iosSharingManager
+                .saveKeyChainSharingSession(expectedPersonalAccount))
+            .thenAnswer((_) async {});
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(baseUrl);
+
+        expect(response.statusCode, responseStatusCode200);
+        verify(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).called(1);
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: MOBILE refresh rejected by the token endpoint
+  // On mobile the refresh runs through flutter_appauth (native), NOT Dio, so a
+  // 400 invalid_grant never surfaces as a DioException — it arrives as an
+  // OAuthAuthorizationError. Without this handling the session stays alive and
+  // the app retries forever instead of sending the user back to login.
+  // ============================================================
+  group('onError: mobile refresh rejected by token endpoint', () {
+    for (final rejection in const <OAuthAuthorizationError>[
+      OAuthAuthorizationError(
+        error: 'invalid_grant',
+        errorDescription: 'The refresh token has been revoked',
+      ),
+      OAuthAuthorizationError(error: 'invalid_client'),
+      OAuthAuthorizationError(error: 'unauthorized_client'),
+      OAuthAuthorizationError(error: 'invalid_scope'),
+      OAuthAuthorizationError(error: 'invalid_request'),
+      OAuthAuthorizationError(error: 'unsupported_grant_type'),
+    ]) {
+      test(
+        'WHEN refresh throws OAuthAuthorizationError(${rejection.error}) on mobile\n'
+        'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+        'AND OIDC state is cleared',
+        () async {
+          stubWebRefresh401ThenThrow(rejection);
+          stubAccountCache();
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.error is RefreshTokenFailedException;
+            })),
+          );
+
+          expect(
+            authorizationInterceptors.authenticationType,
+            AuthenticationType.none,
+          );
+        },
+      );
+    }
+
+    // flutter_appauth can report a token-endpoint rejection as the plugin-level
+    // code `token_failed`, with the real RFC 6749 code in the description.
+    test(
+      'WHEN refresh throws OAuthAuthorizationError(token_failed) '
+      'with description invalid_grant\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(const OAuthAuthorizationError(
+          error: 'token_failed',
+          errorDescription: 'invalid_grant',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    // Anything that is not a confirmed server rejection must keep the session,
+    // so a flaky mobile connection does not log the user out.
+    for (final transient in const <OAuthAuthorizationError>[
+      ServerError(),
+      TemporarilyUnavailable(),
+      OAuthAuthorizationError(
+        error: 'token_failed',
+        errorDescription: 'Network is unreachable',
+      ),
+    ]) {
+      test(
+        'WHEN refresh throws OAuthAuthorizationError(${transient.error}) '
+        'that is NOT a server rejection\n'
+        'THEN session is KEPT and the original error is propagated',
+        () async {
+          stubWebRefresh401ThenThrow(transient);
+          stubAccountCache();
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.error is OAuthAuthorizationError &&
+                  e.error is! RefreshTokenFailedException;
+            })),
+          );
+
+          expect(
+            authorizationInterceptors.authenticationType,
+            AuthenticationType.oidc,
+          );
+        },
+      );
+    }
+  });
+
+  // ============================================================
+  // onError: WEB refresh failures
+  // Server rejection (got a response: ArgumentError / AccessTokenInvalid /
+  // Dio retry with response) → preserve original 401 → logout.
+  // Network/transport failure (no response) → keep session (carve-out),
+  // so a flaky connection does NOT log the web user out.
+  // ============================================================
+  group('onError: web refresh failure handling', () {
+    setUp(() => PlatformInfo.isTestingForWeb = true);
+    tearDown(() => PlatformInfo.isTestingForWeb = false);
+
+    // ---- RFC 6749 standard error codes → logout ----
+
+    test(
+      'WHEN refresh throws ArgumentError with standard invalid_grant code\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: invalid_grant, description: Refresh token expired]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws ArgumentError with standard invalid_client code\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: invalid_client, description: Client authentication failed]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    // ---- flutter_appauth_web token_failed wrapper: RFC 6749 code in description → logout ----
+    // flutter_appauth_web always emits [error: token_failed, description: <actual-rfc-code>].
+
+    test(
+      'WHEN refresh throws ArgumentError with token_failed code '
+      'and description invalid_request (flutter_appauth_web format)\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: token_failed, description: invalid_request]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws ArgumentError with token_failed code '
+      'and description invalid_grant (flutter_appauth_web format)\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: token_failed, description: invalid_grant]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    // ---- token_failed with non-RFC description → session kept ----
+
+    test(
+      'WHEN refresh throws ArgumentError with token_failed code '
+      'and non-RFC description (server_error)\n'
+      'THEN session is KEPT — HTTP status unknown\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: token_failed, description: server_error]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null && e.error is ArgumentError;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws ArgumentError "Invalid or corrupted pad block" (local crypto failure)\n'
+      'THEN session is KEPT — error propagated with NO HTTP response\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        stubWebRefresh401ThenThrow(
+          ArgumentError('Invalid or corrupted pad block'),
+        );
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null && e.error is ArgumentError;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws AccessTokenInvalidException\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        stubWebRefresh401ThenThrow(AccessTokenInvalidException());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.error is RefreshTokenFailedException;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    for (final transientError in const <OAuthAuthorizationError>[
+      ServerError(),
+      TemporarilyUnavailable(),
+    ]) {
+      test(
+        'WHEN refresh throws ${transientError.runtimeType}\n'
+        'THEN error is propagated WITHOUT an HTTP response — session kept',
+        () async {
+          stubWebRefresh401ThenThrow(transientError);
+          stubAccountCache();
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.response == null &&
+                  e.error.runtimeType == transientError.runtimeType;
+            })),
+          );
+        },
+      );
+    }
+
+    // The web handler delegates its non-rejection paths to
+    // _handleRefreshErrorOnMobile, whose leading branch force-logs-out on an
+    // OAuthAuthorizationError the classifier confirms. On web that branch must
+    // stay dead: the web classifier reads ArgumentError, never this type, so a
+    // native-shaped error arriving on web keeps the session. Without this test,
+    // moving that branch ahead of the isRejected check would silently start
+    // logging web users out on a failure web had already ruled transient.
+    for (final nativeShapedError in const <OAuthAuthorizationError>[
+      OAuthAuthorizationError(
+        error: 'invalid_grant',
+        errorDescription: 'The refresh token has been revoked',
+      ),
+      OAuthAuthorizationError(error: 'unsupported_grant_type'),
+    ]) {
+      test(
+        'WHEN web refresh throws OAuthAuthorizationError(${nativeShapedError.error}) '
+        '— the mobile error shape\n'
+        'THEN session is KEPT: the mobile force-logout branch must not fire on web',
+        () async {
+          stubWebRefresh401ThenThrow(nativeShapedError);
+          stubAccountCache();
+
+          await expectLater(
+            () => dio.post(baseUrl),
+            throwsA(predicate<DioException>((e) {
+              return e.error is OAuthAuthorizationError &&
+                  e.error is! RefreshTokenFailedException;
+            })),
+          );
+
+          expect(
+            authorizationInterceptors.authenticationType,
+            AuthenticationType.oidc,
+          );
+        },
+      );
+    }
+
+    // ---- DioException from token endpoint: only 400/401 → logout ----
+
+    test(
+      'WHEN refresh throws DioException WITH 400 response on web\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        final refreshDioError400 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: 400,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+        stubWebRefresh401ThenThrow(refreshDioError400);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.error is RefreshTokenFailedException)),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws DioException WITH 401 response on web\n'
+      'THEN rejected with RefreshTokenFailedException (→ forced logout)\n'
+      'AND OIDC state is cleared',
+      () async {
+        final refreshDioError401 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: responseStatusCode401,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+        stubWebRefresh401ThenThrow(refreshDioError401);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.error is RefreshTokenFailedException)),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.none,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh throws DioException WITH 503 response on web\n'
+      'THEN session is KEPT — 503 is not a 400/401 rejection\n'
+      'AND OIDC state is NOT cleared',
+      () async {
+        final refreshDioError503 = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          response: Response(
+            statusCode: 503,
+            requestOptions: RequestOptions(path: '/token'),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+        stubWebRefresh401ThenThrow(refreshDioError503);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.response?.statusCode == 503)),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'INVARIANT: flutter_appauth_web throws ArgumentError for non-200 token response\n'
+      'Standard RFC 6749 codes (invalid_grant) are classified as server rejections and trigger logout',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError('Failed to get token: [error: invalid_grant]'));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.error is RefreshTokenFailedException)),
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh succeeds but retry with new token also returns 401\n'
+      'THEN the retry RESPONSE (401) is propagated as-is (→ BadCredentials → logout)\n'
+      '— retry handling is separate from refresh handling',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        // Old token → 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Retry with new token → also 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode401,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh succeeds but retry with new token returns 5xx\n'
+      'THEN the retry RESPONSE (500) is propagated — NOT forced logout via the\n'
+      'original 401 (retry handling is request-level, not a session verdict)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        final retryError500 = DioException(
+          requestOptions: RequestOptions(path: baseUrl, method: 'POST'),
+          response: Response(
+            statusCode: responseStatusCode500,
+            requestOptions: RequestOptions(path: baseUrl),
+          ),
+          type: DioExceptionType.badResponse,
+        );
+
+        // Old token → 401
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        // Retry with new token → 500
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode500, retryError500),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response?.statusCode == responseStatusCode500,
+          )),
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh fails with a network DioException (no response) on web\n'
+      'THEN session is KEPT — propagated error has NO HTTP response (no logout)\n'
+      'AND OIDC state is NOT cleared (carve-out vs bad network)',
+      () async {
+        final refreshNetworkError = DioException(
+          requestOptions: RequestOptions(path: '/token'),
+          type: DioExceptionType.connectionError,
+        );
+
+        stubWebRefresh401ThenThrow(refreshNetworkError);
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) => e.response == null)),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+
+    test(
+      'WHEN refresh fails with a non-Dio transport error (e.g. ClientException) on web\n'
+      'THEN session is KEPT — propagated error has NO HTTP response (no logout)',
+      () async {
+        // Simulates package:http throwing on a browser network drop (no
+        // server response was ever received).
+        stubWebRefresh401ThenThrow(Exception('XMLHttpRequest error'));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>((e) {
+            return e.response == null && e.error is Exception;
+          })),
+        );
+
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: WEB refresh SUCCESS path (platform split must not disturb it)
+  // ============================================================
+  group('onError: web refresh success path', () {
+    setUp(() => PlatformInfo.isTestingForWeb = true);
+    tearDown(() => PlatformInfo.isTestingForWeb = false);
+
+    test(
+      'WHEN 401 with expired token on web\n'
+      'AND refresh returns a new token\n'
+      'THEN retry succeeds with 200 (success flow unaffected by platform split)',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+
+        dioAdapter.onPost(
+          baseUrl,
+          (server) => server.throws(responseStatusCode401, makeDioError401()),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.tokenOidcExpiredTime.token}',
+          },
+        );
+        dioAdapter.onPost(
+          baseUrl,
+          (server) =>
+              server.reply(responseStatusCode200, dataRequestSuccessfully),
+          headers: {
+            HttpHeaders.authorizationHeader:
+                'Bearer ${OIDCFixtures.newTokenOidc.token}',
+          },
+        );
+
+        when(authenticationClient.refreshingTokensOIDC(
+          OIDCFixtures.oidcConfiguration.clientId,
+          OIDCFixtures.oidcConfiguration.redirectUrl,
+          OIDCFixtures.oidcConfiguration.discoveryUrl,
+          OIDCFixtures.oidcConfiguration.scopes,
+          OIDCFixtures.tokenOidcExpiredTime,
+        )).thenAnswer((_) async => OIDCFixtures.newTokenOidc);
+        stubAccountCache();
+
+        final response = await dio.post(baseUrl);
+
+        expect(response.statusCode, responseStatusCode200);
+        expect(response.data, dataRequestSuccessfully);
+        // Session preserved on a successful refresh.
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: WEB refresh failure emits EXACTLY ONE Sentry event
+  // Guards the dedup: the generic catch in _refreshTokenThenRetry routes the
+  // non-Dio ArgumentError straight to the web handler, so the outer catch in
+  // onError() never fires its own logError. Without that routing, one refresh
+  // failure would log twice (generic onError:Exception + the classified event).
+  // ============================================================
+  group('onError: web refresh failure emits a single Sentry event', () {
+    late CapturingLogHandler logHandler;
+
+    setUp(() {
+      PlatformInfo.isTestingForWeb = true;
+      logHandler = CapturingLogHandler();
+      AppLoggerRegistry.instance.registerHandler(logHandler);
+    });
+
+    tearDown(() {
+      AppLoggerRegistry.instance.resetForTesting();
+      PlatformInfo.isTestingForWeb = false;
+    });
+
+    test(
+      'WHEN web refresh throws ArgumentError classified as server rejection\n'
+      'THEN exactly ONE error-level event is emitted (will_logout=true)\n'
+      'AND the duplicate generic onError:Exception event is NOT logged',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: token_failed, description: invalid_request]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.error is RefreshTokenFailedException,
+          )),
+        );
+
+        final errorRecords = logHandler.errorRecords;
+        expect(
+          errorRecords.length,
+          1,
+          reason: 'web refresh rejection must emit exactly one error event',
+        );
+        expect(errorRecords.single.rawMessage, contains('will_logout=true'));
+        expect(
+          errorRecords.single.rawMessage,
+          contains('logFatalRefreshRejection'),
+        );
+        expect(
+          errorRecords.any((r) => r.rawMessage.contains('onError:Exception')),
+          isFalse,
+          reason: 'the outer-catch duplicate event must not fire on web',
+        );
+      },
+    );
+
+    test(
+      'WHEN web refresh throws ArgumentError with an unknown OAuth code (session kept)\n'
+      'THEN exactly ONE error-level event is emitted (will_logout=false)\n'
+      'AND the duplicate generic onError:Exception event is NOT logged',
+      () async {
+        stubWebRefresh401ThenThrow(ArgumentError(
+          'Failed to get token: [error: token_failed, description: server_error]',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.response == null && e.error is ArgumentError,
+          )),
+        );
+
+        final errorRecords = logHandler.errorRecords;
+        expect(
+          errorRecords.length,
+          1,
+          reason: 'unknown-code web refresh must emit exactly one error event',
+        );
+        expect(errorRecords.single.rawMessage, contains('will_logout=false'));
+        expect(
+          errorRecords.any((r) => r.rawMessage.contains('onError:Exception')),
+          isFalse,
+        );
+      },
+    );
+  });
+
+  // ============================================================
+  // onError: MOBILE refresh failure emits EXACTLY ONE Sentry event
+  // Same dedup guarantee as web: a rejection is routed to the mobile handler
+  // from inside _refreshTokenThenRetry, so the outer catch in onError() never
+  // adds its own generic event. Failures the handler does NOT classify keep
+  // that generic event — it is their only trace.
+  // ============================================================
+  // Workplace calls requestTokenRefresh directly, with no onError above it, so
+  // the fatal event has to come from the interceptor rather than the caller.
+  group('requestTokenRefresh: a direct caller gets the fatal event too', () {
+    late CapturingLogHandler logHandler;
+
+    setUp(() {
+      logHandler = CapturingLogHandler();
+      AppLoggerRegistry.instance.registerHandler(logHandler);
+    });
+
+    tearDown(() => AppLoggerRegistry.instance.resetForTesting());
+
+    test(
+      'WHEN a direct refresh is rejected by the token endpoint\n'
+      'THEN exactly ONE error-level event is emitted (will_logout=true)\n'
+      'AND the caller adds none of its own',
+      () async {
+        authorizationInterceptors.setTokenAndAuthorityOidc(
+          newToken: OIDCFixtures.tokenOidcExpiredTime,
+          newConfig: OIDCFixtures.oidcConfiguration,
+        );
+        when(authenticationClient.refreshingTokensOIDC(any, any, any, any, any))
+            .thenThrow(const OAuthAuthorizationError(
+          error: 'invalid_grant',
+          errorDescription: 'The refresh token has been revoked',
+        ));
+
+        await expectLater(
+          authorizationInterceptors.requestTokenRefresh(),
+          throwsA(isA<RefreshTokenFailedException>()),
+        );
+
+        final errorRecords = logHandler.errorRecords;
+        expect(errorRecords.length, 1);
+        expect(errorRecords.single.rawMessage, contains('will_logout=true'));
+        expect(
+          errorRecords.single.extras,
+          containsPair('auth_error_type', 'token_endpoint_oauth_rejected'),
+        );
+        expect(authorizationInterceptors.authenticationType, AuthenticationType.none);
+      },
+    );
+  });
+
+  group('onError: mobile refresh failure emits a single Sentry event', () {
+    late CapturingLogHandler logHandler;
+
+    setUp(() {
+      logHandler = CapturingLogHandler();
+      AppLoggerRegistry.instance.registerHandler(logHandler);
+    });
+
+    tearDown(() => AppLoggerRegistry.instance.resetForTesting());
+
+    test(
+      'WHEN mobile refresh is rejected by the token endpoint (invalid_grant)\n'
+      'THEN exactly ONE error-level event is emitted (will_logout=true)\n'
+      'AND the duplicate generic onError:Exception event is NOT logged',
+      () async {
+        stubWebRefresh401ThenThrow(const OAuthAuthorizationError(
+          error: 'invalid_grant',
+          errorDescription: 'The refresh token has been revoked',
+        ));
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.error is RefreshTokenFailedException,
+          )),
+        );
+
+        final errorRecords = logHandler.errorRecords;
+        expect(
+          errorRecords.length,
+          1,
+          reason: 'mobile refresh rejection must emit exactly one error event',
+        );
+        expect(errorRecords.single.rawMessage, contains('will_logout=true'));
+        expect(
+          errorRecords.single.extras,
+          containsPair('auth_error_type', 'token_endpoint_oauth_rejected'),
+        );
+        expect(
+          errorRecords.single.extras,
+          containsPair('oauth_error_code', 'invalid_grant'),
+        );
+        expect(
+          errorRecords.any((r) => r.rawMessage.contains('onError:Exception')),
+          isFalse,
+          reason: 'the outer-catch duplicate event must not fire on mobile',
+        );
+      },
+    );
+
+    test(
+      'WHEN mobile refresh fails with an error the handler does NOT classify\n'
+      'THEN the generic onError:Exception event is still emitted\n'
+      'AND the session is kept',
+      () async {
+        stubWebRefresh401ThenThrow(const ServerError());
+        stubAccountCache();
+
+        await expectLater(
+          () => dio.post(baseUrl),
+          throwsA(predicate<DioException>(
+            (e) => e.error is OAuthAuthorizationError,
+          )),
+        );
+
+        expect(
+          logHandler.errorRecords
+              .where((r) => r.rawMessage.contains('onError:Exception'))
+              .length,
+          1,
+          reason: 'unclassified mobile failures must keep their only trace',
+        );
+        expect(
+          authorizationInterceptors.authenticationType,
+          AuthenticationType.oidc,
+        );
+      },
+    );
+  });
+
+  tearDown(() {
+    reset(authenticationClient);
+    reset(tokenOidcCacheManager);
+    reset(accountCacheManager);
+    reset(iosSharingManager);
+
+    authorizationInterceptors.clear();
+    dioAdapter.reset();
+    dioAdapter.close();
+    dio.close();
+  });
+}

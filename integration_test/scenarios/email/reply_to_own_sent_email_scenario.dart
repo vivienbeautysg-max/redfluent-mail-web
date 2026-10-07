@@ -1,0 +1,61 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:model/email/prefix_email_address.dart';
+import 'package:tmail_ui_user/features/composer/presentation/composer_view.dart';
+import 'package:tmail_ui_user/features/composer/presentation/widgets/recipient_composer_widget.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
+
+import '../../base/base_test_scenario.dart';
+import '../../robots/composer_robot.dart';
+import '../../robots/email_robot.dart';
+import '../../robots/mailbox_menu_robot.dart';
+import '../../robots/thread_robot.dart';
+import '../send_email_scenario.dart';
+
+class ReplyToOwnSentEmailScenario extends BaseTestScenario {
+  const ReplyToOwnSentEmailScenario(super.$, super.robots);
+  
+  @override
+  Future<void> runTestLogic() async {
+    const subject = 'reply own sent email';
+
+    final threadRobot = ThreadRobot($);
+    final mailboxMenuRobot = MailboxMenuRobot($);
+    final emailRobot = EmailRobot($);
+    final composerRobot = ComposerRobot($);
+    final sendEmailScenario = SendEmailScenario($, robots, customSubject: subject);
+    final appLocalizations = AppLocalizations();
+
+    await sendEmailScenario.runTestLogic();
+    await threadRobot.openMailbox();
+    await mailboxMenuRobot.navigation.openFolder(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.sentMailboxDisplayName),
+    );
+    await threadRobot.openEmailWithSubject(subject);
+    await emailRobot.onTapReplyEmail();
+    await _expectComposerViewVisible();
+
+    await composerRobot.grantContactPermission();
+
+    await composerRobot.expandRecipientsFields();
+    await $.pumpAndSettle();
+
+    _expectToFieldContainListEmailAddressCorrectly();
+  }
+
+  Future<void> _expectComposerViewVisible() async {
+    await expectViewVisible($(ComposerView));
+  }
+
+  void _expectToFieldContainListEmailAddressCorrectly()  {
+    expect(
+      $(RecipientComposerWidget).which<RecipientComposerWidget>((widget) =>
+        widget.prefix == PrefixEmailAddress.to &&
+        isMatchingEmailList(
+          widget.listEmailAddress,
+          {'bob@example.com', 'alice@example.com'}
+        )
+      ).visible,
+      isTrue,
+    );
+  }
+}

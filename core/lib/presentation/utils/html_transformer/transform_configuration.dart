@@ -1,0 +1,194 @@
+
+import 'package:core/presentation/utils/html_transformer/base/dom_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/base/text_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/add_lazy_loading_for_background_image_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/hide_draft_signature_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/block_code_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/block_quoted_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/image_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/normalize_line_height_in_style_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_collapsed_signature_button_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_lazy_loading_for_background_image_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_lazy_loading_image_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_max_width_in_image_style_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_negative_margin_float_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/autolink_text_node_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/remove_style_tag_outside_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/responsive_table_cell_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/sanitize_hyper_link_tag_in_html_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/script_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/text/new_line_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/signature_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/text/standardize_html_sanitizing_transformers.dart';
+import 'package:core/utils/platform_info.dart';
+
+/// Contains the configuration for all transformations.
+class TransformConfiguration {
+
+  /// The list of DOM transformers being used
+  final List<DomTransformer> domTransformers;
+
+  /// The list of text transformers that are used before a plain text message without HTML part is converted into HTML
+  final List<TextTransformer> textTransformers;
+
+  /// Creates a new transform configuration
+  ///
+  /// Compare [create] to have an easier to use building function
+  const TransformConfiguration(
+    this.domTransformers,
+    this.textTransformers
+  );
+
+  factory TransformConfiguration.fromDomTransformers(List<DomTransformer> domTransformers) => TransformConfiguration(domTransformers, []);
+
+  factory TransformConfiguration.fromTextTransformers(
+    List<TextTransformer> textTransformers
+  ) => TransformConfiguration([], textTransformers);
+
+  factory TransformConfiguration.forReplyForwardEmail() => TransformConfiguration.fromDomTransformers([
+    const SignatureTransformer(),
+    const RemoveCollapsedSignatureButtonTransformer(),
+    const NormalizeLineHeightInStyleTransformer(),
+  ]);
+
+  factory TransformConfiguration.forReplyForwardEmptyEmail() => TransformConfiguration.fromDomTransformers([
+    ...TransformConfiguration.forReplyForwardEmail().domTransformers,
+    const ImageTransformer(),
+  ]);
+
+  factory TransformConfiguration.forDraftsEmail() => TransformConfiguration.create(
+    customDomTransformers: [
+      const ImageTransformer(),
+      const NormalizeLineHeightInStyleTransformer(),
+    ]
+  );
+  /// Reloading a draft feeds its HTML back into the composer's editable
+  /// webview, so unlike [forPreviewEmail]/[forDraftsEmail] (read-only), the
+  /// sanitizer here must let `contenteditable` survive - otherwise a drive
+  /// link card loses its `contenteditable="false"` guard and becomes an
+  /// editable region inside the editor.
+  factory TransformConfiguration.forEditDraftsEmail() => TransformConfiguration.create(
+    customDomTransformers: [
+      ...TransformConfiguration.forDraftsEmail().domTransformers,
+      if (PlatformInfo.isWeb)
+        const HideDraftSignatureTransformer()
+    ],
+    customTextTransformers: const [
+      StandardizeHtmlSanitizingTransformers(allowAttributes: ['contenteditable']),
+    ],
+  );
+
+  factory TransformConfiguration.forPreviewEmailOnWeb() => TransformConfiguration.create(
+    customDomTransformers: [
+      const RemoveScriptTransformer(),
+      const BlockQuotedTransformer(),
+      const BlockCodeTransformer(),
+      SanitizeHyperLinkTagInHtmlTransformer(),
+      const ImageTransformer(),
+      const AddLazyLoadingForBackgroundImageTransformer(),
+      const RemoveCollapsedSignatureButtonTransformer(),
+      const NormalizeLineHeightInStyleTransformer(),
+      const ResponsiveTableCellTransformer(),
+      const RemoveNegativeMarginFloatTransformer(),
+    ],
+    customTextTransformers: const [
+      StandardizeHtmlSanitizingTransformers(allowAttributes: ['contenteditable']),
+    ],
+  );
+
+  factory TransformConfiguration.forPreviewEmail() => TransformConfiguration.create(
+    customTextTransformers: const [
+      StandardizeHtmlSanitizingTransformers(allowAttributes: ['contenteditable']),
+    ],
+  );
+
+  factory TransformConfiguration.forRestoreEmail() => TransformConfiguration.create(
+    customDomTransformers: [const ImageTransformer()],
+    customTextTransformers: const [
+      StandardizeHtmlSanitizingTransformers(allowAttributes: ['contenteditable']),
+    ],
+  );
+
+  factory TransformConfiguration.forPrintEmail() => TransformConfiguration.fromDomTransformers([
+    const RemoveLazyLoadingForBackgroundImageTransformer(),
+    const RemoveLazyLoadingImageTransformer(),
+    const RemoveCollapsedSignatureButtonTransformer(),
+    const RemoveStyleTagOutsideTransformer(),
+    const RemoveMaxWidthInImageStyleTransformer(),
+  ]);
+
+   factory TransformConfiguration.forSignatureIdentity() => TransformConfiguration.create(
+     customDomTransformers: [
+       const RemoveScriptTransformer(),
+       const BlockQuotedTransformer(),
+       const BlockCodeTransformer(),
+       SanitizeHyperLinkTagInHtmlTransformer(),
+       const ImageTransformer(),
+       const NormalizeLineHeightInStyleTransformer(),
+     ],
+   );
+
+  /// Signature HTML inserted into the composer editor. Kept minimal — only
+  /// degenerate `line-height` values are stripped — because the inserted
+  /// signature becomes part of the email that is sent and must not be
+  /// rewritten by display-only transformers.
+  factory TransformConfiguration.forComposerSignature() =>
+      TransformConfiguration.fromDomTransformers([
+        const NormalizeLineHeightInStyleTransformer(),
+      ]);
+
+  factory TransformConfiguration.forCalendarEvent() => TransformConfiguration.create(
+    customTextTransformers: const [
+      StandardizeHtmlSanitizingTransformers(),
+      NewLineTransformer(),
+    ],
+    customDomTransformers: [
+      const AutolinkTextNodeTransformer(),
+      SanitizeHyperLinkTagInHtmlTransformer(),
+    ],
+  );
+
+  /// Provides easy access to a standard configuration that does not block external images.
+  static TransformConfiguration standardConfiguration = TransformConfiguration(
+    standardDomTransformers,
+    standardTextTransformers
+  );
+
+  /// Provides an easy option to customize a configuration.
+  ///
+  /// Any specified [customDomTransformers] or [customTextTransformers] are being appended to the standard transformers.
+  static TransformConfiguration create({
+    List<DomTransformer>? customDomTransformers,
+    List<TextTransformer>? customTextTransformers
+  }) {
+    final domTransformers = (customDomTransformers != null && customDomTransformers.isNotEmpty)
+      ? customDomTransformers
+      : standardDomTransformers;
+
+    final textTransformers = (customTextTransformers != null && customTextTransformers.isNotEmpty)
+      ? customTextTransformers
+      : standardTextTransformers;
+
+    return TransformConfiguration(
+      domTransformers,
+      textTransformers
+    );
+  }
+
+  static List<DomTransformer> standardDomTransformers = [
+    const RemoveScriptTransformer(),
+    const BlockQuotedTransformer(),
+    const BlockCodeTransformer(),
+    SanitizeHyperLinkTagInHtmlTransformer(),
+    const ImageTransformer(),
+    const AddLazyLoadingForBackgroundImageTransformer(),
+    const RemoveCollapsedSignatureButtonTransformer(),
+    const NormalizeLineHeightInStyleTransformer(),
+    const ResponsiveTableCellTransformer(),
+    const RemoveNegativeMarginFloatTransformer(),
+  ];
+
+  static const List<TextTransformer> standardTextTransformers = [
+    StandardizeHtmlSanitizingTransformers(),
+  ];
+}

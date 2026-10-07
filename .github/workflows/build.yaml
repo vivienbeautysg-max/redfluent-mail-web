@@ -1,0 +1,84 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * *"
+
+name: Build dev binaries
+
+env:
+  FLUTTER_VERSION: 3.38.9
+  XCODE_VERSION: 26.2
+
+jobs:
+  build-app:
+    name: Build app
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: android
+            runner: ubuntu-latest
+          - os: ios
+            runner: macos-15 # Use macos-15 runners because Xcode 26 requires macOS 15+.
+    environment: dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+          cache-key: deps-${{ hashFiles('pubspec.lock') }} # optional, change this to force refresh cache
+          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ${{ matrix.os }}
+
+      - name: Setup Firebase env
+        env:
+          FIREBASE_ENV: ${{ secrets.FIREBASE_ENV }}
+        run: ./scripts/setup-firebase.sh
+
+      - name: Setup Java
+        if: matrix.os == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Select Xcode version
+        if: matrix.os == 'ios'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Setup iOS environment
+        if: matrix.os == 'ios'
+        run: ../scripts/setup-ios.sh
+        working-directory: ${{ matrix.os }}
+
+      - name: Run prebuild
+        run: ./scripts/prebuild.sh
+
+      - name: Build
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APPLE_CERTIFICATES_SSH_KEY: ${{ secrets.APPLE_CERTIFICATES_SSH_KEY }}
+        run: ../scripts/build-dev.sh
+        working-directory: ${{ matrix.os }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmail-dev-${{ matrix.os }}
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            ios/Runner.ipa

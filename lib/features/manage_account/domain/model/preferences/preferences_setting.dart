@@ -1,0 +1,49 @@
+import 'package:equatable/equatable.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/ai_scribe_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/drive_attachment_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/label_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/preferences_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/spam_report_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/text_formatting_menu_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/thread_detail_config.dart';
+
+class PreferencesSetting with EquatableMixin {
+  final List<PreferencesConfig> configs;
+
+  PreferencesSetting(this.configs);
+
+  factory PreferencesSetting.initial() {
+    return PreferencesSetting([
+      ThreadDetailConfig.initial(),
+      SpamReportConfig.initial(),
+      TextFormattingMenuConfig.initial(),
+      AIScribeConfig.initial(),
+      LabelConfig.initial(),
+      DriveAttachmentConfig.initial(),
+    ]);
+  }
+
+  T getConfigOrDefault<T extends PreferencesConfig>(T defaultValue) =>
+      configs.whereType<T>().firstOrNull ?? defaultValue;
+
+  ThreadDetailConfig get threadConfig =>
+      getConfigOrDefault(ThreadDetailConfig.initial());
+
+  SpamReportConfig get spamReportConfig =>
+      getConfigOrDefault(SpamReportConfig.initial());
+
+  TextFormattingMenuConfig get textFormattingMenuConfig =>
+      getConfigOrDefault(TextFormattingMenuConfig.initial());
+
+  AIScribeConfig get aiScribeConfig =>
+      getConfigOrDefault(AIScribeConfig.initial());
+
+  LabelConfig get labelConfig =>
+      getConfigOrDefault(LabelConfig.initial());
+
+  DriveAttachmentConfig get driveAttachmentConfig =>
+      getConfigOrDefault(DriveAttachmentConfig.initial());
+
+  @override
+  List<Object?> get props => [configs];
+}

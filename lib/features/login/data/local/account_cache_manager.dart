@@ -1,0 +1,84 @@
+import 'package:collection/collection.dart';
+import 'package:core/utils/app_logger.dart';
+import 'package:model/account/personal_account.dart';
+import 'package:tmail_ui_user/features/caching/clients/account_cache_client.dart';
+import 'package:tmail_ui_user/features/caching/interaction/cache_manager_interaction.dart';
+import 'package:tmail_ui_user/features/login/data/extensions/account_cache_extensions.dart';
+import 'package:tmail_ui_user/features/login/data/extensions/list_account_cache_extensions.dart';
+import 'package:tmail_ui_user/features/login/data/extensions/personal_account_extension.dart';
+import 'package:tmail_ui_user/features/login/domain/exceptions/authentication_exception.dart';
+
+class AccountCacheManager extends CacheManagerInteraction {
+  final AccountCacheClient _accountCacheClient;
+
+  AccountCacheManager(this._accountCacheClient);
+
+  Future<PersonalAccount> getCurrentAccount() async {
+    final allAccounts = await _accountCacheClient.getAll();
+    log('AccountCacheManager::getCurrentAccount::allAccounts(): $allAccounts');
+    final accountCache = allAccounts.firstWhereOrNull((account) => account.isSelected);
+    log('AccountCacheManager::getCurrentAccount::accountCache(): $accountCache');
+    if (accountCache != null) {
+      return accountCache.toAccount();
+    } else {
+      throw NotFoundAuthenticatedAccountException();
+    }
+  }
+
+  Future<void> setCurrentAccount(PersonalAccount newAccount) async {
+    log('AccountCacheManager::setCurrentAccount(): $newAccount');
+    final newAccountCache = newAccount.toCache();
+    final allAccounts = await _accountCacheClient.getAll();
+    log('AccountCacheManager::setCurrentAccount::allAccounts(): length: ${allAccounts.length}, $allAccounts');
+
+    // Crash-safe: write the new (selected) account FIRST so the box is never
+    // empty / never without a selected account if the process is killed mid-write.
+    await _accountCacheClient.insertItem(newAccountCache.id, newAccountCache);
+
+    if (allAccounts.isNotEmpty) {
+      // Keep the OTHER accounts, unselected & de-duplicated, minus the stale
+      // version of the account we just wrote (same accountId, different hash id).
+      final otherAccounts = allAccounts
+        .unselected()
+        .removeDuplicated()
+        .whereNot((account) => account.accountId == newAccountCache.accountId)
+        .toList();
+      if (otherAccounts.isNotEmpty) {
+        await _accountCacheClient.updateMultipleItem(otherAccounts.toMap());
+      }
+
+      final keepKeys = {
+        newAccountCache.id,
+        ...otherAccounts.map((account) => account.id),
+      };
+      final staleKeys = allAccounts
+        .map((account) => account.id)
+        .where((id) => !keepKeys.contains(id))
+        .toList();
+      if (staleKeys.isNotEmpty) {
+        await _accountCacheClient.deleteMultipleItem(staleKeys);
+      }
+    }
+  }
+
+  Future<void> deleteCurrentAccount(String hashId) {
+    log('AccountCacheManager::deleteCurrentAccount(): $hashId');
+    return _accountCacheClient.deleteItem(hashId);
+  }
+
+  Future<void> clear() => _accountCacheClient.clearAllData();
+
+  @override
+  Future<void> migrateHiveToIsolatedHive() async {
+    try {
+      final legacyMapItems = await _accountCacheClient.getMapItems(
+        isolated: false,
+      );
+      log('$runtimeType::migrateHiveToIsolatedHive(): Length of legacyMapItems: ${legacyMapItems.length}');
+      await _accountCacheClient.insertMultipleItem(legacyMapItems);
+      log('$runtimeType::migrateHiveToIsolatedHive(): ✅ Migrate Hive box "${_accountCacheClient.tableName}" → IsolatedHive DONE');
+    } catch (e) {
+      logWarning('$runtimeType::migrateHiveToIsolatedHive(): ❌ Migrate Hive box "${_accountCacheClient.tableName}" → IsolatedHive FAILED, Error: $e');
+    }
+  }
+}

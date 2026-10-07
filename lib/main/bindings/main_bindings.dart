@@ -1,0 +1,40 @@
+import 'package:core/utils/platform_info.dart';
+import 'package:get/get.dart';
+import 'package:tmail_ui_user/features/base/urgent_exception_handler.dart';
+import 'package:tmail_ui_user/features/base/urgent_exception_handler_service.dart';
+import 'package:tmail_ui_user/features/login/presentation/bindings/company_server_login_interactor_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/core/core_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/credential/credential_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/deep_link/deep_link_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/local/local_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/local/local_isolate_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/network/network_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/network/network_isolate_binding.dart';
+import 'package:tmail_ui_user/main/bindings/network_connection/network_connection_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/sentry/sentry_bindings.dart';
+import 'package:tmail_ui_user/main/bindings/session/session_bindings.dart';
+
+class MainBindings extends Bindings {
+  @override
+  Future dependencies() async {
+    await CoreBindings().dependencies();
+    LocalBindings().dependencies();
+    LocalIsolateBindings().dependencies();
+    NetworkBindings().dependencies();
+    SentryBindings().dependencies();
+    NetworkIsolateBindings().dependencies();
+    CredentialBindings().dependencies();
+    SessionBindings().dependencies();
+    NetWorkConnectionBindings().dependencies();
+    if (PlatformInfo.isMobile) {
+      CompanyServerLoginInteractorBindings().dependencies();
+      DeepLinkBindings().dependencies();
+    }
+    // App-lifetime urgent-exception handler for Riverpod flows on any screen.
+    // Lazy so its `Get.find` fields resolve on first use, not at bootstrap.
+    Get.lazyPut<UrgentExceptionHandler>(
+      () => UrgentExceptionHandlerService(),
+      fenix: true,
+    );
+  }
+}

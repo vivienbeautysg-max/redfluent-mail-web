@@ -1,0 +1,684 @@
+import 'dart:async';
+
+import 'package:contact/contact/model/autocomplete_capability.dart';
+import 'package:contact/contact/model/capability_contact.dart';
+import 'package:core/data/network/config/dynamic_url_interceptors.dart';
+import 'package:core/presentation/resources/image_paths.dart';
+import 'package:core/presentation/state/failure.dart';
+import 'package:core/presentation/utils/app_toast.dart';
+import 'package:core/presentation/utils/responsive_utils.dart';
+import 'package:core/utils/platform_info.dart';
+import 'package:flutter/material.dart' hide State;
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:jmap_dart_client/jmap/account_id.dart';
+import 'package:jmap_dart_client/jmap/core/account/account.dart';
+import 'package:jmap_dart_client/jmap/core/capability/empty_capability.dart';
+import 'package:jmap_dart_client/jmap/core/session/session.dart';
+import 'package:jmap_dart_client/jmap/core/state.dart';
+import 'package:jmap_dart_client/jmap/core/unsigned_int.dart';
+import 'package:jmap_dart_client/jmap/core/user_name.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:model/account/authentication_type.dart';
+import 'package:tmail_ui_user/features/base/base_controller.dart';
+import 'package:tmail_ui_user/features/base/before_reconnect_manager.dart';
+import 'package:tmail_ui_user/features/base/sentry_session_cleanup.dart';
+import 'package:tmail_ui_user/features/caching/caching_manager.dart';
+import 'package:tmail_ui_user/features/login/data/network/interceptors/authorization_interceptors.dart';
+import 'package:tmail_ui_user/features/login/domain/usecases/delete_authority_oidc_interactor.dart';
+import 'package:tmail_ui_user/features/login/domain/usecases/delete_credential_interactor.dart';
+import 'package:tmail_ui_user/features/manage_account/data/local/language_cache_manager.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/usecases/log_out_oidc_interactor.dart';
+import 'package:tmail_ui_user/main/bindings/network/binding_tag.dart';
+import 'package:tmail_ui_user/main/exceptions/remote/authentication_exception.dart';
+import 'package:tmail_ui_user/main/exceptions/remote/network_exception.dart';
+import 'package:tmail_ui_user/main/exceptions/remote/remote_exception.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations_delegate.dart';
+import 'package:tmail_ui_user/main/localizations/localization_service.dart';
+import 'package:tmail_ui_user/main/utils/app_config.dart';
+import 'package:tmail_ui_user/main/utils/toast_manager.dart';
+import 'package:tmail_ui_user/main/utils/twake_app_manager.dart';
+import 'package:uuid/uuid.dart';
+import 'package:tmail_ui_user/features/base/extensions/discard_web_composers_on_logout_extension.dart';
+import 'package:tmail_ui_user/features/composer/presentation/composer_view_web.dart';
+import 'package:tmail_ui_user/features/composer/presentation/manager/composer_manager.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/repository/composer_cache_repository.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_all_composer_cache_interactor.dart';
+
+import '../../fixtures/account_fixtures.dart';
+import '../../fixtures/session_fixtures.dart';
+import 'base_controller_test.mocks.dart';
+
+class MockBaseController extends BaseController {
+
+  bool isUrgentExceptionEnable = false;
+  bool isErrorViewStateEnable = false;
+  int logoutCalls = 0;
+
+  /// Shared with the before-reconnect stub so a test can assert the ordering.
+  final List<String> events = [];
+
+  void resetState() {
+     isUrgentExceptionEnable = false;
+     isErrorViewStateEnable = false;
+     logoutCalls = 0;
+     events.clear();
+  }
+
+  // Records the forced logout instead of clearing storage and routing.
+  @override
+  Future<void> clearDataAndGoToLoginPage() async {
+    logoutCalls++;
+    events.add('logout');
+  }
+
+  @override
+  void handleErrorViewState(Object error, StackTrace stackTrace) {
+    super.handleErrorViewState(error, stackTrace);
+    isErrorViewStateEnable = true;
+  }
+
+  @override
+  void handleUrgentException({Failure? failure, Exception? exception}) {
+    super.handleUrgentException(failure: failure, exception: exception);
+    isUrgentExceptionEnable = true;
+  }
+}
+
+class FakeComposerCacheRepository extends Fake implements ComposerCacheRepository {
+  FakeComposerCacheRepository(this.events, {this.error});
+
+  final List<String> events;
+  final Object? error;
+  ({AccountId accountId, UserName userName})? removedFor;
+
+  @override
+  Future<void> removeAllComposerCache(AccountId accountId, UserName userName) async {
+    events.add('removeAllComposerCache');
+    removedFor = (accountId: accountId, userName: userName);
+    if (error != null) throw error!;
+  }
+}
+
+class SomeOtherException extends RemoteException {
+  const SomeOtherException();
+
+  @override
+  String get exceptionName => 'SomeOtherException';
+}
+
+class _TestSentrySessionCleanup implements SentrySessionCleanup {
+  int calls = 0;
+  Future<void>? pendingCleanup;
+  Object? error;
+
+  @override
+  Future<void> clearForSessionEnd() async {
+    calls++;
+    final cleanupError = error;
+    if (cleanupError != null) throw cleanupError;
+    await pendingCleanup;
+  }
+}
+
+@GenerateNiceMocks([
+  MockSpec<CachingManager>(),
+  MockSpec<LanguageCacheManager>(),
+  MockSpec<AuthorizationInterceptors>(),
+  MockSpec<DynamicUrlInterceptors>(),
+  MockSpec<DeleteCredentialInteractor>(),
+  MockSpec<LogoutOidcInteractor>(),
+  MockSpec<DeleteAuthorityOidcInteractor>(),
+  MockSpec<AppToast>(),
+  MockSpec<ImagePaths>(),
+  MockSpec<ResponsiveUtils>(),
+  MockSpec<Uuid>(),
+  MockSpec<ToastManager>(),
+  MockSpec<TwakeAppManager>(),
+  MockSpec<BeforeReconnectManager>(),
+])
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late MockBaseController mockBaseController;
+  late MockCachingManager mockCachingManager;
+  late MockLanguageCacheManager mockLanguageCacheManager;
+  late MockAuthorizationInterceptors mockAuthorizationInterceptors;
+  late MockDynamicUrlInterceptors mockDynamicUrlInterceptors;
+  late MockDeleteCredentialInteractor mockDeleteCredentialInteractor;
+  late MockLogoutOidcInteractor mockLogoutOidcInteractor;
+  late MockDeleteAuthorityOidcInteractor mockDeleteAuthorityOidcInteractor;
+  late MockAppToast mockAppToast;
+  late MockImagePaths mockImagePaths;
+  late MockResponsiveUtils mockResponsiveUtils;
+  late MockUuid mockUuid;
+  late MockToastManager mockToastManager;
+  late MockTwakeAppManager mockTwakeAppManager;
+  late MockBeforeReconnectManager mockBeforeReconnectManager;
+
+  setUpAll(() {
+    mockCachingManager = MockCachingManager();
+    mockLanguageCacheManager = MockLanguageCacheManager();
+    mockAuthorizationInterceptors = MockAuthorizationInterceptors();
+    mockDynamicUrlInterceptors = MockDynamicUrlInterceptors();
+    mockDeleteCredentialInteractor = MockDeleteCredentialInteractor();
+    mockLogoutOidcInteractor = MockLogoutOidcInteractor();
+    mockDeleteAuthorityOidcInteractor = MockDeleteAuthorityOidcInteractor();
+    mockAppToast = MockAppToast();
+    mockImagePaths = MockImagePaths();
+    mockResponsiveUtils = MockResponsiveUtils();
+    mockUuid = MockUuid();
+    mockToastManager = MockToastManager();
+    mockTwakeAppManager = MockTwakeAppManager();
+    mockBeforeReconnectManager = MockBeforeReconnectManager();
+
+    Get.put<CachingManager>(mockCachingManager);
+    Get.put<LanguageCacheManager>(mockLanguageCacheManager);
+    Get.put<AuthorizationInterceptors>(mockAuthorizationInterceptors);
+    Get.put<AuthorizationInterceptors>(
+      mockAuthorizationInterceptors,
+      tag: BindingTag.isolateTag,
+    );
+    Get.put<DynamicUrlInterceptors>(mockDynamicUrlInterceptors);
+    Get.put<DeleteCredentialInteractor>(mockDeleteCredentialInteractor);
+    Get.put<LogoutOidcInteractor>(mockLogoutOidcInteractor);
+    Get.put<DeleteAuthorityOidcInteractor>(mockDeleteAuthorityOidcInteractor);
+    Get.put<AppToast>(mockAppToast);
+    Get.put<ImagePaths>(mockImagePaths);
+    Get.put<ResponsiveUtils>(mockResponsiveUtils);
+    Get.put<Uuid>(mockUuid);
+    Get.put<ToastManager>(mockToastManager);
+    Get.put<TwakeAppManager>(mockTwakeAppManager);
+    Get.put<BeforeReconnectManager>(mockBeforeReconnectManager);
+    Get.testMode = true;
+
+    mockBaseController = MockBaseController();
+  });
+
+  group('BaseController::validateUrgentException', () {
+    test('should return true when exception is NoNetworkError', () {
+      expect(mockBaseController.validateUrgentException(const NoNetworkError()), isTrue);
+    });
+
+    test('should return true when exception is BadCredentialsException', () {
+      expect(mockBaseController.validateUrgentException(const BadCredentialsException()), isTrue);
+    });
+
+    test('should return true when exception is ConnectionError', () {
+      expect(mockBaseController.validateUrgentException(const ConnectionError()), isTrue);
+    });
+
+    test('should return true when exception is RefreshTokenFailedException', () {
+      expect(mockBaseController.validateUrgentException(RefreshTokenFailedException()), isTrue);
+    });
+
+    test('should return false when exception is SomeOtherException', () {
+      expect(mockBaseController.validateUrgentException(const SomeOtherException()), isFalse);
+    });
+
+    test('should return false when exception is null', () {
+      expect(mockBaseController.validateUrgentException(null), isFalse);
+    });
+
+    test('should return false when exceptions are other types', () {
+      expect(mockBaseController.validateUrgentException('StringException'), isFalse);
+      expect(mockBaseController.validateUrgentException(123), isFalse);
+      expect(mockBaseController.validateUrgentException(Object()), isFalse);
+    });
+  });
+
+  group('BaseController::onError', () {
+    test('handleUrgentException should called when error is NoNetworkError', () {
+      // arrange
+      const error = NoNetworkError();
+      final stackTrace = StackTrace.current;
+
+      // act
+      mockBaseController.resetState();
+      mockBaseController.onError(error, stackTrace);
+
+      // assert
+      expect(mockBaseController.isUrgentExceptionEnable, true);
+      expect(mockBaseController.isErrorViewStateEnable, false);
+    });
+
+    test('handleUrgentException should called when error is BadCredentialsException', () {
+      // arrange
+      const error = BadCredentialsException();
+      final stackTrace = StackTrace.current;
+
+      // act
+      mockBaseController.resetState();
+      mockBaseController.onError(error, stackTrace);
+
+      // assert
+      expect(mockBaseController.isUrgentExceptionEnable, true);
+      expect(mockBaseController.isErrorViewStateEnable, false);
+    });
+
+    test('handleUrgentException should called when error is ConnectionError', () {
+      // arrange
+      const error = ConnectionError();
+      final stackTrace = StackTrace.current;
+
+      // act
+      mockBaseController.resetState();
+      mockBaseController.onError(error, stackTrace);
+
+      // assert
+      expect(mockBaseController.isUrgentExceptionEnable, true);
+      expect(mockBaseController.isErrorViewStateEnable, false);
+    });
+
+    test('handleUrgentException should called when error is RefreshTokenFailedException', () {
+      // arrange
+      final error = RefreshTokenFailedException();
+      final stackTrace = StackTrace.current;
+
+      // act
+      mockBaseController.resetState();
+      mockBaseController.onError(error, stackTrace);
+
+      // assert
+      expect(mockBaseController.isUrgentExceptionEnable, true);
+      expect(mockBaseController.isErrorViewStateEnable, false);
+    });
+
+    test('handleErrorViewState should called when error is SomeOtherException', () {
+      // arrange
+      const error = SomeOtherException();
+      final stackTrace = StackTrace.current;
+
+      // act
+      mockBaseController.resetState();
+      mockBaseController.onError(error, stackTrace);
+
+      // assert
+      expect(mockBaseController.isErrorViewStateEnable, true);
+      expect(mockBaseController.isUrgentExceptionEnable, false);
+    });
+  });
+
+  // Forced logout after a rejected OIDC refresh — the path every
+  // RefreshTokenFailedException ends in, whether it came from the JMAP
+  // interceptor or from a Drive token refresh.
+  group('BaseController::handleRefreshTokenFailedException', () {
+    setUp(() {
+      mockBaseController.resetState();
+      clearInteractions(mockTwakeAppManager);
+      clearInteractions(mockBeforeReconnectManager);
+      addTearDown(() => PlatformInfo.isTestingForWeb = false);
+    });
+
+    test(
+      'web with a composer open: saves via before-reconnect listeners, '
+      'suppresses the browser prompt, then logs out',
+      () async {
+        PlatformInfo.isTestingForWeb = true;
+        when(mockTwakeAppManager.hasComposer).thenReturn(true);
+
+        // Yields before recording, so dropping the await in production would
+        // land 'logout' first and fail the ordering assertion below.
+        when(mockBeforeReconnectManager.executeBeforeReconnectListeners())
+            .thenAnswer((_) async {
+          await Future<void>.delayed(Duration.zero);
+          mockBaseController.events.add('listeners');
+        });
+
+        mockBaseController.handleUrgentException(exception: RefreshTokenFailedException());
+        await pumpEventQueue();
+
+        verifyInOrder([
+          mockTwakeAppManager.setExecutingBeforeReconnect(true),
+          mockBeforeReconnectManager.executeBeforeReconnectListeners(),
+        ]);
+        expect(mockBaseController.logoutCalls, 1);
+        // Logout must not start before the draft save finishes, or it is lost.
+        expect(mockBaseController.events, ['listeners', 'logout']);
+      },
+    );
+
+    test('web without a composer: logs out directly, no before-reconnect', () async {
+      PlatformInfo.isTestingForWeb = true;
+      when(mockTwakeAppManager.hasComposer).thenReturn(false);
+
+      mockBaseController.handleUrgentException(exception: RefreshTokenFailedException());
+      await pumpEventQueue();
+
+      verifyNever(mockTwakeAppManager.setExecutingBeforeReconnect(any));
+      verifyNever(mockBeforeReconnectManager.executeBeforeReconnectListeners());
+      expect(mockBaseController.logoutCalls, 1);
+    });
+
+    test('mobile with a composer open: logs out directly, no before-reconnect', () async {
+      when(mockTwakeAppManager.hasComposer).thenReturn(true);
+
+      mockBaseController.handleUrgentException(exception: RefreshTokenFailedException());
+      await pumpEventQueue();
+
+      verifyNever(mockTwakeAppManager.setExecutingBeforeReconnect(any));
+      verifyNever(mockBeforeReconnectManager.executeBeforeReconnectListeners());
+      expect(mockBaseController.logoutCalls, 1);
+    });
+  });
+
+  group('BaseController::clearAllData', () {
+    late _TestSentrySessionCleanup sentrySessionCleanup;
+
+    setUp(() {
+      sentrySessionCleanup = _TestSentrySessionCleanup();
+      Get.put<SentrySessionCleanup>(sentrySessionCleanup);
+      addTearDown(() => Get.delete<SentrySessionCleanup>());
+      clearInteractions(mockTwakeAppManager);
+      clearInteractions(mockCachingManager);
+      clearInteractions(mockLanguageCacheManager);
+      clearInteractions(mockDeleteAuthorityOidcInteractor);
+      clearInteractions(mockDeleteCredentialInteractor);
+      when(mockTwakeAppManager.runClearDataOnce(any)).thenAnswer(
+        (invocation) => (invocation.positionalArguments[0] as Future<void> Function())());
+    });
+
+    test('OIDC session: deletes via deleteAuthorityOidcInteractor, not deleteCredentialInteractor', () async {
+      when(mockAuthorizationInterceptors.authenticationType).thenReturn(AuthenticationType.oidc);
+
+      await mockBaseController.clearAllData();
+
+      verify(mockDeleteAuthorityOidcInteractor.execute()).called(1);
+      verifyNever(mockDeleteCredentialInteractor.execute());
+    });
+
+    test('waits for Sentry session cleanup before clearing account data', () async {
+      final cleanupCompleter = Completer<void>();
+      sentrySessionCleanup.pendingCleanup = cleanupCompleter.future;
+      when(mockAuthorizationInterceptors.authenticationType)
+          .thenReturn(AuthenticationType.basic);
+
+      final clearAllData = mockBaseController.clearAllData();
+      await pumpEventQueue();
+
+      expect(sentrySessionCleanup.calls, 1);
+      verifyNever(mockDeleteCredentialInteractor.execute());
+      verifyNever(mockCachingManager.clearAll());
+
+      cleanupCompleter.complete();
+      await clearAllData;
+
+      verify(mockDeleteCredentialInteractor.execute()).called(1);
+      verify(mockCachingManager.clearAll()).called(1);
+    });
+
+    test('continues clearing account data when Sentry cleanup fails', () async {
+      sentrySessionCleanup.error = StateError('cleanup failed');
+      when(mockAuthorizationInterceptors.authenticationType)
+          .thenReturn(AuthenticationType.basic);
+
+      await mockBaseController.clearAllData();
+
+      expect(sentrySessionCleanup.calls, 1);
+      verify(mockDeleteCredentialInteractor.execute()).called(1);
+      verify(mockCachingManager.clearAll()).called(1);
+    });
+
+    test('basic session: deletes via deleteCredentialInteractor, not deleteAuthorityOidcInteractor', () async {
+      when(mockAuthorizationInterceptors.authenticationType).thenReturn(AuthenticationType.basic);
+
+      await mockBaseController.clearAllData();
+
+      verify(mockDeleteCredentialInteractor.execute()).called(1);
+      verifyNever(mockDeleteAuthorityOidcInteractor.execute());
+    });
+  });
+
+  group('BaseController::getMinInputLengthAutocomplete::test', () {
+    late MockBaseController mockBaseController;
+
+    setUp(() {
+      mockBaseController = MockBaseController();
+    });
+
+    test('SHOULD return session min input length WHEN AutocompleteCapability available', () {
+      // Arrange
+      const expectedMinInputLength = 5;
+      final session = Session(
+        {
+          tmailContactCapabilityIdentifier: AutocompleteCapability(
+            minInputLength: UnsignedInt(expectedMinInputLength)
+          )
+        },
+        {
+          AccountFixtures.aliceAccountId: Account(
+            AccountName('Alice'),
+            true,
+            false,
+            {
+              tmailContactCapabilityIdentifier: AutocompleteCapability(
+                minInputLength: UnsignedInt(expectedMinInputLength)
+              )
+            },
+          )
+        },
+        {},
+        UserName(''),
+        Uri(),
+        Uri(),
+        Uri(),
+        Uri(),
+        State(''));
+
+      // Act
+      final result = mockBaseController.getMinInputLengthAutocomplete(
+        session: session,
+        accountId: AccountFixtures.aliceAccountId,
+      );
+
+      // Assert
+      expect(result, expectedMinInputLength);
+    });
+
+    test('SHOULD return session min input length WHEN AutocompleteCapability available, but no minInputLength', () {
+      // Arrange
+      const expectedMinInputLength = AppConfig.defaultMinInputLengthAutocomplete;
+      final session = Session(
+        {
+          tmailContactCapabilityIdentifier: AutocompleteCapability()
+        },
+        {
+          AccountFixtures.aliceAccountId: Account(
+            AccountName('Alice'),
+            true,
+            false,
+            {
+              tmailContactCapabilityIdentifier: AutocompleteCapability()
+            },
+          )
+        },
+        {},
+        UserName(''),
+        Uri(),
+        Uri(),
+        Uri(),
+        Uri(),
+        State(''),
+      );
+
+      // Act
+      final result = mockBaseController.getMinInputLengthAutocomplete(
+        session: session,
+        accountId: AccountFixtures.aliceAccountId,
+      );
+
+      // Assert
+      expect(result, expectedMinInputLength);
+    });
+
+    test('SHOULD return default min input length WHEN AutocompleteCapability is not available', () {
+      // Arrange
+      final session = Session(
+        {
+          tmailContactCapabilityIdentifier: EmptyCapability()
+        },
+        {
+          AccountFixtures.aliceAccountId: Account(
+            AccountName('Alice'),
+            true,
+            false,
+            {
+              tmailContactCapabilityIdentifier: EmptyCapability()
+            },
+          )
+        },
+        {},
+        UserName(''),
+        Uri(),
+        Uri(),
+        Uri(),
+        Uri(),
+        State(''));
+
+      // Act
+      final result = mockBaseController.getMinInputLengthAutocomplete(
+        session: session,
+        accountId: AccountFixtures.aliceAccountId,
+      );
+
+      // Assert
+      expect(result, AppConfig.defaultMinInputLengthAutocomplete);
+    });
+  });
+  group('BaseController::discardWebComposersOnLogout', () {
+    late ComposerManager composerManager;
+
+    setUp(() {
+      mockBaseController.resetState();
+      clearInteractions(mockTwakeAppManager);
+      composerManager = ComposerManager();
+      composerManager.composers['1'] = const ComposerView(key: Key('1'), composerId: '1');
+      composerManager.composerIdsQueue.add('1');
+      Get.put<ComposerManager>(composerManager);
+      addTearDown(() {
+        PlatformInfo.isTestingForWeb = false;
+        Get.delete<ComposerManager>(force: true);
+        Get.delete<RemoveAllComposerCacheInteractor>(force: true);
+      });
+    });
+
+    FakeComposerCacheRepository registerCacheRemoval({Object? error}) {
+      final repository = FakeComposerCacheRepository(mockBaseController.events, error: error);
+      Get.put(RemoveAllComposerCacheInteractor(repository));
+      return repository;
+    }
+
+    test('web: closes composers, clears hasComposer and removes the account snapshots', () async {
+      PlatformInfo.isTestingForWeb = true;
+      final repository = registerCacheRemoval();
+      final session = SessionFixtures.aliceSession;
+
+      await mockBaseController.discardWebComposersOnLogout(session, AccountFixtures.aliceAccountId);
+
+      expect(composerManager.composers, isEmpty);
+      expect(composerManager.composerIdsQueue, isEmpty);
+      verify(mockTwakeAppManager.setHasComposer(false)).called(1);
+      expect(repository.removedFor?.accountId, AccountFixtures.aliceAccountId);
+      expect(repository.removedFor?.userName, session.username);
+    });
+
+    test('mobile: leaves composers and cache untouched', () async {
+      final repository = registerCacheRemoval();
+
+      await mockBaseController.discardWebComposersOnLogout(
+        SessionFixtures.aliceSession,
+        AccountFixtures.aliceAccountId,
+      );
+
+      expect(composerManager.composers.keys, ['1']);
+      verifyNever(mockTwakeAppManager.setHasComposer(any));
+      expect(repository.removedFor, isNull);
+    });
+
+    test('web without the cache interactor: still closes composers without throwing', () async {
+      PlatformInfo.isTestingForWeb = true;
+
+      await mockBaseController.discardWebComposersOnLogout(
+        SessionFixtures.aliceSession,
+        AccountFixtures.aliceAccountId,
+      );
+
+      expect(composerManager.composers, isEmpty);
+    });
+
+    test('web: a storage failure does not break logout', () async {
+      PlatformInfo.isTestingForWeb = true;
+      registerCacheRemoval(error: Exception('storage disabled'));
+
+      await expectLater(
+        mockBaseController.discardWebComposersOnLogout(
+          SessionFixtures.aliceSession,
+          AccountFixtures.aliceAccountId,
+        ),
+        completes,
+      );
+      expect(composerManager.composers, isEmpty);
+    });
+
+    for (final (name, exception) in [
+      ('401', const BadCredentialsException()),
+      ('refresh token failure', RefreshTokenFailedException()),
+    ]) {
+      test('web $name with a composer open: keeps composers and snapshots for re-login', () async {
+        PlatformInfo.isTestingForWeb = true;
+        when(mockTwakeAppManager.hasComposer).thenReturn(true);
+        final repository = registerCacheRemoval();
+
+        mockBaseController.handleUrgentException(exception: exception);
+        await pumpEventQueue();
+
+        expect(mockBaseController.logoutCalls, 1);
+        expect(composerManager.composers.keys, ['1']);
+        expect(repository.removedFor, isNull);
+        verifyNever(mockTwakeAppManager.setHasComposer(false));
+      });
+    }
+
+    testWidgets('web logout removes the snapshots before clearing data', (tester) async {
+      PlatformInfo.isTestingForWeb = true;
+      when(mockAuthorizationInterceptors.authenticationType).thenReturn(AuthenticationType.basic);
+      registerCacheRemoval();
+      await tester.pumpWidget(const SizedBox());
+
+      mockBaseController.logout(
+        tester.element(find.byType(SizedBox)),
+        SessionFixtures.aliceSession,
+        AccountFixtures.aliceAccountId,
+        'alice@example.com',
+      );
+      await tester.pumpAndSettle();
+
+      expect(mockBaseController.events, ['removeAllComposerCache', 'logout']);
+    });
+  });
+
+  group('BaseController::showBlockedLinkToast', () {
+    setUp(() => clearInteractions(mockAppToast));
+
+    testWidgets('SHOULD show the link cannot be opened error toast', (tester) async {
+      await tester.pumpWidget(const GetMaterialApp(
+        localizationsDelegates: [
+          AppLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: LocalizationService.supportedLocales,
+        locale: Locale('en'),
+        home: Scaffold(),
+      ));
+      await tester.pump();
+
+      mockBaseController.showBlockedLinkToast();
+
+      verify(mockAppToast.showToastErrorMessage(any, "This link can't be opened")).called(1);
+    });
+  });
+}

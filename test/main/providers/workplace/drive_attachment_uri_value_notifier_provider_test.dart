@@ -1,0 +1,171 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/drive_attachment_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/preferences_setting.dart';
+import 'package:tmail_ui_user/main/providers/settings/local_settings_notifier.dart';
+import 'package:tmail_ui_user/main/providers/workplace/drive_attachment_enabled_notifier.dart';
+import 'package:tmail_ui_user/main/providers/workplace/drive_attachment_uri_value_notifier_provider.dart';
+import 'package:tmail_ui_user/main/providers/workplace/fqdn/workplace_fqdn_user_info_notifier.dart';
+
+ProviderContainer _makeContainer({
+  bool enabledDefault = false,
+  String? fqdnDefault,
+  bool userPreferenceDefault = false,
+}) =>
+    ProviderContainer(
+      overrides: [
+        driveAttachmentEnabledProvider.overrideWith(
+          () => _StubEnabledNotifier(enabledDefault),
+        ),
+        workplaceFqdnUserInfoProvider.overrideWith(
+          () => _StubFqdnNotifier(fqdnDefault),
+        ),
+        localSettingsProvider.overrideWith(
+          () => _StubLocalSettingsNotifier(userPreferenceDefault),
+        ),
+      ],
+    );
+
+Uri? _currentUri(ProviderContainer c) =>
+    c.read(driveAttachmentUriValueProvider).value;
+
+bool _isNullUri(Uri? uri) => uri == null;
+bool _isRealUri(Uri? uri) => uri != null;
+
+ProviderContainer _makeAllMetContainer() => _makeContainer(
+      enabledDefault: true,
+      fqdnDefault: _kWorkplaceFqdn,
+      userPreferenceDefault: true,
+    );
+
+void _setEnabled(ProviderContainer c, bool? value) =>
+    c.read(driveAttachmentEnabledProvider.notifier).setEnabled(value);
+
+void _setFqdn(ProviderContainer c, String? value) =>
+    c.read(workplaceFqdnUserInfoProvider.notifier).setFqdn(value);
+
+void _setUserPref(ProviderContainer c, bool value) =>
+    c.read(localSettingsProvider.notifier).update(
+      PreferencesSetting([DriveAttachmentConfig(isEnabled: value)]),
+    );
+
+class _StubEnabledNotifier extends DriveAttachmentEnabledNotifier {
+  _StubEnabledNotifier(this._initial);
+  final bool _initial;
+  @override
+  bool build() => _initial;
+  @override
+  void setEnabled(bool? value) => state = value ?? true;
+}
+
+class _StubFqdnNotifier extends WorkplaceFqdnUserInfoNotifier {
+  _StubFqdnNotifier(this._initial);
+  final String? _initial;
+  @override
+  String? build() => _initial;
+  @override
+  void setFqdn(String? value) => state = value;
+}
+
+class _StubLocalSettingsNotifier extends LocalSettingsNotifier {
+  _StubLocalSettingsNotifier(this._initialPref);
+  final bool _initialPref;
+  @override
+  PreferencesSetting build() =>
+      PreferencesSetting([DriveAttachmentConfig(isEnabled: _initialPref)]);
+}
+
+const _kWorkplaceFqdn = 'https://workplace.example.com';
+
+void main() {
+  group('driveAttachmentUriValueProvider', () {
+    late ProviderContainer container;
+
+    tearDown(() => container.dispose());
+
+    test('null URI when all conditions unset (defaults)', () {
+      container = _makeContainer();
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('null URI when enabled=true and fqdn set but user preference off', () {
+      container = _makeContainer(
+        enabledDefault: true,
+        fqdnDefault: _kWorkplaceFqdn,
+      );
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('null URI when enabled=true and user preference on but fqdn=null', () {
+      container = _makeContainer(
+        enabledDefault: true,
+        userPreferenceDefault: true,
+      );
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('null URI when fqdn set and user preference on but enabled=false', () {
+      container = _makeContainer(
+        fqdnDefault: _kWorkplaceFqdn,
+        userPreferenceDefault: true,
+      );
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('real URI when all three conditions met', () {
+      container = _makeAllMetContainer();
+      expect(_isRealUri(_currentUri(container)), isTrue);
+    });
+
+    test('null URI when fqdn reset to null after all conditions met', () {
+      container = _makeAllMetContainer();
+      _setFqdn(container, null);
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('null URI when enabled reset to false after all conditions met', () {
+      container = _makeAllMetContainer();
+      _setEnabled(container, false);
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('real URI when enabled=null (treated as true)', () {
+      container = _makeContainer(
+        fqdnDefault: _kWorkplaceFqdn,
+        userPreferenceDefault: true,
+      );
+      _setEnabled(container, null);
+      expect(_currentUri(container), Uri.parse(_kWorkplaceFqdn));
+    });
+
+    test('transitions from null to real URI when user preference toggled from false to true', () {
+      container = _makeContainer(
+        enabledDefault: true,
+        fqdnDefault: _kWorkplaceFqdn,
+      );
+      expect(_isNullUri(_currentUri(container)), isTrue);
+      _setUserPref(container, true);
+      expect(_isRealUri(_currentUri(container)), isTrue);
+    });
+
+    test('transitions from real to null URI when user preference toggled from true to false', () {
+      container = _makeContainer(
+        enabledDefault: true,
+        fqdnDefault: _kWorkplaceFqdn,
+        userPreferenceDefault: true,
+      );
+      expect(_isRealUri(_currentUri(container)), isTrue);
+      _setUserPref(container, false);
+      expect(_isNullUri(_currentUri(container)), isTrue);
+    });
+
+    test('uppercase scheme resolves to the real host', () {
+      container = _makeContainer(
+        enabledDefault: true,
+        fqdnDefault: 'HTTPS://workplace.example.com',
+        userPreferenceDefault: true,
+      );
+      expect(_currentUri(container)?.host, 'workplace.example.com');
+    });
+  });
+}

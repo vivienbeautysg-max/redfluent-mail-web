@@ -1,0 +1,21 @@
+import 'dart:ui';
+
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/ai_scribe_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/preferences_config.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/preferences_setting.dart';
+
+abstract class ManageAccountRepository {
+  Future<void> persistLanguage(Locale localeCurrent);
+
+  Future<PreferencesSetting> toggleLocalSettingsState(PreferencesConfig preferencesConfig);
+
+  Future<PreferencesSetting> getLocalSettings();
+
+  Future<AIScribeConfig> getAiScribeConfigLocalSettings();
+
+  Future<bool> getLabelSettingState();
+
+  Future<void> saveExperimentalPreferencesRevealed();
+
+  Future<bool> getExperimentalPreferencesRevealed();
+}

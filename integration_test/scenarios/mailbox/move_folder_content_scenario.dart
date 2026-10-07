@@ -1,0 +1,89 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tmail_ui_user/features/base/model/ui_keys.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
+
+import '../../base/base_test_scenario.dart';
+import '../../models/provisioning_email.dart';
+import '../../robots/mailbox_menu_robot.dart';
+import '../../robots/thread_robot.dart';
+
+class MoveFolderContentScenario extends BaseTestScenario {
+  const MoveFolderContentScenario(super.$, super.robots);
+
+  @override
+  Future<void> runTestLogic() async {
+    const email = String.fromEnvironment('BASIC_AUTH_EMAIL');
+    const emailSubject = 'Move folder content';
+
+    final threadRobot = ThreadRobot($);
+    final mailboxMenuRobot = MailboxMenuRobot($);
+    final appLocalizations = AppLocalizations();
+
+    final listEmails = List.generate(
+      40,
+      (_) => ProvisioningEmail(
+        toEmail: email,
+        subject: emailSubject,
+        content: '',
+      ),
+    );
+
+    await provisionEmail(listEmails);
+    await $.pumpAndTrySettle(duration: const Duration(seconds: 2));
+    await _expectEmptyViewInVisibleInInboxFolder();
+
+    await threadRobot.openMailbox();
+    await $.pumpAndTrySettle();
+
+    await mailboxMenuRobot.navigation.longPressMailbox(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.inboxMailboxDisplayName),
+    );
+    await mailboxMenuRobot.folder.tapMoveFolderContentAction(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.templatesMailboxDisplayName),
+    );
+    await $.pumpAndTrySettle(duration: const Duration(seconds: 3));
+
+    await threadRobot.openMailbox();
+    await $.pumpAndTrySettle();
+    await mailboxMenuRobot.navigation.openFolder(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.templatesMailboxDisplayName),
+    );
+    await $.pumpAndTrySettle();
+    await _expectEmailWithSubjectVisible(emailSubject);
+
+    await threadRobot.openMailbox();
+    await $.pumpAndTrySettle();
+    await mailboxMenuRobot.navigation.openFolder(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.inboxMailboxDisplayName),
+    );
+    await $.pumpAndTrySettle();
+    await _expectEmailWithSubjectInVisible(emailSubject);
+    await _expectEmptyViewVisibleInInboxFolder();
+  }
+
+  Future<void> _expectEmailWithSubjectVisible(String subject) async {
+    await expectViewVisible($(subject));
+  }
+
+  Future<void> _expectEmailWithSubjectInVisible(String subject, {int attempt = 0,}) async {
+    // While the emails are being move, pumpAndTrySettle might resolve,
+    // causing some emails are still waiting to be moved
+    // and this expectation is triggered
+    try {
+      await expectViewInvisible($(subject));
+    } catch (e) {
+      if (attempt == 3) rethrow;
+      await $.pumpAndTrySettle(duration: Duration(seconds: attempt + 1));
+      await _expectEmailWithSubjectInVisible(subject, attempt: attempt + 1);
+    }
+  }
+
+  Future<void> _expectEmptyViewVisibleInInboxFolder() async {
+    await expectViewVisible($(const Key(UiKeys.emptyThreadView)));
+  }
+
+  Future<void> _expectEmptyViewInVisibleInInboxFolder() async {
+    await expectViewInvisible($(const Key(UiKeys.emptyThreadView)));
+  }
+}

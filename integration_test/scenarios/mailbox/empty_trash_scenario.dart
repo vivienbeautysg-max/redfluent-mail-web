@@ -1,0 +1,79 @@
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:model/mailbox/presentation_mailbox.dart';
+import 'package:tmail_ui_user/features/base/model/ui_keys.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/mailbox_view.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/widgets/sidebar/sidebar_mailbox_item.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
+
+import '../../base/base_test_scenario.dart';
+import '../../models/provisioning_email.dart';
+import '../../robots/mailbox_menu_robot.dart';
+import '../../robots/thread_robot.dart';
+
+class EmptyTrashScenario extends BaseTestScenario {
+
+  const EmptyTrashScenario(super.$, super.robots);
+
+  @override
+  Future<void> runTestLogic() async {
+    const emailUser = String.fromEnvironment('BASIC_AUTH_EMAIL');
+    const subject = 'Empty trash';
+
+    final threadRobot = ThreadRobot($);
+    final mailboxMenuRobot = MailboxMenuRobot($);
+    final appLocalizations = AppLocalizations();
+
+    await robots.commonRobot().provisionEmail(
+      [
+        ProvisioningEmail(
+          toEmail: emailUser,
+          subject: subject,
+          content: subject,
+        ),
+      ],
+      folderLocationRole: PresentationMailbox.roleTrash,
+    );
+    await $.pumpAndSettle();
+
+    await threadRobot.openMailbox();
+    await _expectMailboxViewVisible();
+    await _expectFolderVisible(appLocalizations.trashMailboxDisplayName);
+
+    await mailboxMenuRobot.navigation.openFolder(
+      mailboxMenuRobot.mailboxItemByName(appLocalizations.trashMailboxDisplayName),
+    );
+    await _expectEmptyTrashBannerVisible();
+    await _expectEmailWithSubjectVisible(subject);
+
+    await threadRobot.emptyTrash.tapEmptyTrashBanner();
+    await _expectEmptyTrashConfirmDialogVisible(appLocalizations);
+    await threadRobot.tapDeleteAllButtonOnEmptyTrashConfirmDialog(
+      appLocalizations,
+    );
+    await $.pumpAndSettle(duration: const Duration(seconds: 3));
+    await _expectEmptyViewVisible();
+  }
+
+  Future<void> _expectMailboxViewVisible() => expectViewVisible($(MailboxView));
+
+  Future<void> _expectFolderVisible(String folderName) {
+    return expectViewVisible($(SidebarMailboxItem)
+        .$(find.text(folderName)));
+  }
+
+  Future<void> _expectEmptyTrashBannerVisible() async {
+    await expectViewVisible($(#empty_trash_banner));
+  }
+
+  Future<void> _expectEmailWithSubjectVisible(String subject) =>
+      expectViewVisible($(subject));
+
+  Future<void> _expectEmptyTrashConfirmDialogVisible(
+    AppLocalizations appLocalizations,
+  ) => expectViewVisible($(appLocalizations.empty_trash_dialog_message));
+
+  Future<void> _expectEmptyViewVisible() =>
+      expectViewVisible($(const Key(UiKeys.emptyThreadView)));
+}

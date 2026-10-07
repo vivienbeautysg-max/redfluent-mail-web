@@ -1,0 +1,198 @@
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+name: Release
+
+env:
+  FLUTTER_VERSION: 3.38.9
+  XCODE_VERSION: 26.2
+
+jobs:
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: android
+            runner: ubuntu-latest
+          - os: ios
+            runner: macos-15 # Use macos-15 runners because Xcode 26 requires macOS 15+.
+      fail-fast: false
+
+    environment: prod
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+          cache-key: deps-${{ hashFiles('pubspec.lock') }} # optional, change this to force refresh cache
+          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+
+      - name: Setup Firebase env
+        env:
+          FIREBASE_ENV: ${{ secrets.FIREBASE_ENV }}
+        run: ./scripts/setup-firebase.sh
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ${{ matrix.os }}
+
+      - name: Setup Java
+        if: matrix.os == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Select Xcode version
+        if: matrix.os == 'ios'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Setup Android environment
+        if: matrix.os == 'android'
+        env:
+          PLAY_STORE_UPLOAD_KEY_BASE64: ${{ secrets.PLAY_STORE_UPLOAD_KEY_BASE64 }}
+          PLAY_STORE_KEY_INFO_BASE64: ${{ secrets.PLAY_STORE_KEY_INFO_BASE64 }}
+        run: ../scripts/setup-android.sh
+        working-directory: ${{ matrix.os }}
+
+      - name: Setup iOS environment
+        if: matrix.os == 'ios'
+        run: ../scripts/setup-ios.sh
+        working-directory: ${{ matrix.os }}
+
+      - name: Run prebuild
+        run: ./scripts/prebuild.sh
+
+      - name: Build and deploy
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APPLE_CERTIFICATES_SSH_KEY: ${{ secrets.APPLE_CERTIFICATES_SSH_KEY }}
+          PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_KEY_CONTENT: ${{ secrets.APPLE_KEY_CONTENT }}
+        run: ../scripts/build-release.sh
+        working-directory: ${{ matrix.os }}
+
+      - name: Upload gym log on iOS build failure
+        if: failure() && matrix.os == 'ios'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gym-build-log
+          path: ~/Library/Logs/gym/Runner-Runner.log
+          if-no-files-found: warn
+
+      # --- UPLOAD SENTRY MAPPING AND SYMBOLS FOR ANDROID ---
+      - name: Upload Android ProGuard Mapping & Dart Debug Symbols to Sentry
+        if: matrix.os == 'android'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          # 1. Install Sentry CLI
+          curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="2.42.2" bash
+
+          # 2. Validate tag base version matches pubspec.yaml base version (ignoring -rc* suffix).
+          # pubspec version is always X.Y.Z (no -rc suffix) — RC distinction lives only in the git tag.
+          # SENTRY_RELEASE = pubspec version, matching exactly what the app reports at runtime.
+          TAG_BASE="${GITHUB_REF_NAME#v}"
+          TAG_BASE="${TAG_BASE%%-rc*}"
+          PUBSPEC_VERSION=$(awk '/^version:/{split($2,a,"+"); print a[1]; exit}' pubspec.yaml)
+          PUBSPEC_BASE="${PUBSPEC_VERSION%%-rc*}"
+          if [ "$PUBSPEC_BASE" != "$TAG_BASE" ]; then
+            echo "::error::Tag version ($TAG_BASE) does not match pubspec version ($PUBSPEC_BASE)."
+            exit 1
+          fi
+          SENTRY_RELEASE="$PUBSPEC_VERSION"
+          echo "Processing Sentry Release: $SENTRY_RELEASE"
+
+          # 3. Create Release
+          sentry-cli releases new "$SENTRY_RELEASE"
+
+          # 4. Upload ProGuard Mapping
+          MAPPING_FILE="build/app/outputs/mapping/release/mapping.txt"
+          if [ -f "$MAPPING_FILE" ]; then
+            echo "Found mapping.txt, uploading ProGuard mapping..."
+            sentry-cli upload-proguard "$MAPPING_FILE"
+          else
+            echo "::error::Could not find mapping.txt at $MAPPING_FILE."
+            exit 1
+          fi
+
+          # 5. Upload Dart Debug Symbols (Native Dart Stacktrace)
+          SYMBOLS_DIR="build/app/outputs/symbols"
+          if [ -d "$SYMBOLS_DIR" ]; then
+            echo "Uploading Dart debug symbols from $SYMBOLS_DIR..."
+            sentry-cli debug-files upload "$SYMBOLS_DIR"
+          else
+            echo "::error::Symbols directory not found at $SYMBOLS_DIR. Check your Fastfile build arguments."
+            exit 1
+          fi
+
+          # 6. Finalize
+          sentry-cli releases finalize "$SENTRY_RELEASE"
+
+      # --- UPLOAD DSYM TO SENTRY FOR IOS ---
+      # sentry-cli debug-files upload works independently of the release lifecycle,
+      # so no releases new/finalize needed here — avoids race condition with Android leg.
+      - name: Upload iOS dSYMs to Sentry
+        if: matrix.os == 'ios'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          # 1. Install Sentry CLI
+          curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="2.42.2" bash
+
+          # 2. Validate tag base version matches pubspec.yaml base version (ignoring -rc* suffix).
+          # pubspec version is always X.Y.Z (no -rc suffix) — RC distinction lives only in the git tag.
+          # SENTRY_RELEASE = pubspec version, matching exactly what the app reports at runtime.
+          TAG_BASE="${GITHUB_REF_NAME#v}"
+          TAG_BASE="${TAG_BASE%%-rc*}"
+          PUBSPEC_VERSION=$(awk '/^version:/{split($2,a,"+"); print a[1]; exit}' pubspec.yaml)
+          PUBSPEC_BASE="${PUBSPEC_VERSION%%-rc*}"
+          if [ "$PUBSPEC_BASE" != "$TAG_BASE" ]; then
+            echo "::error::Tag version ($TAG_BASE) does not match pubspec version ($PUBSPEC_BASE)."
+            exit 1
+          fi
+          SENTRY_RELEASE="$PUBSPEC_VERSION"
+          echo "Processing Sentry Release: $SENTRY_RELEASE"
+
+          # 3. Find the xcarchive built by Fastlane.
+          # Xcode always archives to ~/Library/Developer/Xcode/Archives — pick the most recent one.
+          XCARCHIVE=$(find "$HOME/Library/Developer/Xcode/Archives" -name "Runner*.xcarchive" -maxdepth 3 2>/dev/null | sort -r | head -1)
+          if [ -z "$XCARCHIVE" ] || [ ! -d "$XCARCHIVE" ]; then
+            echo "::error::Runner xcarchive not found in ~/Library/Developer/Xcode/Archives"
+            exit 1
+          fi
+          echo "Found xcarchive: $XCARCHIVE"
+
+          # 4. Upload dSYMs (Native code: Swift, Objective-C, C++)
+          DSYM_DIR="$XCARCHIVE/dSYMs"
+          if [ -d "$DSYM_DIR" ]; then
+            echo "dSYM contents:"
+            ls -la "$DSYM_DIR"
+            echo "Uploading dSYMs from $DSYM_DIR..."
+            sentry-cli debug-files upload --include-sources --log-level info "$DSYM_DIR"
+          else
+            echo "::error::dSYMs directory not found inside xcarchive at $DSYM_DIR."
+            exit 1
+          fi

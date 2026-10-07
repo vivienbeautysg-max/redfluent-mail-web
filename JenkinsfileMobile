@@ -1,0 +1,54 @@
+pipeline {
+    agent {
+        label 'mobile'
+    }
+
+    options {
+        timeout(time: 180, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        FLUTTER_VERSION = '3.38.9'
+        FIREBASE_PROJECT_ID = 'twake-195010'
+        RESULTS_BUCKET="flutter-test-results"
+    }
+
+    stages {
+        stage('Prebuild') {
+            steps {
+                sh './scripts/prebuild.sh'
+            }
+        }
+
+        stage('Run Patrol Mobile Integration Tests') {
+            steps {
+                withCredentials([file(credentialsId: 'firebase-testlab-sa', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh './scripts/patrol-integration-test-with-docker.sh'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo 'Running post-build cleanup...'
+
+                echo 'Archiving Firebase Test Lab results...'
+                archiveArtifacts artifacts: 'ftl-results/**/test_result_*.xml', allowEmptyArchive: true, fingerprint: true
+                junit testResults: 'ftl-results/**/test_result_*.xml', allowEmptyResults: true
+
+                // Tear down the backend Docker stack if it is still running.
+                sh '''
+                    cd backend-docker
+                    docker compose down --remove-orphans 2>/dev/null || true
+                '''
+            }
+            deleteDir() /* clean up our workspace */
+        }
+        failure {
+            echo 'Pipeline failed. Review the console log for details.'
+        }
+    }
+}

@@ -1,0 +1,1737 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		756BBC4C51FCB44047AB39E4 /* Pods_TeamMailShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 143BD7B2CF181BA69CDE351A /* Pods_TeamMailShareExtension.framework */; };
+		84EC933C2F236E8300A0EDC7 /* SentryConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EC933B2F236E7800A0EDC7 /* SentryConfig.swift */; };
+		84EC933E2F23705E00A0EDC7 /* SentryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EC933D2F23705D00A0EDC7 /* SentryManager.swift */; };
+		A14E00012F6E000000000001 /* SentryManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A14E00022F6E000000000002 /* SentryManagerTests.swift */; };
+		A14E00032F6E000000000003 /* SentryConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EC933B2F236E7800A0EDC7 /* SentryConfig.swift */; };
+		A14E00042F6E000000000004 /* SentryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EC933D2F23705D00A0EDC7 /* SentryManager.swift */; };
+		A14E00052F6E000000000005 /* TwakeLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EFC07C2B328B9F00829056 /* TwakeLogger.swift */; };
+		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
+		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
+		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		B561AD69C2BE6DF40BF29406 /* Pods_TwakeMailNSE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA243B93F65E4E3CD7DC0348 /* Pods_TwakeMailNSE.framework */; };
+		C06B95712FAC780E009C15B4 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06B95702FAC7800009C15B4 /* SceneDelegate.swift */; };
+		CDFECA8C54311B749F044831 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5810EDDA99BEFEACD742F507 /* Pods_Runner.framework */; };
+		F522E87F2C0EE23400DDA35B /* AuthenticationSSOTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F522E87E2C0EE23400DDA35B /* AuthenticationSSOTests.swift */; };
+		F522E8812C0EE3F200DDA35B /* AuthenticationSSO.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8832B3877050009BB8A /* AuthenticationSSO.swift */; };
+		F522E8822C0EE48700DDA35B /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E872B2E4B3B00051FD0 /* AuthenticationType.swift */; };
+		F522E8832C0EE48C00DDA35B /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D87F2B3876DE0009BB8A /* Authentication.swift */; };
+		F522E8862C0EE8B600DDA35B /* CoreUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F522E8852C0EE8B600DDA35B /* CoreUtils.swift */; };
+		F522E8872C0EE8B600DDA35B /* CoreUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F522E8852C0EE8B600DDA35B /* CoreUtils.swift */; };
+		F522E8882C0EE8B600DDA35B /* CoreUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F522E8852C0EE8B600DDA35B /* CoreUtils.swift */; };
+		F52F993027FD6EB900346091 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F52F992F27FD6EB900346091 /* ShareViewController.swift */; };
+		F52F993327FD6EB900346091 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F52F993127FD6EB900346091 /* MainInterface.storyboard */; };
+		F52F993727FD6EB900346091 /* TeamMailShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F52F992D27FD6EB900346091 /* TeamMailShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F53D1E632B2DE80200051FD0 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = F53D1E622B2DE80200051FD0 /* Alamofire */; };
+		F53D1E662B2DE8B800051FD0 /* AlamofireService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E652B2DE8B800051FD0 /* AlamofireService.swift */; };
+		F53D1E682B2E1CAE00051FD0 /* JmapClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E672B2E1CAE00051FD0 /* JmapClient.swift */; };
+		F53D1E6C2B2E208C00051FD0 /* Email.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E6B2B2E208C00051FD0 /* Email.swift */; };
+		F53D1E782B2E2C7E00051FD0 /* JmapResponseObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E772B2E2C7E00051FD0 /* JmapResponseObject.swift */; };
+		F53D1E7C2B2E35CC00051FD0 /* EmailAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E7B2B2E35CC00051FD0 /* EmailAddress.swift */; };
+		F53D1E7F2B2E3C2600051FD0 /* JmapConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E7E2B2E3C2600051FD0 /* JmapConstants.swift */; };
+		F53D1E832B2E3D4600051FD0 /* JmapRequestObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E822B2E3D4600051FD0 /* JmapRequestObject.swift */; };
+		F53D1E862B2E401B00051FD0 /* JmapRequestGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E852B2E401B00051FD0 /* JmapRequestGenerator.swift */; };
+		F53D1E882B2E4B3B00051FD0 /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E872B2E4B3B00051FD0 /* AuthenticationType.swift */; };
+		F53D1E8A2B2E4BB700051FD0 /* TokenOidc.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E892B2E4BB700051FD0 /* TokenOidc.swift */; };
+		F55114CF2BFBACFA00E41E93 /* DateConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55114CE2BFBACFA00E41E93 /* DateConversionTests.swift */; };
+		F5550D292B4E90A7003DD2AE /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F5550D2C2B4E90A7003DD2AE /* Localizable.strings */; };
+		F5550D2A2B4E90A7003DD2AE /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F5550D2C2B4E90A7003DD2AE /* Localizable.strings */; };
+		F5630C762B2CDFDA003CC0FD /* KeychainController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C752B2CDFDA003CC0FD /* KeychainController.swift */; };
+		F5630C782B2CE091003CC0FD /* KeyChainControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C772B2CE091003CC0FD /* KeyChainControllerDelegate.swift */; };
+		F5630C7B2B2CE148003CC0FD /* KeychainSharingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C7A2B2CE148003CC0FD /* KeychainSharingSession.swift */; };
+		F5630C7E2B2CE359003CC0FD /* InfoPlistReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C7D2B2CE359003CC0FD /* InfoPlistReader.swift */; };
+		F5630C812B2CEBC0003CC0FD /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = F5630C802B2CEBC0003CC0FD /* KeychainAccess */; };
+		F5630C852B2CF50C003CC0FD /* TypeName.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C842B2CF50C003CC0FD /* TypeName.swift */; };
+		F5630C872B2D0387003CC0FD /* PayloadParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5630C862B2D0387003CC0FD /* PayloadParser.swift */; };
+		F5BBBF512B2EEC37007930E1 /* NetworkExceptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5BBBF502B2EEC37007930E1 /* NetworkExceptions.swift */; };
+		F5BBBF532B2EECAA007930E1 /* JmapExceptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5BBBF522B2EECAA007930E1 /* JmapExceptions.swift */; };
+		F5BBBF552B2EEF3D007930E1 /* BundleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5BBBF542B2EEF3D007930E1 /* BundleExtension.swift */; };
+		F5CFE0352B335322005A90A9 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		F5D4EA032B2ABF090090DDFC /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D4EA022B2ABF090090DDFC /* NotificationService.swift */; };
+		F5D4EA072B2ABF090090DDFC /* TwakeMailNSE.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F5D4EA002B2ABF090090DDFC /* TwakeMailNSE.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F5E7D8742B3578F90009BB8A /* JmapConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F53D1E7E2B2E3C2600051FD0 /* JmapConstants.swift */; };
+		F5E7D8792B38763B0009BB8A /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8782B38763B0009BB8A /* DateExtensions.swift */; };
+		F5E7D87A2B38763B0009BB8A /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8782B38763B0009BB8A /* DateExtensions.swift */; };
+		F5E7D87C2B38764F0009BB8A /* StringExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D87B2B38764F0009BB8A /* StringExtensions.swift */; };
+		F5E7D87D2B38764F0009BB8A /* StringExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D87B2B38764F0009BB8A /* StringExtensions.swift */; };
+		F5E7D8802B3876DE0009BB8A /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D87F2B3876DE0009BB8A /* Authentication.swift */; };
+		F5E7D8822B3876F60009BB8A /* AuthenticationCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8812B3876F60009BB8A /* AuthenticationCredential.swift */; };
+		F5E7D8842B3877050009BB8A /* AuthenticationSSO.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8832B3877050009BB8A /* AuthenticationSSO.swift */; };
+		F5E7D8862B3877390009BB8A /* TokenResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8852B3877390009BB8A /* TokenResponse.swift */; };
+		F5E7D8882B38775C0009BB8A /* TokenRefreshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D8872B38775C0009BB8A /* TokenRefreshManager.swift */; };
+		F5E7D88D2B3878580009BB8A /* AuthenticationInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E7D88C2B3878580009BB8A /* AuthenticationInterceptor.swift */; };
+		F5EFC07D2B328B9F00829056 /* TwakeLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EFC07C2B328B9F00829056 /* TwakeLogger.swift */; };
+		F5EFC07E2B328B9F00829056 /* TwakeLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EFC07C2B328B9F00829056 /* TwakeLogger.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F52F993527FD6EB900346091 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F52F992C27FD6EB900346091;
+			remoteInfo = TeamMailShareExtension;
+		};
+		F55114D02BFBACFA00E41E93 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
+			remoteInfo = Runner;
+		};
+		F5D4EA052B2ABF090090DDFC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F5D4E9FF2B2ABF090090DDFC;
+			remoteInfo = TwakeMailNSE;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F52F993C27FD6EB900346091 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F52F993727FD6EB900346091 /* TeamMailShareExtension.appex in Embed App Extensions */,
+				F5D4EA072B2ABF090090DDFC /* TwakeMailNSE.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		06C73A54FA0478D3C89AB5E5 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		07753111B751BFDB3187FE6F /* Pods-TeamMailShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TeamMailShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-TeamMailShareExtension/Pods-TeamMailShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		143BD7B2CF181BA69CDE351A /* Pods_TeamMailShareExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TeamMailShareExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
+		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1FB76FA91BBCB2BF7B08705B /* Pods-TeamMailShareExtension.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TeamMailShareExtension.profile.xcconfig"; path = "Target Support Files/Pods-TeamMailShareExtension/Pods-TeamMailShareExtension.profile.xcconfig"; sourceTree = "<group>"; };
+		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		4D124E74293A67D900BA5186 /* RunnerProfile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerProfile.entitlements; sourceTree = "<group>"; };
+		5810EDDA99BEFEACD742F507 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E35AF242935B79C2DCACB65 /* Pods-TwakeMailNSE.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwakeMailNSE.debug.xcconfig"; path = "Target Support Files/Pods-TwakeMailNSE/Pods-TwakeMailNSE.debug.xcconfig"; sourceTree = "<group>"; };
+		631346BB444C71671599207F /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		6B7C6E49525344DE515F7373 /* Pods-TwakeMailNSE.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwakeMailNSE.release.xcconfig"; path = "Target Support Files/Pods-TwakeMailNSE/Pods-TwakeMailNSE.release.xcconfig"; sourceTree = "<group>"; };
+		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
+		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		84EC933B2F236E7800A0EDC7 /* SentryConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryConfig.swift; sourceTree = "<group>"; };
+		84EC933D2F23705D00A0EDC7 /* SentryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryManager.swift; sourceTree = "<group>"; };
+		A14E00022F6E000000000002 /* SentryManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryManagerTests.swift; sourceTree = "<group>"; };
+		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
+		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
+		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		97C146FB1CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AF31502A83CA492E27C36A7B /* Pods-TwakeMailNSE.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwakeMailNSE.profile.xcconfig"; path = "Target Support Files/Pods-TwakeMailNSE/Pods-TwakeMailNSE.profile.xcconfig"; sourceTree = "<group>"; };
+		B2EAFF659572E6B9F5AFAAF8 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		BC08294F5AE09BF8CC592AD1 /* Pods-TeamMailShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TeamMailShareExtension.release.xcconfig"; path = "Target Support Files/Pods-TeamMailShareExtension/Pods-TeamMailShareExtension.release.xcconfig"; sourceTree = "<group>"; };
+		C06B95702FAC7800009C15B4 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		EA243B93F65E4E3CD7DC0348 /* Pods_TwakeMailNSE.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TwakeMailNSE.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F522E87E2C0EE23400DDA35B /* AuthenticationSSOTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationSSOTests.swift; sourceTree = "<group>"; };
+		F522E8852C0EE8B600DDA35B /* CoreUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreUtils.swift; sourceTree = "<group>"; };
+		F52F992D27FD6EB900346091 /* TeamMailShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TeamMailShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F52F992F27FD6EB900346091 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		F52F993227FD6EB900346091 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		F52F993427FD6EB900346091 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F52F993D27FD733C00346091 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		F52F993E27FD741100346091 /* TeamMailShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TeamMailShareExtension.entitlements; sourceTree = "<group>"; };
+		F53D1E652B2DE8B800051FD0 /* AlamofireService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlamofireService.swift; sourceTree = "<group>"; };
+		F53D1E672B2E1CAE00051FD0 /* JmapClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapClient.swift; sourceTree = "<group>"; };
+		F53D1E6B2B2E208C00051FD0 /* Email.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Email.swift; sourceTree = "<group>"; };
+		F53D1E772B2E2C7E00051FD0 /* JmapResponseObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapResponseObject.swift; sourceTree = "<group>"; };
+		F53D1E7B2B2E35CC00051FD0 /* EmailAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAddress.swift; sourceTree = "<group>"; };
+		F53D1E7E2B2E3C2600051FD0 /* JmapConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapConstants.swift; sourceTree = "<group>"; };
+		F53D1E822B2E3D4600051FD0 /* JmapRequestObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapRequestObject.swift; sourceTree = "<group>"; };
+		F53D1E852B2E401B00051FD0 /* JmapRequestGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapRequestGenerator.swift; sourceTree = "<group>"; };
+		F53D1E872B2E4B3B00051FD0 /* AuthenticationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationType.swift; sourceTree = "<group>"; };
+		F53D1E892B2E4BB700051FD0 /* TokenOidc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenOidc.swift; sourceTree = "<group>"; };
+		F55114CC2BFBACFA00E41E93 /* TwakeMailTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TwakeMailTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F55114CE2BFBACFA00E41E93 /* DateConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateConversionTests.swift; sourceTree = "<group>"; };
+		F5550D2B2B4E90A7003DD2AE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F5550D2D2B4E90C6003DD2AE /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F5550D2E2B4E90D5003DD2AE /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F5550D2F2B4E90E2003DD2AE /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F5630C752B2CDFDA003CC0FD /* KeychainController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainController.swift; sourceTree = "<group>"; };
+		F5630C772B2CE091003CC0FD /* KeyChainControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyChainControllerDelegate.swift; sourceTree = "<group>"; };
+		F5630C7A2B2CE148003CC0FD /* KeychainSharingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSharingSession.swift; sourceTree = "<group>"; };
+		F5630C7D2B2CE359003CC0FD /* InfoPlistReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPlistReader.swift; sourceTree = "<group>"; };
+		F5630C842B2CF50C003CC0FD /* TypeName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeName.swift; sourceTree = "<group>"; };
+		F5630C862B2D0387003CC0FD /* PayloadParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadParser.swift; sourceTree = "<group>"; };
+		F5BBBF502B2EEC37007930E1 /* NetworkExceptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkExceptions.swift; sourceTree = "<group>"; };
+		F5BBBF522B2EECAA007930E1 /* JmapExceptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmapExceptions.swift; sourceTree = "<group>"; };
+		F5BBBF542B2EEF3D007930E1 /* BundleExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleExtension.swift; sourceTree = "<group>"; };
+		F5D4EA002B2ABF090090DDFC /* TwakeMailNSE.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TwakeMailNSE.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5D4EA022B2ABF090090DDFC /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		F5D4EA042B2ABF090090DDFC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F5D4EA0C2B2ABF970090DDFC /* TwakeMailNSE.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TwakeMailNSE.entitlements; sourceTree = "<group>"; };
+		F5E7D8782B38763B0009BB8A /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtensions.swift; sourceTree = "<group>"; };
+		F5E7D87B2B38764F0009BB8A /* StringExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtensions.swift; sourceTree = "<group>"; };
+		F5E7D87F2B3876DE0009BB8A /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		F5E7D8812B3876F60009BB8A /* AuthenticationCredential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationCredential.swift; sourceTree = "<group>"; };
+		F5E7D8832B3877050009BB8A /* AuthenticationSSO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationSSO.swift; sourceTree = "<group>"; };
+		F5E7D8852B3877390009BB8A /* TokenResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenResponse.swift; sourceTree = "<group>"; };
+		F5E7D8872B38775C0009BB8A /* TokenRefreshManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshManager.swift; sourceTree = "<group>"; };
+		F5E7D88C2B3878580009BB8A /* AuthenticationInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationInterceptor.swift; sourceTree = "<group>"; };
+		F5EFC07C2B328B9F00829056 /* TwakeLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwakeLogger.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		97C146EB1CF9000F007C117D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDFECA8C54311B749F044831 /* Pods_Runner.framework in Frameworks */,
+				F5CFE0352B335322005A90A9 /* BuildFile in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F52F992A27FD6EB900346091 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				756BBC4C51FCB44047AB39E4 /* Pods_TeamMailShareExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F55114C92BFBACFA00E41E93 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5D4E9FD2B2ABF090090DDFC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5630C812B2CEBC0003CC0FD /* KeychainAccess in Frameworks */,
+				F53D1E632B2DE80200051FD0 /* Alamofire in Frameworks */,
+				B561AD69C2BE6DF40BF29406 /* Pods_TwakeMailNSE.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		601CDD7C97AAAE9C3FB007DB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5810EDDA99BEFEACD742F507 /* Pods_Runner.framework */,
+				143BD7B2CF181BA69CDE351A /* Pods_TeamMailShareExtension.framework */,
+				EA243B93F65E4E3CD7DC0348 /* Pods_TwakeMailNSE.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9740EEB11CF90186004384FC /* Flutter */ = {
+			isa = PBXGroup;
+			children = (
+				3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */,
+				9740EEB21CF90195004384FC /* Debug.xcconfig */,
+				7AFA3C8E1D35360C0083082E /* Release.xcconfig */,
+				9740EEB31CF90195004384FC /* Generated.xcconfig */,
+			);
+			name = Flutter;
+			sourceTree = "<group>";
+		};
+		97C146E51CF9000F007C117D = {
+			isa = PBXGroup;
+			children = (
+				F5EFC0802B32965100829056 /* TwakeCore */,
+				9740EEB11CF90186004384FC /* Flutter */,
+				97C146F01CF9000F007C117D /* Runner */,
+				F52F992E27FD6EB900346091 /* TeamMailShareExtension */,
+				F5D4EA012B2ABF090090DDFC /* TwakeMailNSE */,
+				F55114CD2BFBACFA00E41E93 /* TwakeMailTests */,
+				97C146EF1CF9000F007C117D /* Products */,
+				F62B48DC0DFBD6D5D355E5FE /* Pods */,
+				601CDD7C97AAAE9C3FB007DB /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		97C146EF1CF9000F007C117D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				97C146EE1CF9000F007C117D /* Runner.app */,
+				F52F992D27FD6EB900346091 /* TeamMailShareExtension.appex */,
+				F5D4EA002B2ABF090090DDFC /* TwakeMailNSE.appex */,
+				F55114CC2BFBACFA00E41E93 /* TwakeMailTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		97C146F01CF9000F007C117D /* Runner */ = {
+			isa = PBXGroup;
+			children = (
+				C06B95702FAC7800009C15B4 /* SceneDelegate.swift */,
+				4D124E74293A67D900BA5186 /* RunnerProfile.entitlements */,
+				F52F993D27FD733C00346091 /* Runner.entitlements */,
+				97C146FA1CF9000F007C117D /* Main.storyboard */,
+				97C146FD1CF9000F007C117D /* Assets.xcassets */,
+				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
+				97C147021CF9000F007C117D /* Info.plist */,
+				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
+				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
+				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
+				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				F5550D2C2B4E90A7003DD2AE /* Localizable.strings */,
+			);
+			path = Runner;
+			sourceTree = "<group>";
+		};
+		F522E8842C0EE89D00DDA35B /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				F522E8852C0EE8B600DDA35B /* CoreUtils.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		F52F992E27FD6EB900346091 /* TeamMailShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				F52F993E27FD741100346091 /* TeamMailShareExtension.entitlements */,
+				F52F992F27FD6EB900346091 /* ShareViewController.swift */,
+				F52F993127FD6EB900346091 /* MainInterface.storyboard */,
+				F52F993427FD6EB900346091 /* Info.plist */,
+			);
+			path = TeamMailShareExtension;
+			sourceTree = "<group>";
+		};
+		F53D1E642B2DE84E00051FD0 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				F5E7D88B2B3878470009BB8A /* Interceptor */,
+				F5CFE0182B334BCD005A90A9 /* Model */,
+				F53D1E652B2DE8B800051FD0 /* AlamofireService.swift */,
+				F5E7D8872B38775C0009BB8A /* TokenRefreshManager.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		F53D1E692B2E1F5100051FD0 /* Jmap */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E842B2E3F5B00051FD0 /* Utils */,
+				F53D1E672B2E1CAE00051FD0 /* JmapClient.swift */,
+				F53D1E6A2B2E1F6700051FD0 /* Model */,
+			);
+			path = Jmap;
+			sourceTree = "<group>";
+		};
+		F53D1E6A2B2E1F6700051FD0 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E812B2E3D0300051FD0 /* Request */,
+				F53D1E802B2E3CF600051FD0 /* Response */,
+				F53D1E7D2B2E369300051FD0 /* Email */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		F53D1E7D2B2E369300051FD0 /* Email */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E6B2B2E208C00051FD0 /* Email.swift */,
+				F53D1E7B2B2E35CC00051FD0 /* EmailAddress.swift */,
+			);
+			path = Email;
+			sourceTree = "<group>";
+		};
+		F53D1E802B2E3CF600051FD0 /* Response */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E772B2E2C7E00051FD0 /* JmapResponseObject.swift */,
+			);
+			path = Response;
+			sourceTree = "<group>";
+		};
+		F53D1E812B2E3D0300051FD0 /* Request */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E822B2E3D4600051FD0 /* JmapRequestObject.swift */,
+			);
+			path = Request;
+			sourceTree = "<group>";
+		};
+		F53D1E842B2E3F5B00051FD0 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E7E2B2E3C2600051FD0 /* JmapConstants.swift */,
+				F53D1E852B2E401B00051FD0 /* JmapRequestGenerator.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		F55114CD2BFBACFA00E41E93 /* TwakeMailTests */ = {
+			isa = PBXGroup;
+			children = (
+				F55114CE2BFBACFA00E41E93 /* DateConversionTests.swift */,
+				F522E87E2C0EE23400DDA35B /* AuthenticationSSOTests.swift */,
+				A14E00022F6E000000000002 /* SentryManagerTests.swift */,
+			);
+			path = TwakeMailTests;
+			sourceTree = "<group>";
+		};
+		F5630C742B2CDFC5003CC0FD /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				F5630C752B2CDFDA003CC0FD /* KeychainController.swift */,
+				F5630C772B2CE091003CC0FD /* KeyChainControllerDelegate.swift */,
+			);
+			path = Keychain;
+			sourceTree = "<group>";
+		};
+		F5630C792B2CE133003CC0FD /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				84EC933B2F236E7800A0EDC7 /* SentryConfig.swift */,
+				F5630C7A2B2CE148003CC0FD /* KeychainSharingSession.swift */,
+				F5630C842B2CF50C003CC0FD /* TypeName.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		F5630C7C2B2CE33A003CC0FD /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				84EC933D2F23705D00A0EDC7 /* SentryManager.swift */,
+				F5630C7D2B2CE359003CC0FD /* InfoPlistReader.swift */,
+				F5BBBF542B2EEF3D007930E1 /* BundleExtension.swift */,
+				F5630C862B2D0387003CC0FD /* PayloadParser.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		F5BBBF4F2B2EEC1B007930E1 /* Exceptions */ = {
+			isa = PBXGroup;
+			children = (
+				F5BBBF502B2EEC37007930E1 /* NetworkExceptions.swift */,
+				F5BBBF522B2EECAA007930E1 /* JmapExceptions.swift */,
+			);
+			path = Exceptions;
+			sourceTree = "<group>";
+		};
+		F5CFE0182B334BCD005A90A9 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				F53D1E892B2E4BB700051FD0 /* TokenOidc.swift */,
+				F53D1E872B2E4B3B00051FD0 /* AuthenticationType.swift */,
+				F5E7D87F2B3876DE0009BB8A /* Authentication.swift */,
+				F5E7D8812B3876F60009BB8A /* AuthenticationCredential.swift */,
+				F5E7D8832B3877050009BB8A /* AuthenticationSSO.swift */,
+				F5E7D8852B3877390009BB8A /* TokenResponse.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		F5D4EA012B2ABF090090DDFC /* TwakeMailNSE */ = {
+			isa = PBXGroup;
+			children = (
+				F5630C7C2B2CE33A003CC0FD /* Utils */,
+				F5630C792B2CE133003CC0FD /* Model */,
+				F5630C742B2CDFC5003CC0FD /* Keychain */,
+				F5D4EA0C2B2ABF970090DDFC /* TwakeMailNSE.entitlements */,
+				F5D4EA022B2ABF090090DDFC /* NotificationService.swift */,
+				F5D4EA042B2ABF090090DDFC /* Info.plist */,
+			);
+			path = TwakeMailNSE;
+			sourceTree = "<group>";
+		};
+		F5E7D8772B38761B0009BB8A /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				F5E7D8782B38763B0009BB8A /* DateExtensions.swift */,
+				F5E7D87B2B38764F0009BB8A /* StringExtensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		F5E7D88B2B3878470009BB8A /* Interceptor */ = {
+			isa = PBXGroup;
+			children = (
+				F5E7D88C2B3878580009BB8A /* AuthenticationInterceptor.swift */,
+			);
+			path = Interceptor;
+			sourceTree = "<group>";
+		};
+		F5EFC07B2B328B8600829056 /* Logger */ = {
+			isa = PBXGroup;
+			children = (
+				F5EFC07C2B328B9F00829056 /* TwakeLogger.swift */,
+			);
+			path = Logger;
+			sourceTree = "<group>";
+		};
+		F5EFC0802B32965100829056 /* TwakeCore */ = {
+			isa = PBXGroup;
+			children = (
+				F522E8842C0EE89D00DDA35B /* Utils */,
+				F5E7D8772B38761B0009BB8A /* Extensions */,
+				F5BBBF4F2B2EEC1B007930E1 /* Exceptions */,
+				F53D1E642B2DE84E00051FD0 /* Network */,
+				F5EFC07B2B328B8600829056 /* Logger */,
+				F53D1E692B2E1F5100051FD0 /* Jmap */,
+			);
+			path = TwakeCore;
+			sourceTree = "<group>";
+		};
+		F62B48DC0DFBD6D5D355E5FE /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B2EAFF659572E6B9F5AFAAF8 /* Pods-Runner.debug.xcconfig */,
+				631346BB444C71671599207F /* Pods-Runner.release.xcconfig */,
+				06C73A54FA0478D3C89AB5E5 /* Pods-Runner.profile.xcconfig */,
+				07753111B751BFDB3187FE6F /* Pods-TeamMailShareExtension.debug.xcconfig */,
+				BC08294F5AE09BF8CC592AD1 /* Pods-TeamMailShareExtension.release.xcconfig */,
+				1FB76FA91BBCB2BF7B08705B /* Pods-TeamMailShareExtension.profile.xcconfig */,
+				5E35AF242935B79C2DCACB65 /* Pods-TwakeMailNSE.debug.xcconfig */,
+				6B7C6E49525344DE515F7373 /* Pods-TwakeMailNSE.release.xcconfig */,
+				AF31502A83CA492E27C36A7B /* Pods-TwakeMailNSE.profile.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		97C146ED1CF9000F007C117D /* Runner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
+			buildPhases = (
+				3D8E7FEF3D91E77326493F6D /* [CP] Check Pods Manifest.lock */,
+				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				2A73AAD0923EF3B729E8973A /* [CP] Embed Pods Frameworks */,
+				9740EEB61CF901F6004384FC /* Run Script */,
+				F52F993C27FD6EB900346091 /* Embed App Extensions */,
+				97C146EA1CF9000F007C117D /* Sources */,
+				97C146EB1CF9000F007C117D /* Frameworks */,
+				97C146EC1CF9000F007C117D /* Resources */,
+				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				C0BEA1D661C28FBC88584C44 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F52F993627FD6EB900346091 /* PBXTargetDependency */,
+				F5D4EA062B2ABF090090DDFC /* PBXTargetDependency */,
+			);
+			name = Runner;
+			productName = Runner;
+			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F52F992C27FD6EB900346091 /* TeamMailShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F52F993827FD6EB900346091 /* Build configuration list for PBXNativeTarget "TeamMailShareExtension" */;
+			buildPhases = (
+				E791D44F3C4EDE784D610B9E /* [CP] Check Pods Manifest.lock */,
+				F52F992927FD6EB900346091 /* Sources */,
+				F52F992A27FD6EB900346091 /* Frameworks */,
+				F52F992B27FD6EB900346091 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TeamMailShareExtension;
+			productName = TeamMailShareExtension;
+			productReference = F52F992D27FD6EB900346091 /* TeamMailShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F55114CB2BFBACFA00E41E93 /* TwakeMailTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F55114D52BFBACFA00E41E93 /* Build configuration list for PBXNativeTarget "TwakeMailTests" */;
+			buildPhases = (
+				F55114C82BFBACFA00E41E93 /* Sources */,
+				F55114C92BFBACFA00E41E93 /* Frameworks */,
+				F55114CA2BFBACFA00E41E93 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F55114D12BFBACFA00E41E93 /* PBXTargetDependency */,
+			);
+			name = TwakeMailTests;
+			productName = TwakeMailTests;
+			productReference = F55114CC2BFBACFA00E41E93 /* TwakeMailTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F5D4E9FF2B2ABF090090DDFC /* TwakeMailNSE */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5D4EA0B2B2ABF090090DDFC /* Build configuration list for PBXNativeTarget "TwakeMailNSE" */;
+			buildPhases = (
+				0F3B486617C7C494D3DB7CF9 /* [CP] Check Pods Manifest.lock */,
+				F5D4E9FC2B2ABF090090DDFC /* Sources */,
+				F5D4E9FD2B2ABF090090DDFC /* Frameworks */,
+				F5D4E9FE2B2ABF090090DDFC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TwakeMailNSE;
+			packageProductDependencies = (
+				F5630C802B2CEBC0003CC0FD /* KeychainAccess */,
+				F53D1E622B2DE80200051FD0 /* Alamofire */,
+			);
+			productName = TwakeMailNSE;
+			productReference = F5D4EA002B2ABF090090DDFC /* TwakeMailNSE.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		97C146E61CF9000F007C117D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1510;
+				LastUpgradeCheck = 1510;
+				ORGANIZATIONNAME = "";
+				TargetAttributes = {
+					97C146ED1CF9000F007C117D = {
+						CreatedOnToolsVersion = 7.3.1;
+						LastSwiftMigration = 1100;
+					};
+					F52F992C27FD6EB900346091 = {
+						CreatedOnToolsVersion = 13.2.1;
+					};
+					F55114CB2BFBACFA00E41E93 = {
+						CreatedOnToolsVersion = 15.1;
+						TestTargetID = 97C146ED1CF9000F007C117D;
+					};
+					F5D4E9FF2B2ABF090090DDFC = {
+						CreatedOnToolsVersion = 15.1;
+					};
+				};
+			};
+			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				vi,
+				fr,
+				ru,
+			);
+			mainGroup = 97C146E51CF9000F007C117D;
+			packageReferences = (
+				F5630C7F2B2CEBC0003CC0FD /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				F53D1E612B2DE80200051FD0 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
+			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				97C146ED1CF9000F007C117D /* Runner */,
+				F52F992C27FD6EB900346091 /* TeamMailShareExtension */,
+				F5D4E9FF2B2ABF090090DDFC /* TwakeMailNSE */,
+				F55114CB2BFBACFA00E41E93 /* TwakeMailTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		97C146EC1CF9000F007C117D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5550D292B4E90A7003DD2AE /* Localizable.strings in Resources */,
+				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
+				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
+				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
+				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F52F992B27FD6EB900346091 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F52F993327FD6EB900346091 /* MainInterface.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F55114CA2BFBACFA00E41E93 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5D4E9FE2B2ABF090090DDFC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5550D2A2B4E90A7003DD2AE /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0F3B486617C7C494D3DB7CF9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TwakeMailNSE-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2A73AAD0923EF3B729E8973A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}",
+			);
+			name = "Thin Binary";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
+		};
+		3D8E7FEF3D91E77326493F6D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Runner-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9740EEB61CF901F6004384FC /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
+		};
+		C0BEA1D661C28FBC88584C44 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E791D44F3C4EDE784D610B9E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TeamMailShareExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		97C146EA1CF9000F007C117D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5E7D87C2B38764F0009BB8A /* StringExtensions.swift in Sources */,
+				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				F5E7D8792B38763B0009BB8A /* DateExtensions.swift in Sources */,
+				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				F522E8862C0EE8B600DDA35B /* CoreUtils.swift in Sources */,
+				F522E8812C0EE3F200DDA35B /* AuthenticationSSO.swift in Sources */,
+				F522E8822C0EE48700DDA35B /* AuthenticationType.swift in Sources */,
+				C06B95712FAC780E009C15B4 /* SceneDelegate.swift in Sources */,
+				F5EFC07D2B328B9F00829056 /* TwakeLogger.swift in Sources */,
+				F5E7D8742B3578F90009BB8A /* JmapConstants.swift in Sources */,
+				F522E8832C0EE48C00DDA35B /* Authentication.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F52F992927FD6EB900346091 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F52F993027FD6EB900346091 /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F55114C82BFBACFA00E41E93 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F55114CF2BFBACFA00E41E93 /* DateConversionTests.swift in Sources */,
+				F522E8882C0EE8B600DDA35B /* CoreUtils.swift in Sources */,
+				F522E87F2C0EE23400DDA35B /* AuthenticationSSOTests.swift in Sources */,
+				A14E00012F6E000000000001 /* SentryManagerTests.swift in Sources */,
+				A14E00032F6E000000000003 /* SentryConfig.swift in Sources */,
+				A14E00042F6E000000000004 /* SentryManager.swift in Sources */,
+				A14E00052F6E000000000005 /* TwakeLogger.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5D4E9FC2B2ABF090090DDFC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F5BBBF512B2EEC37007930E1 /* NetworkExceptions.swift in Sources */,
+				F53D1E7F2B2E3C2600051FD0 /* JmapConstants.swift in Sources */,
+				84EC933C2F236E8300A0EDC7 /* SentryConfig.swift in Sources */,
+				F5E7D8822B3876F60009BB8A /* AuthenticationCredential.swift in Sources */,
+				F5D4EA032B2ABF090090DDFC /* NotificationService.swift in Sources */,
+				F522E8872C0EE8B600DDA35B /* CoreUtils.swift in Sources */,
+				F53D1E8A2B2E4BB700051FD0 /* TokenOidc.swift in Sources */,
+				F53D1E862B2E401B00051FD0 /* JmapRequestGenerator.swift in Sources */,
+				F5E7D87A2B38763B0009BB8A /* DateExtensions.swift in Sources */,
+				F5E7D88D2B3878580009BB8A /* AuthenticationInterceptor.swift in Sources */,
+				F5630C7E2B2CE359003CC0FD /* InfoPlistReader.swift in Sources */,
+				F53D1E662B2DE8B800051FD0 /* AlamofireService.swift in Sources */,
+				F5BBBF532B2EECAA007930E1 /* JmapExceptions.swift in Sources */,
+				F53D1E882B2E4B3B00051FD0 /* AuthenticationType.swift in Sources */,
+				84EC933E2F23705E00A0EDC7 /* SentryManager.swift in Sources */,
+				F53D1E6C2B2E208C00051FD0 /* Email.swift in Sources */,
+				F5630C872B2D0387003CC0FD /* PayloadParser.swift in Sources */,
+				F5E7D8862B3877390009BB8A /* TokenResponse.swift in Sources */,
+				F5E7D8842B3877050009BB8A /* AuthenticationSSO.swift in Sources */,
+				F5E7D87D2B38764F0009BB8A /* StringExtensions.swift in Sources */,
+				F53D1E782B2E2C7E00051FD0 /* JmapResponseObject.swift in Sources */,
+				F5630C852B2CF50C003CC0FD /* TypeName.swift in Sources */,
+				F5630C7B2B2CE148003CC0FD /* KeychainSharingSession.swift in Sources */,
+				F53D1E682B2E1CAE00051FD0 /* JmapClient.swift in Sources */,
+				F5BBBF552B2EEF3D007930E1 /* BundleExtension.swift in Sources */,
+				F53D1E7C2B2E35CC00051FD0 /* EmailAddress.swift in Sources */,
+				F5EFC07E2B328B9F00829056 /* TwakeLogger.swift in Sources */,
+				F5E7D8882B38775C0009BB8A /* TokenRefreshManager.swift in Sources */,
+				F5630C762B2CDFDA003CC0FD /* KeychainController.swift in Sources */,
+				F53D1E832B2E3D4600051FD0 /* JmapRequestObject.swift in Sources */,
+				F5630C782B2CE091003CC0FD /* KeyChainControllerDelegate.swift in Sources */,
+				F5E7D8802B3876DE0009BB8A /* Authentication.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F52F993627FD6EB900346091 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F52F992C27FD6EB900346091 /* TeamMailShareExtension */;
+			targetProxy = F52F993527FD6EB900346091 /* PBXContainerItemProxy */;
+		};
+		F55114D12BFBACFA00E41E93 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 97C146ED1CF9000F007C117D /* Runner */;
+			targetProxy = F55114D02BFBACFA00E41E93 /* PBXContainerItemProxy */;
+		};
+		F5D4EA062B2ABF090090DDFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F5D4E9FF2B2ABF090090DDFC /* TwakeMailNSE */;
+			targetProxy = F5D4EA052B2ABF090090DDFC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				97C146FB1CF9000F007C117D /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				97C147001CF9000F007C117D /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		F52F993127FD6EB900346091 /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F52F993227FD6EB900346091 /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
+		F5550D2C2B4E90A7003DD2AE /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F5550D2B2B4E90A7003DD2AE /* en */,
+				F5550D2D2B4E90C6003DD2AE /* vi */,
+				F5550D2E2B4E90D5003DD2AE /* fr */,
+				F5550D2F2B4E90E2003DD2AE /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		249021D3217E4FDB00AE95B9 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
+		249021D4217E4FDB00AE95B9 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/RunnerProfile.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Profile;
+		};
+		97C147031CF9000F007C117D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		97C147041CF9000F007C117D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		97C147061CF9000F007C117D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		97C147071CF9000F007C117D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Runner/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.distribution.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.linagora.ios.teammail";
+				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		F52F993927FD6EB900346091 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 07753111B751BFDB3187FE6F /* Pods-TeamMailShareExtension.debug.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TeamMailShareExtension/TeamMailShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeamMailShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TeamMailShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TeamMailShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.share.ext.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail.TeamMailShareExtension";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F52F993A27FD6EB900346091 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BC08294F5AE09BF8CC592AD1 /* Pods-TeamMailShareExtension.release.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TeamMailShareExtension/TeamMailShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeamMailShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TeamMailShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TeamMailShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.share.ext.distribution.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.linagora.ios.teammail.TeamMailShareExtension";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F52F993B27FD6EB900346091 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FB76FA91BBCB2BF7B08705B /* Pods-TeamMailShareExtension.profile.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TeamMailShareExtension/TeamMailShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeamMailShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TeamMailShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TeamMailShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.share.ext.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail.TeamMailShareExtension";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+		F55114D22BFBACFA00E41E93 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/Sentry",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/flutter_local_notifications",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/receive_sharing_intent",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Sentry,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Debug;
+		};
+		F55114D32BFBACFA00E41E93 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/Sentry",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/flutter_local_notifications",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/receive_sharing_intent",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Sentry,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Release;
+		};
+		F55114D42BFBACFA00E41E93 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/Sentry",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/flutter_local_notifications",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/receive_sharing_intent",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Sentry,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Profile;
+		};
+		F5D4EA082B2ABF090090DDFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5E35AF242935B79C2DCACB65 /* Pods-TwakeMailNSE.debug.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TwakeMailNSE/TwakeMailNSE.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TwakeMailNSE/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TwakeMailNSE;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailNSE;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.nse.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail.TwakeMailNSE";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F5D4EA092B2ABF090090DDFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6B7C6E49525344DE515F7373 /* Pods-TwakeMailNSE.release.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TwakeMailNSE/TwakeMailNSE.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TwakeMailNSE/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TwakeMailNSE;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailNSE;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.nse.distribution.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.linagora.ios.teammail.TwakeMailNSE";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F5D4EA0A2B2ABF090090DDFC /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AF31502A83CA492E27C36A7B /* Pods-TwakeMailNSE.profile.xcconfig */;
+			buildSettings = {
+				APP_GROUP_ID = group.com.linagora.teammail;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = TwakeMailNSE/TwakeMailNSE.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUT463DS29;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = KUT463DS29;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TwakeMailNSE/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TwakeMailNSE;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linagora.ios.teammail.TwakeMailNSE;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = tmail.nse.development.profile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.linagora.ios.teammail.TwakeMailNSE";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				97C147031CF9000F007C117D /* Debug */,
+				97C147041CF9000F007C117D /* Release */,
+				249021D3217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				97C147061CF9000F007C117D /* Debug */,
+				97C147071CF9000F007C117D /* Release */,
+				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F52F993827FD6EB900346091 /* Build configuration list for PBXNativeTarget "TeamMailShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F52F993927FD6EB900346091 /* Debug */,
+				F52F993A27FD6EB900346091 /* Release */,
+				F52F993B27FD6EB900346091 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F55114D52BFBACFA00E41E93 /* Build configuration list for PBXNativeTarget "TwakeMailTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F55114D22BFBACFA00E41E93 /* Debug */,
+				F55114D32BFBACFA00E41E93 /* Release */,
+				F55114D42BFBACFA00E41E93 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F5D4EA0B2B2ABF090090DDFC /* Build configuration list for PBXNativeTarget "TwakeMailNSE" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5D4EA082B2ABF090090DDFC /* Debug */,
+				F5D4EA092B2ABF090090DDFC /* Release */,
+				F5D4EA0A2B2ABF090090DDFC /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F53D1E612B2DE80200051FD0 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.8.1;
+			};
+		};
+		F5630C7F2B2CEBC0003CC0FD /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F53D1E622B2DE80200051FD0 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F53D1E612B2DE80200051FD0 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		F5630C802B2CEBC0003CC0FD /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5630C7F2B2CEBC0003CC0FD /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 97C146E61CF9000F007C117D /* Project object */;
+}

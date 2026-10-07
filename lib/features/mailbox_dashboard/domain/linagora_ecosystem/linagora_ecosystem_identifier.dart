@@ -1,0 +1,27 @@
+
+import 'package:equatable/equatable.dart';
+
+class LinagoraEcosystemIdentifier with EquatableMixin {
+  static final linShareApiUrl = LinagoraEcosystemIdentifier('linShareApiUrl');
+  static final linToApiUrl = LinagoraEcosystemIdentifier('linToApiUrl');
+  static final twakeApiUrl = LinagoraEcosystemIdentifier('twakeApiUrl');
+  static final linToApiKey = LinagoraEcosystemIdentifier('linToApiKey');
+  static final mobileApps = LinagoraEcosystemIdentifier('mobileApps');
+  static final twakeDrive = LinagoraEcosystemIdentifier('Twake Drive');
+  static final twakeChat = LinagoraEcosystemIdentifier('Twake Chat');
+  static final twakeSync = LinagoraEcosystemIdentifier('Twake Sync');
+  static final linShare = LinagoraEcosystemIdentifier('LinShare');
+  static final paywallURL = LinagoraEcosystemIdentifier('paywallUrlTemplate');
+  static final scribePromptUrl = LinagoraEcosystemIdentifier('scribePromptUrl');
+  static final sentryConfig = LinagoraEcosystemIdentifier('sentry');
+  static final driveAttachment = LinagoraEcosystemIdentifier('driveAttachment');
+  static final workplaceFqdnFallback = LinagoraEcosystemIdentifier('workplaceFqdnFallback');
+  static final calendarUrlTemplate = LinagoraEcosystemIdentifier('calendarUrlTemplate');
+
+  final String value;
+
+  LinagoraEcosystemIdentifier(this.value);
+
+  @override
+  List<Object?> get props => [value];
+}

@@ -1,0 +1,58 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:labels/labels.dart';
+import 'package:model/mailbox/presentation_mailbox.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/widgets/sidebar/sidebar_label_item.dart';
+import 'package:tmail_ui_user/features/thread/presentation/widgets/email_tile_builder.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
+
+import '../../base/base_test_scenario.dart';
+import '../../mixin/provisioning_label_scenario_mixin.dart';
+import '../../robots/labels/label_robot.dart';
+import '../../robots/thread_robot.dart';
+
+class DisplayFolderInfoWhenOpenMailFromTagScenario extends BaseTestScenario
+    with ProvisioningLabelScenarioMixin {
+  const DisplayFolderInfoWhenOpenMailFromTagScenario(super.$, super.robots);
+
+  @override
+  Future<void> runTestLogic() async {
+    const emailUser = String.fromEnvironment('BASIC_AUTH_EMAIL');
+    if (emailUser.isEmpty) {
+      fail('Missing --dart-define=BASIC_AUTH_EMAIL for this integration scenario');
+    }
+
+    final threadRobot = ThreadRobot($);
+    final labelRobot = LabelRobot($);
+
+    final labels = await provisionLabelsByDisplayNames(
+      ['Tag 1'],
+    );
+    await $.pumpAndSettle();
+    expect(labels, isNotEmpty, reason: 'Provisioning label "Tag 1" failed');
+    final newLabel = labels.first;
+
+    await robots.commonRobot().provisionEmail(
+      buildEmailsForLabel(
+        label: newLabel,
+        toEmail: emailUser,
+        count: 2,
+      ),
+      requestReadReceipt: false,
+      folderLocationRole: PresentationMailbox.roleTrash,
+    );
+    await $.waitUntilVisible($(EmailTileBuilder));
+
+    await threadRobot.openMailbox();
+    await _expectLabelListViewVisible();
+
+    await labelRobot.openLabelByName(newLabel.safeDisplayName);
+    await _expectFolderInfoDisplayed();
+  }
+
+  Future<void> _expectLabelListViewVisible() =>
+      expectViewVisible($(SidebarLabelItem));
+
+  Future<void> _expectFolderInfoDisplayed() async {
+    await expectViewVisible($(AppLocalizations().trashMailboxDisplayName));
+  }
+}

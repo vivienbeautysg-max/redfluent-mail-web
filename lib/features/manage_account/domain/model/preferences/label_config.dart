@@ -1,0 +1,35 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'package:tmail_ui_user/features/manage_account/domain/model/preferences/preferences_config.dart';
+
+part 'label_config.g.dart';
+
+@JsonSerializable()
+class LabelConfig extends PreferencesConfig {
+  static const keySuffix = 'LABEL';
+
+  final bool isEnabled;
+
+  LabelConfig({this.isEnabled = true});
+
+  @override
+  String get configKey => keySuffix;
+
+  factory LabelConfig.initial() => LabelConfig();
+
+  factory LabelConfig.fromJson(Map<String, dynamic> json) =>
+      _$LabelConfigFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$LabelConfigToJson(this);
+
+  @override
+  List<Object> get props => [isEnabled];
+}
+
+extension LabelConfigExtension on LabelConfig {
+  LabelConfig copyWith({bool? isEnabled}) {
+    return LabelConfig(
+      isEnabled: isEnabled ?? this.isEnabled,
+    );
+  }
+}

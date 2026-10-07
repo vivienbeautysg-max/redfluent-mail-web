@@ -1,0 +1,93 @@
+on:
+  pull_request:
+    paths-ignore:
+      - ".github/**"
+      - "docs"
+      - "Jenkinsfile"
+      - "**/*.md"
+
+name: Analyze and test
+
+env:
+  FLUTTER_VERSION: 3.38.9
+
+jobs:
+  discover-tests:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.modules.outputs.modules }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Discover packages with tests
+        id: modules
+        run: |
+          modules=$(git ls-files 'test/*_test.dart' '*/test/*_test.dart' \
+            | awk -F/ '$1 == "test" { print "default"; next } { print $1 }' \
+            | sort -u | jq -R . | jq -sc .)
+          if [[ "$modules" == "[]" ]]; then
+            echo "ERROR: no test found" >&2
+            exit 1
+          fi
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+
+  analyze-test:
+    needs: discover-tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        modules: ${{ fromJSON(needs.discover-tests.outputs.modules) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+          cache-key: "deps-${{ hashFiles('pubspec.lock') }}"
+          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+
+      - name: Setup Firebase env
+        env:
+          FIREBASE_ENV: ${{ secrets.FIREBASE_ENV }}
+        run: ./scripts/setup-firebase.sh
+
+      - name: Run prebuild
+        id: prebuild
+        run: ./scripts/prebuild.sh
+
+      - name: Analyze
+        uses: zgosalvez/github-actions-analyze-dart@v1
+
+      - name: Test
+        if: ${{ !cancelled() && steps.prebuild.outcome == 'success' }}
+        env:
+          MODULES: ${{ matrix.modules }}
+        run: ./scripts/test.sh
+
+      - name: Upload test reports
+        if: success() || failure() # Always upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.modules }}
+          path: test-report*.json
+
+  javascript-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test JavaScript
+        run: node --test

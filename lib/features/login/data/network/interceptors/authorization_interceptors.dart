@@ -1,0 +1,813 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:core/utils/app_logger.dart';
+import 'package:flutter/services.dart';
+import 'package:core/utils/platform_info.dart';
+import 'package:dio/dio.dart';
+import 'package:jmap_dart_client/jmap/core/user_name.dart';
+import 'package:model/account/authentication_type.dart';
+import 'package:model/account/password.dart';
+import 'package:model/account/personal_account.dart';
+import 'package:model/oidc/oidc_configuration.dart';
+import 'package:model/oidc/token_oidc.dart';
+import 'package:tmail_ui_user/features/base/extensions/object_extensions.dart';
+import 'package:tmail_ui_user/features/login/data/local/account_cache_manager.dart';
+import 'package:tmail_ui_user/features/login/data/local/token_oidc_cache_manager.dart';
+import 'package:tmail_ui_user/features/login/data/network/authentication_client/authentication_client_base.dart';
+import 'package:tmail_ui_user/features/login/data/network/authentication_client/mobile_refresh_token_error_classifier.dart';
+import 'package:tmail_ui_user/features/login/data/network/authentication_client/refresh_token_error_classifier.dart';
+import 'package:tmail_ui_user/features/login/data/network/authentication_client/web_refresh_token_error_classifier.dart';
+import 'package:tmail_ui_user/features/login/domain/exceptions/oauth_authorization_error.dart';
+import 'package:tmail_ui_user/features/login/domain/extensions/oidc_configuration_extensions.dart';
+import 'package:tmail_ui_user/features/upload/data/network/file_uploader.dart';
+import 'package:tmail_ui_user/features/upload/domain/exceptions/upload_exception.dart';
+import 'package:tmail_ui_user/main/exceptions/remote/authentication_exception.dart';
+import 'package:tmail_ui_user/main/utils/ios_sharing_manager.dart';
+
+class AuthorizationInterceptors extends QueuedInterceptorsWrapper {
+  static const String _refreshAttemptedKey = '_authInterceptorRefreshAttempted';
+
+  /// Set to `true` in [RequestOptions.extra] for requests that must never
+  /// carry the user's credentials, e.g. discovery requests sent to hosts
+  /// guessed from the email address domain.
+  static const String skipAuthorizationKey = 'skipAuthorization';
+
+  final Dio _dio;
+  final AuthenticationClientBase _authenticationClient;
+  final TokenOidcCacheManager _tokenOidcCacheManager;
+  final AccountCacheManager _accountCacheManager;
+  final IOSSharingManager _iosSharingManager;
+
+  AuthenticationType _authenticationType = AuthenticationType.none;
+  OIDCConfiguration? _configOIDC;
+  TokenOIDC? _token;
+  String? _authorization;
+  Future<TokenOIDC>? _refreshInFlight;
+
+  /// Bumped by [clear]; a refresh that started on an older generation is stale.
+  int _sessionGeneration = 0;
+
+  final RefreshTokenErrorClassifier? _injectedErrorClassifier;
+
+  late final RefreshTokenErrorClassifier _errorClassifier =
+      _injectedErrorClassifier ??
+          (PlatformInfo.isWeb
+              ? WebRefreshTokenErrorClassifier()
+              : MobileRefreshTokenErrorClassifier());
+
+  late final void Function(
+    Object error,
+    StackTrace stackTrace,
+    DioException originalError,
+    ErrorInterceptorHandler handler,
+  ) _handleRefreshError =
+      PlatformInfo.isWeb ? _handleRefreshErrorOnWeb : _handleRefreshErrorOnMobile;
+
+  AuthorizationInterceptors(
+    this._dio,
+    this._authenticationClient,
+    this._tokenOidcCacheManager,
+    this._accountCacheManager,
+    this._iosSharingManager, {
+    RefreshTokenErrorClassifier? errorClassifier,
+  }) : _injectedErrorClassifier = errorClassifier;
+
+  void setBasicAuthorization(UserName userName, Password password) {
+    _authorization = base64Encode(utf8.encode('${userName.value}:${password.value}'));
+    _authenticationType = AuthenticationType.basic;
+  }
+
+  void setTokenAndAuthorityOidc({TokenOIDC? newToken, OIDCConfiguration? newConfig}) {
+    _token = newToken;
+    _configOIDC = newConfig;
+    _authenticationType = AuthenticationType.oidc;
+    log('AuthorizationInterceptors::setTokenAndAuthorityOidc: INITIAL_TOKEN = ${newToken?.token} | EXPIRED_TIME = ${newToken?.expiredTime}');
+  }
+
+  void _updateNewToken(TokenOIDC newToken) {
+    log('AuthorizationInterceptors::_updateNewToken: NEW_TOKEN = ${newToken.token} | EXPIRED_TIME = ${newToken.expiredTime}');
+    _token = newToken;
+  }
+
+  OIDCConfiguration? get oidcConfig => _configOIDC;
+
+  AuthenticationType get authenticationType => _authenticationType;
+
+  String? get currentOidcIdToken => _token?.tokenId.uuid;
+
+  TokenOIDC? get currentToken =>
+      _authenticationType == AuthenticationType.oidc ? _token : null;
+
+  /// Triggers a refresh, or joins one already running — dedupes an external
+  /// caller (e.g. Workplace's own Dio) against this interceptor's [onError].
+  /// Always returns the acquired token; duplicate detection is the caller's job.
+  /// Owns the outcome: throws [RefreshTokenUnavailableException] without sending
+  /// anything when the session has no refresh token, clears the session and
+  /// throws [RefreshTokenFailedException] on a server rejection,
+  /// [StaleSessionRefreshException] when the session that started it was
+  /// replaced meanwhile, rethrows transient failures untouched.
+  Future<TokenOIDC> requestTokenRefresh() {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) return inFlight;
+
+    // Nothing left to refresh with — the session already died elsewhere.
+    if (_configOIDC == null || _token == null) {
+      final error = RefreshTokenFailedException();
+      logError(
+        'AuthorizationInterceptors::requestTokenRefresh: '
+        'auth_error_type=refresh_on_cleared_session | will_logout=true | '
+        'hasConfig=${_configOIDC != null} | hasToken=${_token != null}',
+        exception: error,
+        webConsoleEnabled: true,
+      );
+      return Future.error(error);
+    }
+
+    // Same bar as validateToRefreshToken: sending a refresh the session cannot
+    // make earns a server rejection that would clear a session still in use.
+    if (!_isAuthenticationOidcValid() || !_isRefreshTokenNotEmpty(_token)) {
+      return Future.error(const RefreshTokenUnavailableException());
+    }
+
+    late final Future<TokenOIDC> pending;
+    pending = _acquireAndPersistNewToken(_sessionGeneration).whenComplete(() {
+      // Only the future still owning the slot may release it.
+      if (identical(_refreshInFlight, pending)) _refreshInFlight = null;
+    });
+    return _refreshInFlight = pending;
+  }
+
+  /// Reports a refresh the server rejected, once, where the session is cleared.
+  void _logFatalRefreshRejection(RefreshTokenFailedException error, StackTrace st) {
+    final cause = error.cause ?? error;
+    logError(
+      'AuthorizationInterceptors::_logFatalRefreshRejection: '
+      'will_logout=true — error=$cause',
+      exception: cause,
+      stackTrace: st,
+      extras: _errorClassifier.buildSentryExtras(cause),
+      webConsoleEnabled: true,
+    );
+  }
+
+  bool _isRefreshRejectedByServer(Object error) => PlatformInfo.isWeb
+      ? _errorClassifier.isServerRejection(error)
+      : _isRefreshRejectedByTokenEndpoint(error);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (options.extra[skipAuthorizationKey] == true) {
+      options.headers.remove(HttpHeaders.authorizationHeader);
+      super.onRequest(options, handler);
+      return;
+    }
+
+    switch(_authenticationType) {
+      case AuthenticationType.basic:
+        if (_authorization != null) {
+          options.headers[HttpHeaders.authorizationHeader] = _getAuthorizationAsBasicHeader(_authorization);
+        }
+        break;
+      case AuthenticationType.oidc:
+        if (_token != null && _token?.isTokenValid() == true) {
+          options.headers[HttpHeaders.authorizationHeader] = _getTokenAsBearerHeader(_token!.token);
+        }
+        break;
+      case AuthenticationType.none:
+        break;
+    }
+    log('AuthorizationInterceptors::onRequest(): URL = ${options.uri} | DATA = ${options.data}');
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Opted-out requests must never be refreshed/retried: the retry attaches the token.
+    if (err.requestOptions.extra[skipAuthorizationKey] == true) {
+      return super.onError(err, handler);
+    }
+
+    logWarning(
+      'AuthorizationInterceptors::onError(): DIO_ERROR = $err | '
+      'statusCode=${err.response?.statusCode} | authType=$_authenticationType',
+      webConsoleEnabled: true,
+    );
+    try {
+      final requestOptions = err.requestOptions;
+      final hasAttemptedRefresh = requestOptions.extra[_refreshAttemptedKey] == true;
+
+      if (!hasAttemptedRefresh && validateToRetryTheRequestWithNewToken(
+        responseStatusCode: err.response?.statusCode,
+        authHeader: requestOptions.headers[HttpHeaders.authorizationHeader],
+        tokenOIDC: _token
+      )) {
+        log(
+          'AuthorizationInterceptors::onError: Request using old token, retry with updated token',
+          webConsoleEnabled: true,
+        );
+        return await _performRetry(requestOptions, err, handler);
+      } else if (!hasAttemptedRefresh && validateToRefreshToken(
+        responseStatusCode: err.response?.statusCode,
+        tokenOIDC: _token
+      )) {
+        return await _refreshTokenThenRetry(err, requestOptions, handler);
+      }
+
+      if (err.response?.statusCode == 401) {
+        _logForcedLogoutFor401(
+          authErrorType: _classifySkippedRefresh401(hasAttemptedRefresh),
+          err: err,
+          hasAttemptedRefresh: hasAttemptedRefresh,
+        );
+      } else {
+        logTrace(
+          'AuthorizationInterceptors::onError: '
+          'No retry or refresh applicable. '
+          'statusCode = ${err.response?.statusCode} | '
+          'authType = $_authenticationType | '
+          'hasConfig = ${_configOIDC != null} | '
+          'hasAttemptedRefresh = $hasAttemptedRefresh | '
+          'url = ${err.requestOptions.uri}',
+          webConsoleEnabled: true,
+        );
+      }
+      return super.onError(err, handler);
+    } catch (e, stackTrace) {
+      logError(
+        'AuthorizationInterceptors::onError:Exception: $e',
+        exception: e,
+        stackTrace: stackTrace,
+        webConsoleEnabled: true,
+      );
+      return _handleRefreshError(e, stackTrace, err, handler);
+    }
+  }
+
+  String _classifySkippedRefresh401(bool hasAttemptedRefresh) {
+    if (hasAttemptedRefresh) {
+      return 'forced_logout_401_after_refresh_attempted';
+    }
+    if (_authenticationType != AuthenticationType.oidc) {
+      return 'forced_logout_401_non_oidc_session';
+    }
+    if (_configOIDC == null) {
+      return 'forced_logout_401_oidc_config_missing';
+    }
+    return 'forced_logout_401_refresh_preconditions_unmet';
+  }
+
+  void _logForcedLogoutFor401({
+    required String authErrorType,
+    required DioException err,
+    required bool hasAttemptedRefresh,
+  }) {
+    logError(
+      'AuthorizationInterceptors: auth_error_type=$authErrorType | will_logout=true | '
+      'authType=$_authenticationType | hasConfig=${_configOIDC != null} | '
+      'hasToken=${_isTokenNotEmpty(_token)} | hasRefreshToken=${_isRefreshTokenNotEmpty(_token)} | '
+      'tokenExpired=${_isTokenExpired(_token)} | hasAttemptedRefresh=$hasAttemptedRefresh | '
+      'statusCode=${err.response?.statusCode} | url=${err.requestOptions.uri}',
+      exception: err,
+      stackTrace: err.stackTrace,
+      webConsoleEnabled: true,
+    );
+  }
+
+  /// A failure with NO server response (network/transport drop, timeout) keeps
+  /// the session and is propagated WITHOUT the stale 401 — same as mobile — so
+  /// a flaky connection does not log the web user out.
+  ///
+  /// Server rejections never reach here: [_acquireAndPersistNewToken] already
+  /// turned them into [RefreshTokenFailedException]. What is left:
+  /// - [ArgumentError] with unknown OAuth2 code → Sentry trace, keep session.
+  /// - Network/transport failure → keep session silently.
+  void _handleRefreshErrorOnWeb(
+    Object error,
+    StackTrace stackTrace,
+    DioException originalError,
+    ErrorInterceptorHandler handler,
+  ) {
+    if (error is ArgumentError) {
+      // Non-standard OAuth2 code — log to Sentry for investigation, keep session.
+      logError(
+        'AuthorizationInterceptors::_handleRefreshErrorOnWeb: '
+        'will_logout=false — error=$error',
+        exception: error,
+        stackTrace: stackTrace,
+        extras: _errorClassifier.buildSentryExtras(error),
+        webConsoleEnabled: true,
+      );
+      return _propagateKeepingSession(error, originalError, handler);
+    }
+
+    logWarning(
+      'AuthorizationInterceptors::_handleRefreshErrorOnWeb: '
+      'web refresh network/transient failure, keeping session — error=$error',
+      webConsoleEnabled: true,
+    );
+    return _propagateKeepingSession(error, originalError, handler);
+  }
+
+  /// Propagates [error] downstream WITHOUT touching the session, normalising it
+  /// to a [DioException] first so callers below the interceptor see one type.
+  void _propagateKeepingSession(
+    Object error,
+    DioException originalError,
+    ErrorInterceptorHandler handler,
+  ) {
+    if (error is DioException) {
+      return super.onError(error, handler);
+    }
+    return super.onError(
+      error.toDioException(requestOptions: originalError.requestOptions),
+      handler,
+    );
+  }
+
+  /// On mobile the refresh runs through flutter_appauth (native), so a rejected
+  /// refresh token arrives as an [OAuthAuthorizationError], never a [DioException].
+  /// Only a confirmed RFC 6749 rejection is fatal; transient codes
+  /// (`server_error`, `temporarily_unavailable`) keep the session.
+  bool _isRefreshRejectedByTokenEndpoint(Object error) =>
+      error is OAuthAuthorizationError &&
+      _errorClassifier.isServerRejection(error);
+
+  /// Server rejections never reach here (see [_acquireAndPersistNewToken]).
+  void _handleRefreshErrorOnMobile(
+    Object error,
+    StackTrace stackTrace,
+    DioException originalError,
+    ErrorInterceptorHandler handler,
+  ) {
+    return _propagateKeepingSession(error, originalError, handler);
+  }
+
+  /// A retry that comes back 401 then surfaces downstream as
+  /// [BadCredentialsException]; a 5xx/network retry failure is propagated
+  /// without forcing a logout.
+  void _handleRetryError(
+    Object retryError,
+    RequestOptions requestOptions,
+    ErrorInterceptorHandler handler,
+  ) {
+    logWarning(
+      'AuthorizationInterceptors::_handleRetryError: '
+      'retry with new token failed — error=$retryError',
+      webConsoleEnabled: true,
+    );
+    if (retryError is DioException) {
+      if (retryError.response?.statusCode == 401) {
+        // Retried with a fresh/updated token and STILL got 401 → server rejects
+        // the new token. Genuine auth failure heading to logout; tag it.
+        _logForcedLogoutFor401(
+          authErrorType: 'forced_logout_401_retry_rejected',
+          err: retryError,
+          hasAttemptedRefresh: requestOptions.extra[_refreshAttemptedKey] == true,
+        );
+      }
+      return super.onError(retryError, handler);
+    }
+    return super.onError(
+      retryError.toDioException(requestOptions: requestOptions),
+      handler,
+    );
+  }
+
+  Future<void> _refreshTokenThenRetry(
+    DioException err,
+    RequestOptions requestOptions,
+    ErrorInterceptorHandler handler,
+  ) async {
+    // Captured before refreshing: a retry with the same access token would
+    // just 401 again, so detect that here rather than in the shared refresh.
+    final tokenBeforeRefresh = _token?.token;
+    try {
+      log(
+        'AuthorizationInterceptors::onError: Perform get New Token',
+        webConsoleEnabled: true,
+      );
+      final refreshedToken = await requestTokenRefresh();
+      if (refreshedToken.token == tokenBeforeRefresh) {
+        throw const RefreshTokenDuplicatedException();
+      }
+
+      requestOptions.extra[_refreshAttemptedKey] = true;
+      return await _performRetry(requestOptions, err, handler);
+    } on RefreshTokenDuplicatedException {
+      // Retrying cannot clear the 401, so it propagates to logout; tag it for forensics.
+      _logForcedLogoutFor401(
+        authErrorType: 'forced_logout_401_refreshed_token_duplicated',
+        err: err,
+        hasAttemptedRefresh: true,
+      );
+      return super.onError(err, handler);
+    } on StaleSessionRefreshException catch (staleError) {
+      // Another session owns the interceptor now; this answer is not its verdict.
+      logWarning(
+        'AuthorizationInterceptors::onError: '
+        'refresh answered for a replaced session, keeping the current one',
+        webConsoleEnabled: true,
+      );
+      return _propagateKeepingSession(staleError, err, handler);
+    } on RefreshTokenFailedException catch (refreshError) {
+      // Already cleared and logged by requestTokenRefresh; surface the dead session.
+      return handler.reject(DioException(
+        requestOptions: err.requestOptions,
+        error: refreshError,
+        type: DioExceptionType.badResponse,
+      ));
+    } on DioException catch (refreshError, st) {
+      // Web routes ALL refresh failures (Dio or non-Dio) through the single
+      // web handler, so the session decision is uniform regardless of how the
+      // failure surfaced. (In practice flutter_appauth_web throws a non-Dio
+      // ArgumentError, but a Dio-based refresh must behave identically.)
+      if (PlatformInfo.isWeb) {
+        return _handleRefreshError(refreshError, st, err, handler);
+      }
+      // Mobile: 400 → session dead (RefreshTokenFailedException); other
+      // statuses / no-response → network-tolerant via _handleDioRefreshError.
+      if (refreshError.response?.statusCode == 400) {
+        logError(
+          'AuthorizationInterceptors: auth_error_type=token_endpoint_400 | '
+          'will_logout=true — error=$refreshError',
+          exception: refreshError,
+          stackTrace: st,
+        );
+        clear();
+        return handler.reject(DioException(
+          requestOptions: err.requestOptions,
+          error: RefreshTokenFailedException(),
+          type: DioExceptionType.badResponse,
+          response: refreshError.response,
+        ));
+      }
+      logError(
+        'AuthorizationInterceptors: auth_error_type=token_endpoint_other | '
+        'statusCode=${refreshError.response?.statusCode} | '
+        'will_logout=false — error=$refreshError',
+        exception: refreshError,
+        stackTrace: st,
+      );
+      return _handleDioRefreshError(
+        refreshError: refreshError,
+        originalError: err,
+        handler: handler,
+      );
+    } on PlatformException catch (e, st) {
+      // flutter_appauth throws PlatformException when the native token request
+      // fails at the OS level (e.g. DNS resolution failure, no network to SSO).
+      // This is a connectivity failure, NOT a server rejection — keep the
+      // session alive and surface a connection-error toast instead of logging out.
+      logError(
+        'AuthorizationInterceptors: auth_error_type=token_refresh_platform_network_failure | '
+        'platformCode=${e.code} | '
+        'will_logout=false — error=$e',
+        exception: e,
+        stackTrace: st,
+      );
+      return super.onError(
+        DioException(
+          requestOptions: err.requestOptions,
+          error: e,
+          type: DioExceptionType.connectionError,
+        ),
+        handler,
+      );
+    } catch (e, st) {
+      // Web routes every non-Dio error flutter_appauth_web throws (ArgumentError
+      // and friends) to its handler so the outer catch in onError() does not log
+      // a second, generic Sentry event. Mobile rethrows on purpose: the generic
+      // event in onError() is then the only trace of an unclassified failure.
+      if (PlatformInfo.isWeb) {
+        return _handleRefreshError(e, st, err, handler);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _performRetry(
+    RequestOptions requestOptions,
+    DioException originalErr,
+    ErrorInterceptorHandler handler,
+  ) async {
+    try {
+      final response = await _retryRequest(requestOptions, requestOptions.extra);
+      return handler.resolve(response);
+    } catch (retryError) {
+      return _handleRetryError(retryError, originalErr.requestOptions, handler);
+    }
+  }
+
+  void _handleDioRefreshError({
+    required DioException refreshError,
+    required DioException originalError,
+    required ErrorInterceptorHandler handler,
+  }) {
+    // Network failure during refresh — don't carry the original 401 response
+    // forward, as that would make RemoteExceptionThrower classify this as
+    // BadCredentialsException and log the user out.
+    if (refreshError.response == null) {
+      return super.onError(
+        refreshError.error.toDioException(
+          requestOptions: originalError.requestOptions,
+          type: refreshError.type,
+          message: refreshError.message,
+        ),
+        handler,
+      );
+    }
+    return super.onError(refreshError, handler);
+  }
+
+  Stream<List<int>>? _getDataUploadRequest(dynamic mapUploadExtra) {
+    try {
+      if (mapUploadExtra is! Map) return null;
+      final filePath = mapUploadExtra[FileUploader.filePathExtraKey] as String?;
+      if (filePath?.isNotEmpty == true) {
+        return File(filePath!).openRead();
+      } else {
+        return mapUploadExtra[FileUploader.streamDataExtraKey] as Stream<List<int>>?;
+      }
+    } catch(e) {
+      logWarning(
+        'AuthorizationInterceptors::_getDataUploadRequest: Exception = $e',
+      );
+      return null;
+    }
+  }
+
+  bool _isTokenExpired(TokenOIDC? tokenOIDC) => tokenOIDC?.isExpired == true;
+
+  bool _isAuthenticationOidcValid() => _authenticationType == AuthenticationType.oidc && _configOIDC != null;
+
+  bool _isTokenNotEmpty(TokenOIDC? tokenOIDC) => tokenOIDC?.token.isNotEmpty == true;
+
+  bool _isRefreshTokenNotEmpty(TokenOIDC? tokenOIDC) => tokenOIDC?.refreshToken.isNotEmpty == true;
+
+  bool validateToRefreshToken(
+      {required int? responseStatusCode, required TokenOIDC? tokenOIDC}) {
+    final isStatusCode401 = responseStatusCode == 401;
+    final isLoginWithOIDC = _isAuthenticationOidcValid();
+    final hasAccessToken = _isTokenNotEmpty(tokenOIDC);
+    final hasRefreshToken = _isRefreshTokenNotEmpty(tokenOIDC);
+
+    final canProceedRefresh = isStatusCode401 &&
+        isLoginWithOIDC &&
+        hasAccessToken &&
+        hasRefreshToken;
+
+    logTrace(
+      'AuthorizationInterceptors::validateToRefreshToken: '
+      'isStatusCode401 = $isStatusCode401 | '
+      'isLoginWithOIDC = $isLoginWithOIDC | '
+      'hasAccessToken = $hasAccessToken | '
+      'hasRefreshToken = $hasRefreshToken | '
+      'canProceedRefresh = $canProceedRefresh',
+      webConsoleEnabled: true,
+    );
+
+    return canProceedRefresh;
+  }
+
+  bool validateToRetryTheRequestWithNewToken(
+      {required int? responseStatusCode,
+      required String? authHeader,
+      required TokenOIDC? tokenOIDC}) {
+    final isStatusCode401 = responseStatusCode == 401;
+    final hasAuthHeader = authHeader != null;
+    final hasAccessToken = _isTokenNotEmpty(tokenOIDC);
+    final isTokenStillValid = !_isTokenExpired(tokenOIDC);
+    final isTokenUpdated =
+        tokenOIDC != null && authHeader?.contains(tokenOIDC.token) != true;
+
+    final shouldRetry = isStatusCode401 &&
+        hasAuthHeader &&
+        hasAccessToken &&
+        isTokenStillValid &&
+        isTokenUpdated;
+
+    logTrace(
+      'AuthorizationInterceptors::validateToRetryWithNewToken: '
+      'isStatusCode401 = $isStatusCode401 | '
+      'hasHeader = $hasAuthHeader | '
+      'hasAccessToken = $hasAccessToken | '
+      'isTokenValid = $isTokenStillValid | '
+      'isNewToken = $isTokenUpdated | '
+      'shouldRetry = $shouldRetry',
+      webConsoleEnabled: true,
+    );
+
+    return shouldRetry;
+  }
+
+  String _getAuthorizationAsBasicHeader(String? authorization) => 'Basic $authorization';
+
+  String _getTokenAsBearerHeader(String token) => 'Bearer $token';
+
+  Future<PersonalAccount> _updateCurrentAccount({
+    required TokenOIDC tokenOIDC,
+    required int generation,
+  }) async {
+    final currentAccount = await _accountCacheManager.getCurrentAccount();
+
+    // Re-checked before every write below — a clear() landing during any
+    // of these awaits must not resurrect a session it just wiped.
+    if (generation != _sessionGeneration) throw const StaleSessionRefreshException();
+
+    // Persist the new token BEFORE mutating the account cache. persistOneTokenOidc
+    // is crash-safe (write-before-prune), so the token box always holds a usable
+    // token even if the process is killed mid-update.
+    await _tokenOidcCacheManager.persistOneTokenOidc(tokenOIDC);
+    if (generation != _sessionGeneration) {
+      // A clear() landed mid-write; undo it. Best-effort — must not shadow
+      // the StaleSessionRefreshException below.
+      try {
+        await _tokenOidcCacheManager.deleteTokenOidc(tokenOIDC.tokenIdHash);
+      } catch (e) {
+        logWarning('AuthorizationInterceptors::_updateCurrentAccount: rollback deleteTokenOidc failed: $e');
+      }
+      throw const StaleSessionRefreshException();
+    }
+
+    final personalAccount = PersonalAccount(
+      tokenOIDC.tokenIdHash,
+      AuthenticationType.oidc,
+      isSelected: true,
+      accountId: currentAccount.accountId,
+      apiUrl: currentAccount.apiUrl,
+      userName: currentAccount.userName
+    );
+    await _accountCacheManager.setCurrentAccount(personalAccount);
+    if (generation != _sessionGeneration) {
+      // Same as above, but for the account write.
+      try {
+        await _accountCacheManager.deleteCurrentAccount(personalAccount.id);
+      } catch (e) {
+        logWarning('AuthorizationInterceptors::_updateCurrentAccount: rollback deleteCurrentAccount failed: $e');
+      }
+      throw const StaleSessionRefreshException();
+    }
+
+    return personalAccount;
+  }
+
+  Future<TokenOIDC?> _getTokenInKeychain(TokenOIDC currentTokenOidc) async {
+    final currentAccount = await _accountCacheManager.getCurrentAccount();
+    if (currentAccount.accountId == null) {
+      return null;
+    }
+
+    final keychainSharingSession = await _iosSharingManager.getKeychainSharingSession(currentAccount.accountId!);
+    if (keychainSharingSession == null) {
+      return null;
+    }
+
+    if (keychainSharingSession.tokenOIDC != null &&
+        currentTokenOidc.token != keychainSharingSession.tokenOIDC!.token) {
+      return keychainSharingSession.tokenOIDC!;
+    }
+
+    return null;
+  }
+
+  Future<TokenOIDC> _invokeRefreshTokenFromServer() {
+    log('AuthorizationInterceptors::_invokeRefreshTokenFromServer:');
+    return _authenticationClient.refreshingTokensOIDC(
+      _configOIDC!.clientId,
+      _configOIDC!.redirectUrl,
+      _configOIDC!.discoveryUrl,
+      _configOIDC!.scopes,
+      _token!
+    );
+  }
+
+  Future<TokenOIDC> _getNewTokenForIOSPlatform() async {
+    final tokenInKeychain = await _getTokenInKeychain(_token!);
+    log('AuthorizationInterceptors::_handleRefreshTokenOnIOSPlatform: KeychainTokenId = ${tokenInKeychain?.tokenIdHash} | isTokenExpired = ${_isTokenExpired(tokenInKeychain)}');
+    if (tokenInKeychain == null || _isTokenExpired(tokenInKeychain)) {
+      return _invokeRefreshTokenFromServer();
+    } else {
+      return tokenInKeychain;
+    }
+  }
+
+  Future<TokenOIDC> _getNewTokenForOtherPlatform() {
+    return _invokeRefreshTokenFromServer();
+  }
+
+  Future<TokenOIDC> _acquireAndPersistNewToken(int generation) async {
+    final TokenOIDC acquired;
+    try {
+      acquired = PlatformInfo.isIOS
+          ? await _getNewTokenForIOSPlatform()
+          : await _getNewTokenForOtherPlatform();
+    } catch (e, st) {
+      // The session that started this refresh is gone; its answer is not a
+      // verdict on the session that replaced it.
+      if (generation != _sessionGeneration) throw const StaleSessionRefreshException();
+      if (!_isRefreshRejectedByServer(e)) rethrow;
+      clear();
+      // Logged here, not per caller: this one method serves JMAP and Workplace.
+      final fatal = RefreshTokenFailedException(cause: e);
+      _logFatalRefreshRejection(fatal, st);
+      throw fatal;
+    }
+
+    // The session died while we were away; re-arming it would resurrect a
+    // logged-out account and re-persist it over wiped caches.
+    if (generation != _sessionGeneration) throw const StaleSessionRefreshException();
+
+    // No duplicate check here: JMAP and Workplace compare different fields,
+    // so each caller decides for itself once it has the acquired token.
+    _updateNewToken(acquired);
+
+    final personalAccount = await _updateCurrentAccount(
+      tokenOIDC: acquired,
+      generation: generation,
+    );
+    if (PlatformInfo.isIOS) {
+      if (generation != _sessionGeneration) throw const StaleSessionRefreshException();
+      await _iosSharingManager.saveKeyChainSharingSession(personalAccount);
+    }
+
+    return acquired;
+  }
+
+  Future<Response> _retryRequest(
+    RequestOptions requestOptions,
+    Map<String, dynamic> extraInRequest,
+  ) {
+    requestOptions.headers[HttpHeaders.authorizationHeader] =
+        _getTokenAsBearerHeader(_token!.token);
+    requestOptions.extra[_refreshAttemptedKey] = true;
+
+    final retryDio = _createRetryDio();
+
+    if (extraInRequest.containsKey(FileUploader.uploadAttachmentExtraKey)) {
+      log('AuthorizationInterceptors::_retryRequest: '
+          'Retry upload request with TokenId = ${_token?.tokenIdHash}');
+      return _retryUploadRequest(
+        retryDio,
+        requestOptions,
+        extraInRequest[FileUploader.uploadAttachmentExtraKey],
+      );
+    }
+
+    log('AuthorizationInterceptors::_retryRequest: '
+        'Retry request with TokenId = ${_token?.tokenIdHash}');
+    return retryDio.fetch(requestOptions);
+  }
+
+  /// The failed attempt already consumed the body stream, so a replay has to
+  /// rebuild it from the file path or the retained bytes.
+  Future<Response> _retryUploadRequest(
+    Dio retryDio,
+    RequestOptions requestOptions,
+    dynamic uploadExtra,
+  ) {
+    if (PlatformInfo.isMobile) {
+      final uploadBody = _getDataUploadRequest(uploadExtra);
+
+      // Without a rebuilt body the replay would send an empty one, so fail
+      // plainly instead of storing a zero-byte blob under the attachment's name.
+      if (uploadBody == null) {
+        throw const MissingAttachmentSourceException();
+      }
+
+      // Replaying the original options keeps `onSendProgress`, `CancelToken`,
+      // the timeouts and the response type, all of which rebuilding an
+      // `Options` from scratch drops.
+      return retryDio.fetch(requestOptions.copyWith(data: uploadBody));
+    }
+
+    // Web keeps the retry path it already had. It works today, and this fix is
+    // scoped to the mobile isolate regression.
+    return retryDio.request(
+      requestOptions.path,
+      data: _getDataUploadRequest(uploadExtra),
+      queryParameters: requestOptions.queryParameters,
+      options: Options(
+        method: requestOptions.method,
+        headers: requestOptions.headers,
+        extra: requestOptions.extra,
+      ),
+    );
+  }
+
+  /// Creates a separate Dio instance without interceptors for retry requests.
+  /// This avoids deadlock when retrying inside [onError] of [QueuedInterceptorsWrapper].
+  Dio _createRetryDio() => Dio(_dio.options)
+    ..httpClientAdapter = _dio.httpClientAdapter;
+
+  void clear() {
+    _authorization = null;
+    _token = null;
+    _configOIDC = null;
+    _authenticationType = AuthenticationType.none;
+    // A refresh still running belongs to the session we just dropped.
+    _sessionGeneration++;
+    _refreshInFlight = null;
+  }
+}

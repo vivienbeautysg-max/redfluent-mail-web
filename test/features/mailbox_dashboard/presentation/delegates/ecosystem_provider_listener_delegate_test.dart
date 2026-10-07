@@ -1,0 +1,606 @@
+import 'package:core/data/network/config/dynamic_url_interceptors.dart';
+import 'package:core/utils/platform_info.dart';
+import 'package:core/utils/sentry/sentry_config.dart';
+import 'package:core/utils/sentry/sentry_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get/get.dart';
+import 'package:jmap_dart_client/jmap/account_id.dart';
+import 'package:jmap_dart_client/jmap/core/id.dart';
+import 'package:jmap_dart_client/jmap/core/session/session.dart';
+import 'package:jmap_dart_client/jmap/core/state.dart' as jmap;
+import 'package:jmap_dart_client/jmap/core/user_name.dart';
+import 'package:mockito/mockito.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/linagora_ecosystem/linagora_ecosystem.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/linagora_ecosystem/linagora_ecosystem_handler.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/linagora_ecosystem/sentry_config_linagora_ecosystem.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/controller/mailbox_dashboard_controller.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/delegates/ecosystem_provider_listener_delegate.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/linagora_ecosystem/linagora_ecosystem_handler_registry.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/linagora_ecosystem/web_sentry_ecosystem_handler.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/sentry_ecosystem.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/providers/active_ecosystem_provider.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/riverpod_widgets/mailbox_dashboard_provider_listener_widget.dart';
+import 'package:tmail_ui_user/features/paywall/presentation/providers/premium_cta_provider.dart';
+import 'package:tmail_ui_user/main/providers/workplace/fqdn/workplace_fqdn_provider.dart';
+
+mockControllerCallback() => InternalFinalCallback<void>(callback: () {});
+
+class _DashboardController extends Mock
+    implements MailboxDashBoardController {
+  final testAccountId = Rxn<AccountId>();
+  int setUpSentryCount = 0;
+  int clearSentryCount = 0;
+
+  @override
+  Session? sessionCurrent;
+
+  @override
+  final DynamicUrlInterceptors dynamicUrlInterceptors =
+      DynamicUrlInterceptors()..setJmapUrl('https://jmap.domain.tld');
+
+  @override
+  InternalFinalCallback<void> get onStart => mockControllerCallback();
+
+  @override
+  InternalFinalCallback<void> get onDelete => mockControllerCallback();
+
+  @override
+  Rxn<AccountId> get accountId => testAccountId;
+
+  @override
+  Future<void> setUpSentry(
+    SentryConfigLinagoraEcosystem ecosystemConfig,
+  ) async {
+    setUpSentryCount++;
+  }
+
+  @override
+  Future<void> clearSentry() async {
+    clearSentryCount++;
+  }
+}
+
+class _EcosystemStateNotifier extends Notifier<EcosystemState> {
+  @override
+  EcosystemState build() => const EcosystemLoading();
+
+  void setState(EcosystemState value) {
+    state = value;
+  }
+}
+
+class _RecordingEcosystemHandler implements LinagoraEcosystemHandler {
+  final loaded = <LinagoraEcosystem>[];
+  int clearedCount = 0;
+
+  @override
+  void onEcosystemLoaded(LinagoraEcosystem ecosystem) {
+    loaded.add(ecosystem);
+  }
+
+  @override
+  void onEcosystemCleared() {
+    clearedCount++;
+  }
+}
+
+class _RecordingSentryEcosystem extends SentryEcosystem {
+  _RecordingSentryEcosystem()
+      : super(null, null, initializeSentry: (_) async {});
+
+  final loadedConfigs = <SentryConfigLinagoraEcosystem>[];
+  int clearCount = 0;
+  final clearUserValues = <bool>[];
+
+  @override
+  Future<void> setUp(SentryConfigLinagoraEcosystem config) async {
+    loadedConfigs.add(config);
+  }
+
+  @override
+  Future<void> clear({bool clearUser = true}) async {
+    clearCount++;
+    clearUserValues.add(clearUser);
+  }
+}
+
+final _ecosystemStateProvider =
+    NotifierProvider<_EcosystemStateNotifier, EcosystemState>(
+  _EcosystemStateNotifier.new,
+);
+
+void main() {
+  testWidgets(
+    'dispatches shared ecosystem state and cleans up account listener',
+    (tester) async {
+      Get.testMode = true;
+      addTearDown(Get.reset);
+      final dashboardController = _DashboardController();
+      dashboardController.testAccountId.value = AccountId(Id('first'));
+      final recordingHandler = _RecordingEcosystemHandler();
+      Get.put<MailboxDashBoardController>(dashboardController);
+
+      final container = await _pumpDelegate(
+        tester,
+        handlers: [recordingHandler],
+      );
+      final ecosystem = LinagoraEcosystem.deserialize({
+        'paywallUrlTemplate': 'https://domain.tld/premium',
+      });
+
+      expect(recordingHandler.clearedCount, 1);
+      container
+          .read(_ecosystemStateProvider.notifier)
+          .setState(EcosystemAvailable(ecosystem));
+      await tester.pump();
+
+      expect(recordingHandler.loaded, [ecosystem]);
+
+      dashboardController.testAccountId.value = AccountId(Id('second'));
+      await tester.pump();
+
+      expect(recordingHandler.clearedCount, 2);
+      expect(recordingHandler.loaded, [ecosystem, ecosystem]);
+
+      // Disposal clears the shared registry so the ecosystem of this session
+      // cannot leak into the next one...
+      await tester.pumpWidget(const SizedBox());
+
+      expect(recordingHandler.clearedCount, 3);
+
+      // ...and nothing is dispatched after disposal.
+      dashboardController.testAccountId.value = AccountId(Id('third'));
+      await tester.pump();
+
+      expect(recordingHandler.clearedCount, 3);
+      expect(recordingHandler.loaded, [ecosystem, ecosystem]);
+    },
+  );
+
+  testWidgets(
+    'ecosystem handlers resolve the current dashboard controller',
+    (tester) async {
+      Get.testMode = true;
+      addTearDown(Get.reset);
+      final firstController = _DashboardController();
+      firstController.testAccountId.value = AccountId(Id('first'));
+      Get.put<MailboxDashBoardController>(firstController);
+
+      final container = await _pumpDelegate(tester);
+      final registry = container.read(linagoraEcosystemHandlerRegistryProvider);
+
+      final secondController = _DashboardController();
+      secondController.testAccountId.value = AccountId(Id('second'));
+      Get.delete<MailboxDashBoardController>(force: true);
+      Get.put<MailboxDashBoardController>(secondController);
+
+      registry.dispatchLoaded(LinagoraEcosystem.deserialize({
+        'sentry': {'enabled': false},
+      }));
+      await tester.pump();
+
+      registry.dispatchCleared();
+      await tester.pump();
+
+      registry.dispatchLoaded(LinagoraEcosystem.deserialize({
+        'paywallUrlTemplate': 'https://domain.tld/premium',
+      }));
+      await tester.pump();
+
+      expect(firstController.setUpSentryCount, 0);
+      expect(secondController.setUpSentryCount, 1);
+      expect(secondController.clearSentryCount, 2);
+    },
+  );
+
+  testWidgets(
+    'registers the web Sentry handler without invoking non-web setup',
+    (tester) async {
+      dotenv.testLoad(mergeWith: {
+        SentryConfig.enabledEnvKey: 'false',
+        SentryConfig.dsnEnvKey: 'https://env@sentry.io/123',
+        SentryConfig.environmentEnvKey: 'test',
+      });
+      addTearDown(dotenv.clean);
+      PlatformInfo.isTestingForWeb = true;
+      final sentryManager = SentryManager.instance
+        ..resumeSentryReporting()
+        ..setSentryReportingConsent(null)
+        ..setSentryReportingDefault(true)
+        ..clearSentryReportingDefault();
+      addTearDown(() {
+        PlatformInfo.isTestingForWeb = false;
+        sentryManager
+          ..resumeSentryReporting()
+          ..setSentryReportingConsent(null)
+          ..setSentryReportingDefault(true);
+      });
+      final dashboardController = _registerDashboardController('first');
+      final container = await _pumpDelegate(tester);
+      final registry = container.read(linagoraEcosystemHandlerRegistryProvider);
+
+      registry.dispatchLoaded(
+        LinagoraEcosystem.deserialize({
+          'sentry': {'enabled': true, 'userOptInByDefault': false},
+        }),
+      );
+      await sentryManager.pendingLifecycleTransition;
+
+      expect(sentryManager.isSentryReportingAllowed, isFalse);
+
+      registry.dispatchLoaded(
+        LinagoraEcosystem.deserialize({
+          'paywallUrlTemplate': 'https://domain.tld/premium',
+        }),
+      );
+      await sentryManager.pendingLifecycleTransition;
+
+      expect(sentryManager.isSentryReportingAllowed, isFalse);
+
+      registry.dispatchCleared();
+      await sentryManager.pendingLifecycleTransition;
+
+      expect(sentryManager.isSentryReportingReady, isFalse);
+      expect(dashboardController.setUpSentryCount, 0);
+      expect(dashboardController.clearSentryCount, 0);
+    },
+  );
+
+  final webEcosystemFallbackCases =
+      <({String description, Map<String, String> env})>[
+        (description: 'absent', env: {}),
+        (
+          description: 'blank',
+          env: {
+            SentryConfig.enabledEnvKey: '',
+            SentryConfig.dsnEnvKey: ' ',
+            SentryConfig.environmentEnvKey: '',
+          },
+        ),
+      ];
+
+  for (final testCase in webEcosystemFallbackCases) {
+    testWidgets(
+      'uses ecosystem Sentry configuration on web when env values are ${testCase.description}',
+      (tester) async {
+        dotenv.testLoad(mergeWith: testCase.env);
+        addTearDown(dotenv.clean);
+        PlatformInfo.isTestingForWeb = true;
+        addTearDown(() => PlatformInfo.isTestingForWeb = false);
+        final dashboardController = _registerDashboardController('first');
+        final sentryEcosystem = _RecordingSentryEcosystem();
+        Get.put<SentryEcosystem>(sentryEcosystem);
+        final container = await _pumpDelegate(tester);
+        final registry =
+            container.read(linagoraEcosystemHandlerRegistryProvider);
+        registry.dispatchLoaded(
+          LinagoraEcosystem.deserialize({
+            'sentry': {
+              'enabled': true,
+              'dsn': 'https://ecosystem@sentry.io/123',
+              'environment': 'test',
+              'userOptInByDefault': true,
+            },
+          }),
+        );
+        await tester.pump();
+
+        expect(sentryEcosystem.loadedConfigs, hasLength(1));
+        expect(
+          sentryEcosystem.loadedConfigs.single.dsn,
+          'https://ecosystem@sentry.io/123',
+        );
+        expect(dashboardController.setUpSentryCount, 0);
+
+        registry.dispatchCleared();
+        await tester.pump();
+        expect(sentryEcosystem.clearCount, greaterThanOrEqualTo(2));
+        expect(sentryEcosystem.clearUserValues, everyElement(isFalse));
+      },
+    );
+  }
+
+  final webEnvOwnedCases = <({String description, Map<String, String> env})>[
+    (description: 'only explicitly disabled', env: {SentryConfig.enabledEnvKey: 'false'}),
+    (description: 'only enabled', env: {SentryConfig.enabledEnvKey: 'true'}),
+    (description: 'only DSN', env: {SentryConfig.dsnEnvKey: 'https://env@sentry.io/123'}),
+    (description: 'only environment', env: {SentryConfig.environmentEnvKey: 'test'}),
+    (
+      description: 'complete with SENTRY_ENABLED=false',
+      env: {
+        SentryConfig.enabledEnvKey: 'false',
+        SentryConfig.dsnEnvKey: 'https://env@sentry.io/123',
+        SentryConfig.environmentEnvKey: 'test',
+      },
+    ),
+    (
+      description: 'complete without SENTRY_ENABLED',
+      env: {
+        SentryConfig.dsnEnvKey: 'https://env@sentry.io/123',
+        SentryConfig.environmentEnvKey: 'test',
+      },
+    ),
+    (
+      description: 'complete',
+      env: {
+        SentryConfig.enabledEnvKey: 'true',
+        SentryConfig.dsnEnvKey: 'https://env@sentry.io/123',
+        SentryConfig.environmentEnvKey: 'test',
+      },
+    ),
+  ];
+
+  for (final testCase in webEnvOwnedCases) {
+    testWidgets(
+      'keeps web Sentry env-owned when env is ${testCase.description}',
+      (tester) async {
+        dotenv.testLoad(mergeWith: testCase.env);
+        addTearDown(dotenv.clean);
+        PlatformInfo.isTestingForWeb = true;
+        addTearDown(() => PlatformInfo.isTestingForWeb = false);
+        final dashboardController = _registerDashboardController('first');
+        final sentryEcosystem = _RecordingSentryEcosystem();
+        Get.put<SentryEcosystem>(sentryEcosystem);
+        final container = await _pumpDelegate(tester);
+        final registry =
+            container.read(linagoraEcosystemHandlerRegistryProvider);
+        expect(SentryConfig.hasEnvironmentConfiguration, isTrue);
+        registry.dispatchLoaded(
+          LinagoraEcosystem.deserialize({
+            'sentry': {
+              'enabled': true,
+              'dsn': 'https://ecosystem@sentry.io/123',
+              'environment': 'test',
+              'userOptInByDefault': true,
+            },
+          }),
+        );
+        await tester.pump();
+
+        expect(sentryEcosystem.loadedConfigs, isEmpty);
+        expect(dashboardController.setUpSentryCount, 0);
+      },
+    );
+  }
+
+  testWidgets(
+    'does not carry server Sentry consent to another account',
+    (tester) async {
+      final sentryManager = SentryManager.forTesting(
+        isSentryAvailable: false,
+        synchronizeScope: (_, {required clearBreadcrumbs}) async {},
+        initializeSentrySdk: ({appRunner, sentryConfig}) async => true,
+        closeSentrySdk: () async {},
+      );
+      await sentryManager.initializeWithSentryConfig(SentryConfig(
+        dsn: 'https://env@sentry.io/123',
+        environment: 'test',
+        release: '1.0.0',
+        isAvailable: true,
+        isReportingAllowed: false,
+      ));
+      final dashboardController = _registerDashboardController('first');
+      final ecosystem = LinagoraEcosystem.deserialize({
+        'sentry': {
+          'enabled': true,
+          'userOptInByDefault': false,
+        },
+      });
+
+      final container = await _pumpDelegate(
+        tester,
+        handlers: [WebSentryEcosystemHandler(sentryManager: sentryManager)],
+      );
+      final registry = container.read(linagoraEcosystemHandlerRegistryProvider);
+      registry.dispatchLoaded(ecosystem);
+      sentryManager.setSentryReportingConsent(true);
+      await sentryManager.pendingLifecycleTransition;
+
+      expect(sentryManager.isSentryReportingAllowed, isTrue);
+
+      dashboardController.testAccountId.value = AccountId(Id('second'));
+      await tester.pump();
+      registry.dispatchLoaded(ecosystem);
+      await sentryManager.pendingLifecycleTransition;
+
+      expect(sentryManager.isSentryReportingAllowed, isFalse);
+    },
+  );
+
+  // The unavailable arm is what stops a failed or unconfigured ecosystem from
+  // leaving stale data live in the app-lifetime registry.
+  testWidgets(
+    'clears handlers when the ecosystem becomes unavailable',
+    (tester) async {
+      final dashboardController = _registerDashboardController('first');
+      final recordingHandler = _RecordingEcosystemHandler();
+
+      final container = await _pumpDelegate(
+        tester,
+        handlers: [recordingHandler],
+      );
+      final ecosystem = LinagoraEcosystem.deserialize({
+        'paywallUrlTemplate': 'https://domain.tld/premium',
+      });
+      final notifier = container.read(_ecosystemStateProvider.notifier);
+
+      notifier.setState(EcosystemAvailable(ecosystem));
+      await tester.pump();
+
+      expect(recordingHandler.loaded, [ecosystem]);
+
+      notifier.setState(
+        const EcosystemUnavailable(EcosystemUnavailableReason.loadFailed),
+      );
+      await tester.pump();
+
+      // One clear from the initial subscribe, one from the unavailable state.
+      expect(recordingHandler.clearedCount, 2);
+      expect(recordingHandler.loaded, [ecosystem]);
+      expect(dashboardController.setUpSentryCount, 0);
+    },
+  );
+
+  testWidgets(
+    'clears handlers when an available ecosystem starts reloading',
+    (tester) async {
+      _registerDashboardController('first');
+      final recordingHandler = _RecordingEcosystemHandler();
+
+      final container = await _pumpDelegate(
+        tester,
+        handlers: [recordingHandler],
+      );
+      final notifier = container.read(_ecosystemStateProvider.notifier);
+      notifier.setState(EcosystemAvailable(LinagoraEcosystem.deserialize({
+        'paywallUrlTemplate': 'https://domain.tld/premium',
+      })));
+      await tester.pump();
+
+      notifier.setState(const EcosystemLoading());
+      await tester.pump();
+
+      expect(recordingHandler.clearedCount, 2);
+      expect(recordingHandler.loaded, hasLength(1));
+    },
+  );
+
+  // Pins which ecosystem the delegate actually subscribes to: the signed-in
+  // account paired with its JMAP URL, re-keyed whenever the account changes.
+  testWidgets(
+    'keys the ecosystem subscription on the account and JMAP URL',
+    (tester) async {
+      final dashboardController = _registerDashboardController('first');
+      final observedKeys = <(AccountId?, String?)>[];
+
+      await _pumpDelegate(
+        tester,
+        handlers: [_RecordingEcosystemHandler()],
+        observedKeys: observedKeys,
+      );
+
+      final jmapUrl = dashboardController.dynamicUrlInterceptors.jmapUrl;
+      expect(observedKeys, [(AccountId(Id('first')), jmapUrl)]);
+
+      dashboardController.testAccountId.value = AccountId(Id('second'));
+      await tester.pump();
+
+      expect(observedKeys, [
+        (AccountId(Id('first')), jmapUrl),
+        (AccountId(Id('second')), jmapUrl),
+      ]);
+    },
+  );
+
+  testWidgets(
+    'stays inert when no dashboard controller is registered',
+    (tester) async {
+      Get.testMode = true;
+      addTearDown(Get.reset);
+      final recordingHandler = _RecordingEcosystemHandler();
+      final observedKeys = <(AccountId?, String?)>[];
+
+      await _pumpDelegate(
+        tester,
+        handlers: [recordingHandler],
+        observedKeys: observedKeys,
+      );
+      await tester.pumpWidget(const SizedBox());
+
+      expect(observedKeys, isEmpty);
+      expect(recordingHandler.clearedCount, 0);
+      expect(recordingHandler.loaded, isEmpty);
+    },
+  );
+
+  // A registry that already holds handlers must not gain the default ones on
+  // top, which would dispatch every ecosystem twice.
+  testWidgets(
+    'does not add default handlers to a populated registry',
+    (tester) async {
+      final dashboardController = _registerDashboardController('first');
+      final recordingHandler = _RecordingEcosystemHandler();
+
+      final container = await _pumpDelegate(
+        tester,
+        handlers: [recordingHandler],
+      );
+      final ecosystem = LinagoraEcosystem.deserialize({
+        'sentry': {'enabled': false},
+      });
+      container
+          .read(_ecosystemStateProvider.notifier)
+          .setState(EcosystemAvailable(ecosystem));
+      await tester.pump();
+
+      expect(recordingHandler.loaded, [ecosystem]);
+      // The default non-web Sentry handler would have forwarded this config.
+      expect(dashboardController.setUpSentryCount, 0);
+    },
+  );
+
+  // The delegate is the only thing registering the Workplace FQDN handler.
+  testWidgets(
+    'registers the Workplace FQDN handler',
+    (tester) async {
+      final uri = Uri.parse('https://www.google.com');
+      _registerDashboardController('first').sessionCurrent = Session(
+          {}, {}, {}, UserName('alice@example.com'), uri, uri, uri, uri, jmap.State('1'));
+
+      final container = await _pumpDelegate(tester);
+      container.read(_ecosystemStateProvider.notifier).setState(
+            EcosystemAvailable(LinagoraEcosystem.deserialize({
+              'workplaceFqdnFallback': '{localPart}.twake.linagora.com',
+            })),
+          );
+      await tester.pump();
+
+      expect(container.read(workplaceFqdnProvider), 'alice.twake.linagora.com');
+    },
+  );
+}
+
+_DashboardController _registerDashboardController(String accountId) {
+  Get.testMode = true;
+  addTearDown(Get.reset);
+  final dashboardController = _DashboardController();
+  dashboardController.testAccountId.value = AccountId(Id(accountId));
+  Get.put<MailboxDashBoardController>(dashboardController);
+  return dashboardController;
+}
+
+/// Mounts the delegate over a registry seeded with [handlers], recording into
+/// [observedKeys] the ecosystem family arguments it subscribes with.
+Future<ProviderContainer> _pumpDelegate(
+  WidgetTester tester, {
+  List<LinagoraEcosystemHandler> handlers = const [],
+  List<(AccountId?, String?)>? observedKeys,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        linagoraEcosystemHandlerRegistryProvider.overrideWith((ref) {
+          final registry = LinagoraEcosystemHandlerRegistry(ref);
+          handlers.forEach(registry.register);
+          return registry;
+        }),
+        activeEcosystemProvider.overrideWith((ref, args) {
+          observedKeys?.add(args);
+          return ref.watch(_ecosystemStateProvider);
+        }),
+      ],
+      child: const MaterialApp(
+        home: MailboxDashboardProviderListenerWidget(
+          delegateFactories: [EcosystemProviderListenerDelegate.new],
+          child: SizedBox(),
+        ),
+      ),
+    ),
+  );
+  return ProviderScope.containerOf(
+    tester.element(find.byType(MailboxDashboardProviderListenerWidget)),
+  );
+}

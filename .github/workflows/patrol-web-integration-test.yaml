@@ -1,0 +1,13 @@
+name: Web integration tests
+
+on:
+  pull_request:
+    paths-ignore:
+      - ".github/**"
+      - "docs"
+      - "Jenkinsfile"
+      - "**/*.md"
+
+jobs:
+  web_integration_test:
+    uses: ./.github/workflows/reusable-web-integration-test.yaml

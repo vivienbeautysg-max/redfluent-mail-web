@@ -1,0 +1,69 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:labels/labels.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/widgets/sidebar/sidebar_label_item.dart';
+import 'package:tmail_ui_user/features/thread/presentation/widgets/email_tile_builder.dart';
+
+import '../../base/base_test_scenario.dart';
+import '../../mixin/provisioning_label_scenario_mixin.dart';
+import '../../robots/labels/label_robot.dart';
+import '../../robots/thread_robot.dart';
+
+class DisplayViewWithAllEmailWithTagScenario extends BaseTestScenario
+    with ProvisioningLabelScenarioMixin {
+  const DisplayViewWithAllEmailWithTagScenario(super.$, super.robots);
+
+  @override
+  Future<void> runTestLogic() async {
+    const emailUser = String.fromEnvironment('BASIC_AUTH_EMAIL');
+
+    final threadRobot = ThreadRobot($);
+    final labelRobot = LabelRobot($);
+
+    final labels = await provisionLabelsByDisplayNames(
+      ['Tag 1', 'Tag 2', 'Tag 3'],
+    );
+    await $.pumpAndSettle();
+
+    int emailCount = 3;
+    for (final label in labels) {
+      await robots.commonRobot().provisionEmail(
+        buildEmailsForLabel(
+          label: label,
+          toEmail: emailUser,
+          count: emailCount,
+        ),
+        requestReadReceipt: false,
+      );
+    }
+    await $.waitUntilVisible($(EmailTileBuilder));
+
+    for (final label in labels) {
+      await threadRobot.openMailbox();
+      await _expectLabelListViewVisible();
+
+      await labelRobot.openLabelByName(label.safeDisplayName);
+      await _expectEmailListDisplayedCorrectByTag(
+        label: label,
+        emailCount: emailCount,
+      );
+    }
+  }
+
+  Future<void> _expectLabelListViewVisible() =>
+      expectViewVisible($(SidebarLabelItem));
+
+  Future<void> _expectEmailListDisplayedCorrectByTag({
+    required Label label,
+    required int emailCount,
+  }) async {
+    final tagDisplayName = label.safeDisplayName;
+    await $(EmailTileBuilder).waitUntilVisible();
+
+    final listEmailTileWithTag = $.tester.widgetList<EmailTileBuilder>(
+      $(EmailTileBuilder).which<EmailTileBuilder>((widget) =>
+          widget.presentationEmail.subject?.contains(tagDisplayName) == true),
+    );
+
+    expect(listEmailTileWithTag.length, greaterThanOrEqualTo(emailCount));
+  }
+}

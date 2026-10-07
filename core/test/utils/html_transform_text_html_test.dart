@@ -1,0 +1,525 @@
+import 'dart:convert';
+
+import 'package:core/data/network/dio_client.dart';
+import 'package:core/presentation/utils/html_transformer/base/dom_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/responsive_table_cell_transformer.dart';
+import 'package:core/presentation/utils/html_transformer/dom/sanitize_hyper_link_tag_in_html_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/dom/script_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/html_transform.dart';
+import 'package:core/presentation/utils/html_transformer/text/standardize_html_sanitizing_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/transform_configuration.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+
+import '../../../test/fixtures/html_email_corpus.dart';
+import 'html_transform_text_html_test.mocks.dart';
+
+// DioClient is required by HtmlTransform's constructor but is never called
+// for HTML content that has no CID images. A NiceMock lets the constructor
+// succeed without any stubbing.
+@GenerateNiceMocks([MockSpec<DioClient>()])
+void main() {
+  group('HtmlTransform.transformToHtml — standardDomTransformers + standardTextTransformers', () {
+    late HtmlTransform htmlTransform;
+
+    final config = TransformConfiguration.standardConfiguration;
+
+    setUp(() {
+      htmlTransform = HtmlTransform(MockDioClient(), const HtmlEscape());
+    });
+
+    Future<String> transform(String content) => htmlTransform.transformToHtml(
+      htmlContent: content,
+      transformConfiguration: config,
+    );
+
+    group('Empty content', () {
+      test('SHOULD return a document without script or event handlers for empty input', () async {
+        final out = await transform('');
+        expect(out, isNot(contains('<script')));
+        expect(out, isNot(contains('onerror')));
+      });
+    });
+
+    group('Simple HTML preservation', () {
+      test('SHOULD preserve text content from a simple paragraph', () async {
+        expect(await transform(HtmlEmailCorpus.htmlSimple), contains('Hello World'));
+      });
+
+      test('SHOULD preserve bold text and https hyperlink', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithBoldAndLink);
+        expect(out, allOf(contains('Hello'), contains('World')));
+        expect(out, contains('href="https://example.com"'));
+      });
+
+      test('SHOULD preserve Unicode, emoji, and accented characters', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithUnicode);
+        expect(out, allOf(contains('🎉'), contains('résumé'), contains('日本語')));
+      });
+    });
+
+    group('XSS blocking', () {
+      test('SHOULD remove <script> tag while preserving surrounding text', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithScriptTag);
+        expect(out, isNot(contains('<script')));
+        expect(out, allOf(contains('Before'), contains('After')));
+      });
+
+      test('SHOULD remove onerror event attribute from <img>', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithImgOnerror);
+        expect(out, isNot(contains('onerror')));
+        expect(out, isNot(contains('evil.com')));
+      });
+
+      test('SHOULD sanitize javascript: href from <a> tag', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithJavascriptLink);
+        expect(out, isNot(contains('javascript:')));
+        expect(out, contains('Click me'));
+      });
+
+      test('SHOULD remove <iframe> while preserving surrounding content', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithIframe);
+        expect(out, isNot(contains('<iframe')));
+        expect(out, allOf(contains('Content'), contains('End')));
+      });
+
+      test('SHOULD remove phishing form elements', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithFormPhishing);
+        expect(out, isNot(contains('<input')));
+        expect(out, isNot(contains('attacker.com')));
+      });
+
+      test('SHOULD sanitize XSS-rich email while preserving valid content', () async {
+        final out = await transform(HtmlEmailCorpus.htmlXssRich);
+        expect(out, allOf(
+          isNot(contains('<script')),
+          isNot(contains('onerror')),
+          isNot(contains('onmouseover')),
+          contains('Valid content'),
+        ));
+      });
+
+      test('SHOULD sanitize data: URI href from <a> tag', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithDataUriHref);
+        expect(out, isNot(contains('data:text/html')));
+      });
+    });
+
+    group('Backslash namespace / path patterns in HTML text nodes', () {
+      test('SHOULD preserve backslash namespace inside <code> tag', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithBackslashInCode);
+        expect(out, contains(r'\App\DB\Exception\AuthFailed'));
+        expect(out, contains('access denied'));
+      });
+
+      test('SHOULD preserve backslash namespace across multiple HTML text nodes', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithBackslashMultipleNodes);
+        expect(out, allOf(contains('NotFound'), contains('Dispatcher')));
+      });
+
+      test('SHOULD preserve backslash namespace AND keep clickable <a> link in same email', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithBackslashAndLink);
+        expect(out, contains(r'\App\DB\Exception\AuthFailed'));
+        expect(out, contains('href="https://docs.example.com/errors"'));
+      });
+
+      test('SHOULD preserve Windows file path backslashes inside <code>', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithWindowsPath);
+        expect(out, contains(r'C:\Users\Admin'));
+        expect(out, contains('error.log'));
+      });
+
+      test('SHOULD preserve Go package path with backslash separators', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithGoPath);
+        expect(out, allOf(contains(r'\github.com\org\repo'), contains('handler')));
+      });
+    });
+
+    group('Hyperlink sanitization', () {
+      test('SHOULD preserve safe https and mailto hyperlinks', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithMultipleLinks);
+        expect(out, allOf(
+          contains('href="https://example.com"'),
+          contains('href="https://docs.example.com"'),
+          contains('href="mailto:support@example.com"'),
+        ));
+      });
+
+      test('SHOULD sanitize javascript: href in HTML email link', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithJavascriptHref);
+        expect(out, isNot(contains('javascript:')));
+      });
+    });
+
+    group('Complex and nested HTML emails', () {
+      test('SHOULD preserve text content from complex nested HTML email', () async {
+        final out = await transform(HtmlEmailCorpus.htmlComplexNested);
+        expect(out, allOf(
+          contains('Monthly Performance Report'),
+          contains('Engineering'),
+          contains('finance portal'),
+        ));
+      });
+
+      test('SHOULD preserve hyperlinks in complex HTML email', () async {
+        final out = await transform(HtmlEmailCorpus.htmlComplexNested);
+        expect(out, contains('href="https://finance.example.com/budget"'));
+      });
+
+      test('SHOULD preserve text from deeply nested HTML tags', () async {
+        final out = await transform(HtmlEmailCorpus.htmlDeeplyNested);
+        expect(out, contains('deeply nested content'));
+      });
+
+      test('SHOULD preserve structure of Markdown-rendered HTML email', () async {
+        final out = await transform(HtmlEmailCorpus.htmlMarkdownRendered);
+        expect(out, allOf(
+          contains('Monthly Report'),
+          contains('Revenue'),
+          contains('href="https://analytics.example.com"'),
+        ));
+      });
+    });
+
+    group('HTML entity encoding', () {
+      test('SHOULD keep &lt;script&gt; as escaped text, not execute it', () async {
+        final out = await transform(HtmlEmailCorpus.htmlWithEncodedEntities);
+        expect(out, isNot(contains('<script>')));
+      });
+
+      test('SHOULD preserve double-encoded HTML entities as safe text', () async {
+        final out = await transform(HtmlEmailCorpus.htmlDoubleEncoded);
+        expect(out, isNot(contains('<script>')));
+      });
+    });
+
+    group('Multi-language and RTL content', () {
+      test('SHOULD preserve RTL Arabic content', () async {
+        final out = await transform(HtmlEmailCorpus.htmlRtlArabic);
+        expect(out, contains('مرحبا'));
+      });
+
+      test('SHOULD preserve CJK content across multiple HTML paragraphs', () async {
+        final out = await transform(HtmlEmailCorpus.htmlCjk);
+        expect(out, allOf(contains('日本語'), contains('中文'), contains('한국어')));
+      });
+    });
+
+    group('ResponsiveTableCellTransformer', () {
+      test('SHOULD add overflow-wrap: anywhere to td and th cells with no existing style', () async {
+        final out = await transform(HtmlEmailCorpus.htmlTableSimple);
+        expect(out, contains('overflow-wrap: anywhere'));
+      });
+
+      test('SHOULD not override overflow-wrap that is already set on a cell', () async {
+        final out = await transform(HtmlEmailCorpus.htmlTableCellWithOverflowWrap);
+        expect(out, contains('overflow-wrap: break-word'));
+        expect(out, isNot(contains('overflow-wrap: anywhere')));
+      });
+
+      test('SHOULD append overflow-wrap: anywhere to cells that already have other inline styles', () async {
+        final out = await transform(HtmlEmailCorpus.htmlTableCellWithOtherStyles);
+        expect(out, allOf(
+          contains('color: green'),
+          contains('overflow-wrap: anywhere'),
+        ));
+      });
+    });
+
+    group('Responsive transformer coexistence with standard pipeline', () {
+      test('RemoveScriptTransformer: script inside td is removed AND td still gets overflow-wrap', () async {
+        const input =
+            '<table><tr><td><script>alert(1)</script>safe content</td></tr></table>';
+        final out = await transform(input);
+        expect(out, isNot(contains('<script')), reason: 'script must be stripped');
+        expect(out, contains('safe content'));
+        expect(out, contains('overflow-wrap: anywhere'),
+            reason: 'td must still get overflow-wrap after script removal');
+      });
+
+      test('SanitizeHyperLinkTagTransformer: link in td gets target/rel AND td gets overflow-wrap', () async {
+        const input =
+            '<table><tr><td><a href="https://example.com">click</a></td></tr></table>';
+        final out = await transform(input);
+        expect(out, contains('target="_blank"'),
+            reason: 'link sanitization must still run');
+        expect(out, contains('rel="noreferrer"'));
+        expect(out, contains('overflow-wrap: anywhere'),
+            reason: 'td must also get overflow-wrap');
+      });
+
+      test('NormalizeLineHeightTransformer: bad line-height removed from td AND overflow-wrap added', () async {
+        const input =
+            '<table><tr><td style="line-height: 1px; padding: 8px;">text</td></tr></table>';
+        final out = await transform(input);
+        expect(out, isNot(contains('line-height: 1px')),
+            reason: 'NormalizeLineHeight must strip the bad line-height value');
+        expect(out, contains('padding: 8px'),
+            reason: 'other styles must be preserved');
+        expect(out, contains('overflow-wrap: anywhere'),
+            reason: 'ResponsiveTableCellTransformer must still run after NormalizeLineHeight');
+      });
+
+      test('NormalizeLineHeightTransformer: td with only bad line-height ends up with overflow-wrap only', () async {
+        const input =
+            '<table><tr><td style="line-height: 1px;">text</td></tr></table>';
+        final out = await transform(input);
+        expect(out, isNot(contains('line-height: 1px')));
+        expect(out, contains('overflow-wrap: anywhere'),
+            reason: 'after NormalizeLineHeight removes the sole style, Responsive must add overflow-wrap');
+      });
+
+      test('full complex email: table cells get overflow-wrap AND existing links are preserved', () async {
+        final out = await transform(HtmlEmailCorpus.htmlComplexNested);
+        expect(out, contains('overflow-wrap: anywhere'),
+            reason: 'all td/th cells in the complex email must get overflow-wrap');
+        expect(out, contains('href="https://finance.example.com/budget"'),
+            reason: 'link sanitization must not remove safe https links');
+        expect(out, contains('Monthly Performance Report'));
+      });
+    });
+
+    group(
+        'RemoveNegativeMarginFloatTransformer coexistence with standard pipeline', () {
+      test(
+        'SHOULD remove float:left + negative margin-left from GitLab heading anchors'
+            ' AND preserve heading text',
+            () async {
+          final out = await transform(HtmlEmailCorpus.htmlGitLabHeadingAnchors);
+          expect(out, isNot(contains('float: left')),
+              reason: 'float:left on anchor elements must be stripped');
+          expect(out, isNot(contains('margin-left: -20px')),
+              reason: 'negative margin-left must be stripped');
+          expect(out,
+              allOf(contains('Optimize fetch strategy'), contains('Summary')),
+              reason: 'heading text content must be preserved');
+          expect(out, contains('Body text here'),
+              reason: 'paragraph body must be preserved');
+        },
+      );
+
+      test(
+        'SHOULD preserve positive margin-left on non-aria-hidden element',
+            () async {
+          // The CSS sanitizer strips `float` from all inline styles (not in
+          // allowedCssProperties). The transformer must not touch margin-left
+          // when the element is not an aria-hidden anchor.
+          final out = await transform(
+              HtmlEmailCorpus.htmlWithFloatLeftPositiveMargin);
+          expect(out, contains('margin-left: 10px'),
+              reason: 'positive margin-left on a non-aria-hidden element must not be altered');
+        },
+      );
+
+      test(
+        'SHOULD strip anchor float styles AND still add target/rel to other links'
+            ' in the same email',
+            () async {
+          const input = '${HtmlEmailCorpus
+              .htmlGitLabHeadingAnchors}<p>See <a href="https://example.com">the docs</a>.</p>';
+          final out = await transform(input);
+          expect(out, isNot(contains('float: left')),
+              reason: 'float:left on anchor elements must be stripped');
+          expect(out, contains('target="_blank"'),
+              reason: 'SanitizeHyperLinkTagTransformer must still run');
+          expect(out, contains('rel="noreferrer"'));
+        },
+      );
+
+      test(
+        'SHOULD strip anchor float styles AND still add overflow-wrap to table cells'
+            ' in the same email',
+            () async {
+          const input = HtmlEmailCorpus.htmlGitLabHeadingAnchors +
+              HtmlEmailCorpus.htmlTableSimple;
+          final out = await transform(input);
+          expect(out, isNot(contains('float: left')),
+              reason: 'float:left on anchor elements must be stripped');
+          expect(out, contains('overflow-wrap: anywhere'),
+              reason: 'ResponsiveTableCellTransformer must still run');
+        },
+      );
+    });
+  });
+
+  group('HtmlTransform.transformToHtml — fromDomTransformers', () {
+    late HtmlTransform htmlTransform;
+
+    setUp(() {
+      htmlTransform = HtmlTransform(MockDioClient(), const HtmlEscape());
+    });
+
+    Future<String> transformWith(
+      String content,
+      List<DomTransformer> domTransformers,
+    ) =>
+        htmlTransform.transformToHtml(
+          htmlContent: content,
+          transformConfiguration:
+              TransformConfiguration.fromDomTransformers(domTransformers),
+        );
+
+    group('Empty transformer list', () {
+      test('SHOULD leave <script> tag intact when no DOM transformers are specified', () async {
+        final out = await transformWith(HtmlEmailCorpus.htmlWithScriptTag, []);
+        expect(out, contains('<script'));
+        expect(out, allOf(contains('Before'), contains('After')));
+      });
+
+      test('SHOULD leave javascript: href intact when no DOM transformers are specified', () async {
+        final out = await transformWith(HtmlEmailCorpus.htmlWithJavascriptLink, []);
+        expect(out, contains('javascript:'));
+        expect(out, contains('Click me'));
+      });
+    });
+
+    group('Single transformer isolation', () {
+      test('SHOULD remove <script> but not add target/rel to links when only RemoveScriptTransformer is used', () async {
+        const input =
+            HtmlEmailCorpus.htmlWithScriptTag + HtmlEmailCorpus.htmlWithBoldAndLink;
+        final out = await transformWith(input, [const RemoveScriptTransformer()]);
+        expect(out, allOf(
+          isNot(contains('<script')),
+          contains('Before'),
+          contains('After'),
+          contains('Hello'),
+          isNot(contains('target="_blank"')),
+          isNot(contains('rel="noreferrer"')),
+        ));
+      });
+
+      test('SHOULD add target="_blank" and rel="noreferrer" to links but not remove <script> when only SanitizeHyperLinkTagInHtmlTransformer is used', () async {
+        const input =
+            HtmlEmailCorpus.htmlWithScriptTag + HtmlEmailCorpus.htmlWithBoldAndLink;
+        final out = await transformWith(input, [SanitizeHyperLinkTagInHtmlTransformer()]);
+        expect(out, allOf(
+          contains('<script'),
+          contains('href="https://example.com"'),
+          contains('target="_blank"'),
+          contains('rel="noreferrer"'),
+        ));
+      });
+
+      test('SHOULD add overflow-wrap: anywhere to td and th when only ResponsiveTableCellTransformer is used', () async {
+        final out = await transformWith(
+          HtmlEmailCorpus.htmlTableSimple,
+          [const ResponsiveTableCellTransformer()],
+        );
+        expect(out, contains('overflow-wrap: anywhere'));
+      });
+    });
+
+    group('Multiple transformers combined', () {
+      test('SHOULD apply all specified transformers simultaneously', () async {
+        const input =
+            HtmlEmailCorpus.htmlWithScriptTag + HtmlEmailCorpus.htmlWithBoldAndLink;
+        final out = await transformWith(
+          input,
+          [const RemoveScriptTransformer(), SanitizeHyperLinkTagInHtmlTransformer()],
+        );
+        expect(out, allOf(
+          isNot(contains('<script')),
+          contains('href="https://example.com"'),
+          contains('target="_blank"'),
+          contains('Before'),
+          contains('After'),
+          contains('Hello'),
+        ));
+      });
+    });
+
+    group('HTML-attachment preview config — used by GetHtmlContentFromUploadFileInteractor and PreviewAttachmentDownloadControllerExtension', () {
+      // Both consumers preview an arbitrary .html file (attacker-controlled if
+      // it came from a received email's attachment), so this must behave like
+      // read-only email preview: no contenteditable survives. Pipeline:
+      // TransformConfiguration.create(
+      //   customDomTransformers: [SanitizeHyperLinkTagInHtmlTransformer()],
+      //   customTextTransformers: [StandardizeHtmlSanitizingTransformers()],
+      // )
+      Future<String> transformWithHtmlAttachmentConfig(String content) =>
+          htmlTransform.transformToHtml(
+            htmlContent: content,
+            transformConfiguration: TransformConfiguration.create(
+              customDomTransformers: [SanitizeHyperLinkTagInHtmlTransformer()],
+              customTextTransformers: const [StandardizeHtmlSanitizingTransformers()],
+            ),
+          );
+
+      test('SHOULD strip contenteditable from a crafted .html attachment', () async {
+        const html =
+            '<div><a href="https://drive.example.com/file" contenteditable="false">file.pdf</a></div>';
+        final out = await transformWithHtmlAttachmentConfig(html);
+        expect(out, isNot(contains('contenteditable')));
+      });
+
+      test('SHOULD still add target/rel to plain links AND strip <script>', () async {
+        const input =
+            HtmlEmailCorpus.htmlWithScriptTag + HtmlEmailCorpus.htmlWithBoldAndLink;
+        final out = await transformWithHtmlAttachmentConfig(input);
+        expect(out, isNot(contains('<script')));
+        expect(out, contains('target="_blank"'));
+        expect(out, contains('rel="noreferrer"'));
+      });
+
+      test('SHOULD sanitize javascript: href AND strip contenteditable', () async {
+        const html = '<div>'
+            '<a href="javascript:alert(1)">evil</a>'
+            '<a href="https://drive.example.com/file" contenteditable="false">file.pdf</a>'
+            '</div>';
+        final out = await transformWithHtmlAttachmentConfig(html);
+        expect(out, isNot(contains('javascript:')));
+        expect(out, isNot(contains('contenteditable')));
+      });
+    });
+
+    group('Draft-reload config — TransformConfiguration.forEditDraftsEmail (composer editing a saved draft)', () {
+      Future<String> transformWithEditDraftsConfig(String content) =>
+          htmlTransform.transformToHtml(
+            htmlContent: content,
+            transformConfiguration: TransformConfiguration.forEditDraftsEmail(),
+          );
+
+      test('SHOULD preserve contenteditable="false" on a drive-link card row', () async {
+        const html =
+            '<div><a class="tmail-file-link-card" href="https://drive.example.com/file" contenteditable="false">file.pdf</a></div>';
+        final out = await transformWithEditDraftsConfig(html);
+        expect(out, contains('contenteditable="false"'));
+      });
+
+      test('SHOULD still strip <script> while preserving drive-link card contenteditable', () async {
+        const html = '<script>alert(1)</script>'
+            '<a class="tmail-file-link-card" href="https://drive.example.com/file" contenteditable="false">file.pdf</a>';
+        final out = await transformWithEditDraftsConfig(html);
+        expect(out, isNot(contains('<script')));
+        expect(out, contains('contenteditable="false"'));
+      });
+
+      test('SHOULD strip contenteditable="false" from a non-drive-link-card element', () async {
+        const html =
+            '<div><a href="https://drive.example.com/file" contenteditable="false">file.pdf</a></div>';
+        final out = await transformWithEditDraftsConfig(html);
+        expect(out, isNot(contains('contenteditable')));
+      });
+    });
+
+    group('No text-transformer preprocessing', () {
+      test('SHOULD preserve backslash namespace inside <code> without text preprocessing', () async {
+        final out = await transformWith(
+          HtmlEmailCorpus.htmlWithBackslashInCode,
+          [const RemoveScriptTransformer(), SanitizeHyperLinkTagInHtmlTransformer()],
+        );
+        expect(out, contains(r'\App\DB\Exception\AuthFailed'));
+        expect(out, contains('access denied'));
+      });
+
+      test('SHOULD preserve Windows file path without text preprocessing', () async {
+        final out = await transformWith(
+          HtmlEmailCorpus.htmlWithWindowsPath,
+          [const RemoveScriptTransformer(), SanitizeHyperLinkTagInHtmlTransformer()],
+        );
+        expect(out, contains(r'C:\Users\Admin'));
+        expect(out, contains('error.log'));
+      });
+    });
+  });
+}
