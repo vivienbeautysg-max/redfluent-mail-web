@@ -605,7 +605,7 @@
       "count": {}
     }
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -923,7 +923,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1593,7 +1593,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -2163,7 +2163,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Ceadaíonn Twake Mail a chur in iúl duit nuair a thagann teachtaireacht nua ar do ghuthán",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Ceadaíonn Redfluent Mail a chur in iúl duit nuair a thagann teachtaireacht nua ar do ghuthán",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -2387,7 +2387,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Socraigh an teanga a úsáideann tú ar Twake Mail.",
+  "languageSubtitle": "Socraigh an teanga a úsáideann tú ar Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2423,7 +2423,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Tá an téarnamh ar siúl. Is féidir leat leanúint ar aghaidh ag baint úsáide as Twake Mail",
+  "bannerProgressingRecoveryMessage": "Tá an téarnamh ar siúl. Is féidir leat leanúint ar aghaidh ag baint úsáide as Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -2615,7 +2615,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Ceadaigh fógraí ó Twake Mail i Socruithe an ghléis",
+  "pleaseAllowNotifications": "Ceadaigh fógraí ó Redfluent Mail i Socruithe an ghléis",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -3017,7 +3017,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -4795,13 +4795,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Chun leanúint ar aghaidh ag seoladh teachtaireachtaí agus ag baint taitneamh as gach gné de Twake Mail, smaoinigh ar do stóras a ghlanadh nó a uasghrádú.",
+  "quotaBannerWarningSubtitleWithPremium": "Chun leanúint ar aghaidh ag seoladh teachtaireachtaí agus ag baint taitneamh as gach gné de Redfluent Mail, smaoinigh ar do stóras a ghlanadh nó a uasghrádú.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Chun leanúint ar aghaidh ag seoladh teachtaireachtaí agus ag baint taitneamh as gach gné de Twake Mail, smaoinigh ar ghlanadh suas.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Chun leanúint ar aghaidh ag seoladh teachtaireachtaí agus ag baint taitneamh as gach gné de Redfluent Mail, smaoinigh ar ghlanadh suas.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

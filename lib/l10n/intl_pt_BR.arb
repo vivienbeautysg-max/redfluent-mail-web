@@ -5,7 +5,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -811,7 +811,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -955,7 +955,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1535,7 +1535,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Defina o idioma que você usa no Twake Mail.",
+  "languageSubtitle": "Defina o idioma que você usa no Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2547,7 +2547,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3461,7 +3461,7 @@
   "restoreDeletedMessageFailed": "Falha ao restaurar a mensagem excluída",
   "restoreDeletedMessageSuccess": "Mensagens excluídas recuperadas com sucesso",
   "open": "Abrir",
-  "bannerProgressingRecoveryMessage": "A recuperação está em andamento. Você pode continuar usando o Twake Mail",
+  "bannerProgressingRecoveryMessage": "A recuperação está em andamento. Você pode continuar usando o Redfluent Mail",
   "restoreDeletedMessageCanceled": "A restauração da mensagem excluída foi cancelada",
   "loadMore": "Carregar mais",
   "printAll": "Imprimir tudo",
@@ -3498,9 +3498,9 @@
   "showLess": "Mostrar menos",
   "notification": "Notificação",
   "notificationsDisabled": "Notificações desativadas",
-  "pleaseAllowNotifications": "Permita notificações do Twake Mail nas configurações do dispositivo",
+  "pleaseAllowNotifications": "Permita notificações do Redfluent Mail nas configurações do dispositivo",
   "goToSettings": "Ir para Configurações",
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Permite que o Twake Mail avise quando uma nova mensagem chegar ao seu telefone",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Permite que o Redfluent Mail avise quando uma nova mensagem chegar ao seu telefone",
   "showNotifications": "Mostrar notificações",
   "turnOnRequestReadReceipt": "Ativar solicitação de confirmação de leitura",
   "turnOffRequestReadReceipt": "Desativar solicitação de confirmação de leitura",
@@ -3610,8 +3610,8 @@
   "quotaAvailableLabel": "{count} disponíveis",
   "paywallUrlNotAvailable": "URL do paywall indisponível",
   "quotaBannerWarningTitle": "Seu espaço de armazenamento está acabando (90%)",
-  "quotaBannerWarningSubtitleWithPremium": "Para continuar enviando mensagens e aproveitando todos os recursos do Twake Mail, considere liberar espaço ou aumentar seu armazenamento.",
-  "quotaBannerWarningSubtitleWithoutPremium": "Para continuar enviando mensagens e aproveitando todos os recursos do Twake Mail, considere liberar espaço.",
+  "quotaBannerWarningSubtitleWithPremium": "Para continuar enviando mensagens e aproveitando todos os recursos do Redfluent Mail, considere liberar espaço ou aumentar seu armazenamento.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Para continuar enviando mensagens e aproveitando todos os recursos do Redfluent Mail, considere liberar espaço.",
   "manageMyStorage": "Gerenciar meu armazenamento",
   "addARule": "Adicionar uma regra",
   "noRulesConfigured": "Nenhuma regra configurada",

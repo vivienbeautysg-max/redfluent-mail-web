@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 extension AppColor on Color {
-  static const primaryColor = Color(0xFF007AFF);
+  static const primaryColor = Color(0xFF0A66D8);
   static const primaryDarkColor = Color(0xFF1C1C1C);
   static const primaryLightColor = Color(0xFFFFFFFF);
   static const primarySelectedColor = Color(0xFFDFEEFF);
@@ -10,11 +10,11 @@ extension AppColor on Color {
   static const textFieldLabelColor = Color(0xFF7E869B);
   static const textFieldHintColor = Color(0xFF757575);
   static const textFieldBorderColor = Color(0xfff2f3f5);
-  static const textFieldFocusedBorderColor = Color(0xFF007AFF);
+  static const textFieldFocusedBorderColor = Color(0xFF0A66D8);
   static const loginTextFieldBorderColor = Color(0xFFF2F3F5);
   static const textFieldErrorBorderColor = Color(0xffE64646);
   static const loginTextFieldErrorBorder = Color(0xffE64646);
-  static const loginTextFieldFocusedBorder = Color(0xFF007AFF);
+  static const loginTextFieldFocusedBorder = Color(0xFF0A66D8);
   static const loginTextFieldHintColor = Color(0xff818C99);
   static const loginTextFieldBackgroundColor = Color(0xFFF2F3F5);
   static const appColor = Color(0xFF3840F7);
@@ -52,7 +52,7 @@ extension AppColor on Color {
   static const dividerColor = Color(0xFFEAEAEA);
   static const bgComposer = Color(0xFFFBFBFF);
   static const emailAddressChipColor = Color(0x0D001C3D);
-  static const enableSendEmailButtonColor = Color(0xFF007AFF);
+  static const enableSendEmailButtonColor = Color(0xFF0A66D8);
   static const disableSendEmailButtonColor = Color(0xFFA9B4C2);
   static const borderLeftEmailContentColor = Color(0xFFEFEFEF);
   static const toastWarningBackgroundColor = Color(0xFFFFC107);
@@ -64,17 +64,17 @@ extension AppColor on Color {
   static const bgStatusResultSearch = Color(0xFFF5F5F7);
   static const colorNameEmail = Color(0xFF000000);
   static const colorContentEmail = Color(0xFF6D7885);
-  static const colorTextButton = Color(0xFF007AFF);
+  static const colorTextButton = Color(0xFF0A66D8);
   static const colorHintSearchBar = Color(0xFF818C99);
   static const colorBgSearchBar = Color(0x99EBEDF0);
   static const colorBgIdentityButton = Color(0x00EBEDF0);
   static const colorShadowBgContentEmail = Color(0x14000000);
   static const colorDividerMailbox = Color(0x1F000000);
   static const colorCollapseMailbox = Color(0xFFB8C1CC);
-  static const colorExpandMailbox = Color(0xFF007AFF);
+  static const colorExpandMailbox = Color(0xFF0A66D8);
   static const colorBgMailbox = Color(0xFFF7F7F7);
   static const colorFilterMessageDisabled = Color(0xFF99A2AD);
-  static const colorFilterMessageEnabled = Color(0xFF007AFF);
+  static const colorFilterMessageEnabled = Color(0xFF0A66D8);
   static const colorDefaultCupertinoActionSheet = Color(0x66000000);
   static const colorDisableMailboxCreateButton = Color(0x2E3C3C43);
   static const colorInputBorderErrorVerifyName = Color(0xFFE64646);
@@ -84,7 +84,7 @@ extension AppColor on Color {
   static const colorHintInputCreateMailbox = Color(0xFFA9B4C2);
   static const colorMessageConfirmDialog = Color(0xFF6D7885);
   static const colorActionDeleteConfirmDialog = Color(0xFFE64646);
-  static const colorActionCancelDialog = Color(0xFF007AFF);
+  static const colorActionCancelDialog = Color(0xFF0A66D8);
   static const colorMessageDialog = Color(0xFF222222);
   static const colorConfirmActionDialog = Color(0xFFF2F2F2);
   static const colorEmailAddress = Color(0xFF333333);
@@ -217,8 +217,8 @@ extension AppColor on Color {
   static const steelGrayA540 = Color(0xFF55687D);
   static const steelGray200 = Color(0xFFAEB7C2);
   static const steelGray80 = Color(0xFFE7E8EC);
-  static const blue700 = Color(0xFF208BFF);
-  static const colorComposeButton = Color(0xFF0A84FF);
+  static const blue700 = Color(0xFF0A66D8);
+  static const colorComposeButton = Color(0xFF0A66D8);
   static const steelGray400 = Color(0xFF818C99);
   static const steelGray600 = Color(0xFF4E5966);
   static const blue100 = Color(0xFFDFEEFF);
@@ -237,7 +237,7 @@ extension AppColor on Color {
   static const grayBackgroundColor = Color(0xFFF3F6F9);
   static const m3SurfaceBackground = Color(0xFF1C1B1F);
   static const warningColor = Color(0xFFFFC107);
-  static const primaryMain = Color(0xFF0A84FF);
+  static const primaryMain = Color(0xFF0A66D8);
   static const m3LayerDarkOutline = Color(0xFF938F99);
   static const blackAlpha40 = Color.fromRGBO(0, 0, 0, 0.4);
   static const blackAlpha20 = Color.fromRGBO(0, 0, 0, 0.2);
@@ -261,11 +261,11 @@ extension AppColor on Color {
   static const profileMenuDivider = Color(0xFF1D192B);
   static const popupMenuItemHovered = Color(0xFFF8F8F8);
   static const secondaryContrastText = Color(0xFFFFFFFF);
-  static const primaryLinShare = Color(0xFF007AFF);
+  static const primaryLinShare = Color(0xFF0A66D8);
   static const lightGrayEAEDF2 = Color(0xFFEAEDF2);
   static const lightIconTertiary = Color(0xFFB8C1CC);
   static const gray6D7885 = Color(0xFF6D7885);
-  static const m3Primary = Color(0xFF0A84FF);
+  static const m3Primary = Color(0xFF0A66D8);
   static const m3Primary95 = Color(0xFFE3F1FF);
   static const gray49454F = Color(0xFF49454F);
   static const blue00B7FF = Color(0xFF00B7FF);

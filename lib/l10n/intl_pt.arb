@@ -847,7 +847,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1003,7 +1003,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],

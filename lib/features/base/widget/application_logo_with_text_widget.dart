@@ -1,19 +1,17 @@
-import 'package:core/presentation/resources/image_paths.dart';
-import 'package:core/presentation/views/button/tmail_button_widget.dart';
-import 'package:core/utils/platform_info.dart';
+import 'package:core/presentation/extensions/color_extension.dart';
+import 'package:core/presentation/utils/theme_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:tmail_ui_user/main/utils/app_config.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 
+/// Redfluent Mail: brand mark + product name (replaces the upstream logo-with-text artwork).
 class ApplicationLogoWidthTextWidget extends StatelessWidget {
-
-  final ImagePaths _imagePaths = Get.find<ImagePaths>();
+  static const String brandMarkPath = 'assets/images/redfluent_logo_mark.png';
 
   final VoidCallback? onTapAction;
   final EdgeInsetsGeometry? margin;
   final double? iconSize;
 
-  ApplicationLogoWidthTextWidget({
+  const ApplicationLogoWidthTextWidget({
     super.key,
     this.onTapAction,
     this.margin,
@@ -22,16 +20,32 @@ class ApplicationLogoWidthTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TMailButtonWidget.fromIcon(
-      icon: PlatformInfo.isWeb && AppConfig.isSaasPlatForm
-        ? _imagePaths.icLogoWithTextBeta
-        : _imagePaths.icLogoWithText,
-      iconSize: iconSize ?? 33,
-      padding: EdgeInsets.zero,
-      margin: margin,
-      backgroundColor: Colors.transparent,
-      hoverColor: Colors.transparent,
-      onTapActionCallback: onTapAction,
+    final height = iconSize ?? 33;
+    final content = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(brandMarkPath, width: height, height: height, fit: BoxFit.contain),
+          SizedBox(width: height * 0.3),
+          Text(
+            AppLocalizations.of(context).app_name,
+            maxLines: 1,
+            style: ThemeUtils.defaultTextStyleInterFont.copyWith(
+              fontSize: height * 0.64,
+              fontWeight: FontWeight.w800,
+              color: AppColor.colorNameEmail,
+            ),
+          ),
+        ],
+      ),
+    );
+    return Padding(
+      padding: margin ?? EdgeInsets.zero,
+      child: onTapAction == null
+        ? content
+        : InkWell(onTap: onTapAction, hoverColor: Colors.transparent, child: content),
     );
   }
 }

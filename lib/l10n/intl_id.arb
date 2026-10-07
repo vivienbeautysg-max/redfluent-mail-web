@@ -5,7 +5,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -877,7 +877,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1033,7 +1033,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1631,7 +1631,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Tetapkan bahasa yang Anda gunakan di Twake Mail.",
+  "languageSubtitle": "Tetapkan bahasa yang Anda gunakan di Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2673,7 +2673,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3707,7 +3707,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Pemulihan sedang berlangsung. Anda dapat terus menggunakan Twake Mail",
+  "bannerProgressingRecoveryMessage": "Pemulihan sedang berlangsung. Anda dapat terus menggunakan Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -3989,7 +3989,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Izinkan notifikasi dari Twake Mail di Pengaturan perangkat",
+  "pleaseAllowNotifications": "Izinkan notifikasi dari Redfluent Mail di Pengaturan perangkat",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -4001,7 +4001,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Mengizinkan Twake Mail memberi tahu Anda saat pesan baru tiba di ponsel Anda",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Mengizinkan Redfluent Mail memberi tahu Anda saat pesan baru tiba di ponsel Anda",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -4715,13 +4715,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Untuk terus mengirim pesan dan menikmati semua fitur Twake Mail, pertimbangkan untuk membersihkan atau meningkatkan penyimpanan Anda.",
+  "quotaBannerWarningSubtitleWithPremium": "Untuk terus mengirim pesan dan menikmati semua fitur Redfluent Mail, pertimbangkan untuk membersihkan atau meningkatkan penyimpanan Anda.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Untuk terus mengirim pesan dan menikmati semua fitur Twake Mail, pertimbangkan untuk membersihkan.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Untuk terus mengirim pesan dan menikmati semua fitur Redfluent Mail, pertimbangkan untuk membersihkan.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

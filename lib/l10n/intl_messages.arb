@@ -6,7 +6,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -872,7 +872,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1028,7 +1028,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1626,7 +1626,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Set the language you use on Twake Mail.",
+  "languageSubtitle": "Set the language you use on Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2674,7 +2674,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3748,7 +3748,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "The recovery is in progress. You can continue using Twake Mail",
+  "bannerProgressingRecoveryMessage": "The recovery is in progress. You can continue using Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -4030,7 +4030,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Please allow notifications from Twake Mail in the device's Settings",
+  "pleaseAllowNotifications": "Please allow notifications from Redfluent Mail in the device's Settings",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -4042,7 +4042,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Allows Twake Mail to notify you when a new message arrives on your phone",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Allows Redfluent Mail to notify you when a new message arrives on your phone",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -4768,13 +4768,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up or upgrading your storage.",
+  "quotaBannerWarningSubtitleWithPremium": "To keep sending messages and enjoying all Redfluent Mail features, please consider cleaning up or upgrading your storage.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "To keep sending messages and enjoying all Twake Mail features, please consider cleaning up.",
+  "quotaBannerWarningSubtitleWithoutPremium": "To keep sending messages and enjoying all Redfluent Mail features, please consider cleaning up.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

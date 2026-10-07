@@ -1,11 +1,11 @@
 {
-    "name": "Twake Mail - JMAP Email Client",
-    "short_name": "Twake Mail",
+    "name": "Redfluent Mail",
+    "short_name": "Redfluent Mail",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Twake Mail - JMAP Email Client",
+    "background_color": "#FFFFFF",
+    "theme_color": "#0A66D8",
+    "description": "Redfluent Mail - webmail",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

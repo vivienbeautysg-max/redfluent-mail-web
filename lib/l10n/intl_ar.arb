@@ -715,7 +715,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -943,7 +943,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1579,7 +1579,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -2279,7 +2279,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -2351,7 +2351,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "textQuotasRunningOutOfStorageContent": "قريبًا لن تتمكن من إرسال بريد إلكتروني في Twake Mail. الرجاء تنظيف مساحة التخزين الخاصة بك أو ترقية مساحة التخزين لديك للحصول على الميزات الكاملة في بريد الفريق.",
+  "textQuotasRunningOutOfStorageContent": "قريبًا لن تتمكن من إرسال بريد إلكتروني في Redfluent Mail. الرجاء تنظيف مساحة التخزين الخاصة بك أو ترقية مساحة التخزين لديك للحصول على الميزات الكاملة في بريد الفريق.",
   "@textQuotasRunningOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],

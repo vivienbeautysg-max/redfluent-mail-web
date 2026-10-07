@@ -16,7 +16,8 @@ class AppConfig {
   static const String iOSKeychainSharingGroupId = 'KUT463DS29.com.linagora.ios.teammail.shared';
   static const String iOSKeychainSharingService = 'com.linagora.ios.teammail.sessions';
   static const String saasPlatform = 'saas';
-  static const String linagoraPrivacyUrl = 'https://github.com/linagora/tmail-flutter/blob/master/privacy.md';
+  static const String linagoraPrivacyUrl = 'https://www.redfluent.com/privacy';
+  static const String sourceCodeUrl = 'https://github.com/vivienbeautysg-max/redfluent-mail-web';
   static const String saasRegistrationUrl = 'https://sign-up.twake.app';
   static const String saasJmapServerUrl = 'https://jmap.twake.app';
 

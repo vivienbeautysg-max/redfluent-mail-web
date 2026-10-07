@@ -2,15 +2,14 @@ import 'package:core/presentation/extensions/color_extension.dart';
 import 'package:core/presentation/state/success.dart';
 import 'package:core/presentation/utils/theme_utils.dart';
 import 'package:core/presentation/views/responsive/responsive_widget.dart';
-import 'package:core/presentation/views/text/slogan_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:tmail_ui_user/features/base/widget/application_logo_with_text_widget.dart';
 import 'package:tmail_ui_user/features/base/widget/application_version_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/base_login_view.dart';
 import 'package:tmail_ui_user/features/login/presentation/login_form_type.dart';
 import 'package:tmail_ui_user/features/login/presentation/privacy_link_widget.dart';
+import 'package:tmail_ui_user/features/login/presentation/source_code_link_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/widgets/login_message_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/widgets/try_again_button.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
@@ -83,11 +82,7 @@ class LoginView extends BaseLoginView {
           bottom: 24,
           child: Align(
             alignment: Alignment.bottomCenter,
-            child: SvgPicture.asset(
-              controller.imagePaths.icPowerByLinagora,
-              width: 97,
-              height: 44,
-              fit: BoxFit.fill)))
+            child: const SourceCodeLinkWidget()))
       ],
     );
   }
@@ -99,92 +94,6 @@ class LoginView extends BaseLoginView {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 86),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context).jmapBasedMailSolution,
-                  style: ThemeUtils.defaultTextStyleInterFont.copyWith(
-                    fontSize: 36,
-                    color: AppColor.colorNameEmail,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: SloganBuilder(
-                    arrangedByHorizontal: true,
-                    logo: controller.imagePaths.icJMAPStandard,
-                    sizeLogo: 48.0,
-                    paddingText: const EdgeInsets.only(left: 12),
-                    text: AppLocalizations.of(context).jmapStandard,
-                    textStyle: ThemeUtils.defaultTextStyleInterFont.copyWith(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: AppColor.colorNameEmail,
-                    ),
-                  )
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: SloganBuilder(
-                    arrangedByHorizontal: true,
-                    logo: controller.imagePaths.icEncrypted,
-                    sizeLogo: 48.0,
-                    paddingText: const EdgeInsets.only(left: 12),
-                    text: AppLocalizations.of(context).encryptedMailbox,
-                    textStyle: ThemeUtils.defaultTextStyleInterFont.copyWith(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: AppColor.colorNameEmail,
-                    ),
-                  )
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: SloganBuilder(
-                    arrangedByHorizontal: true,
-                    logo: controller.imagePaths.icTeam,
-                    sizeLogo: 48.0,
-                    paddingText: const EdgeInsets.only(left: 12),
-                    text: AppLocalizations.of(context).manageEmailAsATeam,
-                    textStyle: ThemeUtils.defaultTextStyleInterFont.copyWith(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: AppColor.colorNameEmail,
-                    ),
-                  )
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: SloganBuilder(
-                    arrangedByHorizontal: true,
-                    logo: controller.imagePaths.icIntegration,
-                    sizeLogo: 48.0,
-                    paddingText: const EdgeInsets.only(left: 12),
-                    text: AppLocalizations.of(context).multipleIntegrations,
-                    textStyle: ThemeUtils.defaultTextStyleInterFont.copyWith(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: AppColor.colorNameEmail,
-                    ),
-                  )
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 44),
-                  child: SvgPicture.asset(
-                    controller.imagePaths.icLoginGraphic,
-                    fit: BoxFit.fill,
-                    alignment: Alignment.center
-                  )
-                )
-              ],
-            )
-          ),
           Column(
             children: [
               Container(
@@ -250,7 +159,7 @@ class LoginView extends BaseLoginView {
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 44, bottom: 10),
-                child: SvgPicture.asset(controller.imagePaths.icPowerByLinagora, width: 97, height: 44, fit: BoxFit.fill)
+                child: const SourceCodeLinkWidget()
               )
             ]
           )

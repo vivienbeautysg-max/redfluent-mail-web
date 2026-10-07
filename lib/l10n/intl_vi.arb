@@ -6,7 +6,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -642,7 +642,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -660,7 +660,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -2216,7 +2216,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -2416,7 +2416,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "textQuotasRunningOutOfStorageContent": "Sắp tới bạn sẽ không thể gửi email trong Twake Mail. Vui lòng dọn dẹp không gian lưu trữ hoặc nâng cấp dung lượng để sử dụng đầy đủ tính năng trong Twake Mail.",
+  "textQuotasRunningOutOfStorageContent": "Sắp tới bạn sẽ không thể gửi email trong Redfluent Mail. Vui lòng dọn dẹp không gian lưu trữ hoặc nâng cấp dung lượng để sử dụng đầy đủ tính năng trong Redfluent Mail.",
   "@textQuotasRunningOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -2440,7 +2440,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "textQuotasRunOutOfStorageContent": "Bây giờ bạn tạm thời không thể gửi hoặc nhận email. Vui lòng giải phóng hoặc nâng cấp bộ nhớ của bạn để  sử dụng các tính năng đầy đủ của Twake Mail.",
+  "textQuotasRunOutOfStorageContent": "Bây giờ bạn tạm thời không thể gửi hoặc nhận email. Vui lòng giải phóng hoặc nâng cấp bộ nhớ của bạn để  sử dụng các tính năng đầy đủ của Redfluent Mail.",
   "@textQuotasRunOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -3748,7 +3748,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Quá trình khôi phục đang được tiến hành. Bạn có thể tiếp tục sử dụng Twake Mail",
+  "bannerProgressingRecoveryMessage": "Quá trình khôi phục đang được tiến hành. Bạn có thể tiếp tục sử dụng Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -4100,7 +4100,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Hãy cho phép Twake Mail thông báo bên trong Cài Đặt",
+  "pleaseAllowNotifications": "Hãy cho phép Redfluent Mail thông báo bên trong Cài Đặt",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -4118,7 +4118,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Cho phép Twake Mail thông báo khi có tin nhắn mới",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Cho phép Redfluent Mail thông báo khi có tin nhắn mới",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -5082,13 +5082,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Để không gián đoạn trải nghiệm Twake Mail, vui lòng dọn dẹp hoặc nâng cấp dung lượng.",
+  "quotaBannerWarningSubtitleWithPremium": "Để không gián đoạn trải nghiệm Redfluent Mail, vui lòng dọn dẹp hoặc nâng cấp dung lượng.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Để không gián đoạn trải nghiệm Twake Mail, vui lòng dọn dẹp thư rác.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Để không gián đoạn trải nghiệm Redfluent Mail, vui lòng dọn dẹp thư rác.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

@@ -6,7 +6,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -672,7 +672,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -856,7 +856,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -2344,7 +2344,7 @@
       "softLimit": {}
     }
   },
-  "textQuotasRunOutOfStorageContent": "Теперь вы временно не можете отправлять или получать письма. Пожалуйста, освободите хранилище или обновите подписку, чтобы получить доступ ко всем функциям Twake Mail.",
+  "textQuotasRunOutOfStorageContent": "Теперь вы временно не можете отправлять или получать письма. Пожалуйста, освободите хранилище или обновите подписку, чтобы получить доступ ко всем функциям Redfluent Mail.",
   "@textQuotasRunOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -2408,7 +2408,7 @@
       "progress": {}
     }
   },
-  "textQuotasRunningOutOfStorageContent": "Скоро вы потеряете возможность отправлять письма в Twake Mail. Пожалуйста, очистите хранилище или обновите подписку, чтобы получить все функции Twake Mail.",
+  "textQuotasRunningOutOfStorageContent": "Скоро вы потеряете возможность отправлять письма в Redfluent Mail. Пожалуйста, очистите хранилище или обновите подписку, чтобы получить все функции Redfluent Mail.",
   "@textQuotasRunningOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -2468,7 +2468,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3506,7 +3506,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Выберите язык Twake Mail.",
+  "languageSubtitle": "Выберите язык Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -3838,7 +3838,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Мы уже занимаемся восстановлением. Вы можете продолжать использовать Twake Mail",
+  "bannerProgressingRecoveryMessage": "Мы уже занимаемся восстановлением. Вы можете продолжать использовать Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -4106,7 +4106,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Перейдите в настройки устройства и разрешите Twake Mail присылать уведомления",
+  "pleaseAllowNotifications": "Перейдите в настройки устройства и разрешите Redfluent Mail присылать уведомления",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -4118,7 +4118,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Позволяет Twake Mail уведомлять вас о поступлении нового сообщения",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Позволяет Redfluent Mail уведомлять вас о поступлении нового сообщения",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -5094,13 +5094,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Чтобы продолжить отправлять сообщения и пользоваться всеми функциями Twake Mail, освободите место или обновите план.",
+  "quotaBannerWarningSubtitleWithPremium": "Чтобы продолжить отправлять сообщения и пользоваться всеми функциями Redfluent Mail, освободите место или обновите план.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Чтобы продолжить отправлять сообщения и пользоваться всеми функциями Twake Mail, освободите место на диске.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Чтобы продолжить отправлять сообщения и пользоваться всеми функциями Redfluent Mail, освободите место на диске.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

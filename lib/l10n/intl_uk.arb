@@ -195,7 +195,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -967,7 +967,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1105,7 +1105,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1655,7 +1655,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Встановіть мову, яку ви використовуєте в Twake Mail.",
+  "languageSubtitle": "Встановіть мову, яку ви використовуєте в Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2655,7 +2655,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3693,7 +3693,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Відновлення триває. Ви можете продовжувати користуватися Twake Mail",
+  "bannerProgressingRecoveryMessage": "Відновлення триває. Ви можете продовжувати користуватися Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -3979,7 +3979,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Будь ласка, дозвольте сповіщення від Twake Mail у налаштуваннях пристрою",
+  "pleaseAllowNotifications": "Будь ласка, дозвольте сповіщення від Redfluent Mail у налаштуваннях пристрою",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -3991,7 +3991,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Дозволяє Twake Mail повідомляти вас про надходження нового повідомлення на ваш телефон",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Дозволяє Redfluent Mail повідомляти вас про надходження нового повідомлення на ваш телефон",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -4723,13 +4723,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Щоб продовжувати надсилати повідомлення та користуватися всіма функціями Twake Mail, подумайте про очищення або оновлення вашого сховища.",
+  "quotaBannerWarningSubtitleWithPremium": "Щоб продовжувати надсилати повідомлення та користуватися всіма функціями Redfluent Mail, подумайте про очищення або оновлення вашого сховища.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Щоб продовжувати надсилати повідомлення та користуватися всіма функціями Twake Mail, будь ласка, подумайте про очищення.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Щоб продовжувати надсилати повідомлення та користуватися всіма функціями Redfluent Mail, будь ласка, подумайте про очищення.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

@@ -87,7 +87,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -1235,7 +1235,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "恢复正在进行中。您可以继续使用 Twake Mail",
+  "bannerProgressingRecoveryMessage": "恢复正在进行中。您可以继续使用 Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -1621,7 +1621,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1733,7 +1733,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1999,7 +1999,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "设置您在 Twake Mail 上使用的语言。",
+  "languageSubtitle": "设置您在 Redfluent Mail 上使用的语言。",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -2137,13 +2137,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "请在设备的设置中允许来自 Twake Mail 的通知",
+  "pleaseAllowNotifications": "请在设备的设置中允许来自 Redfluent Mail 的通知",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "允许 Twake Mail 在您的手机上收到新邮件时通知您",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "允许 Redfluent Mail 在您的手机上收到新邮件时通知您",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -2307,7 +2307,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -4789,13 +4789,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "要继续发送邮件并使用 Twake Mail 所有功能，请考虑清理或升级您的存储空间。",
+  "quotaBannerWarningSubtitleWithPremium": "要继续发送邮件并使用 Redfluent Mail 所有功能，请考虑清理或升级您的存储空间。",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "要继续发送邮件并使用 Twake Mail 所有功能，请考虑清理。",
+  "quotaBannerWarningSubtitleWithoutPremium": "要继续发送邮件并使用 Redfluent Mail 所有功能，请考虑清理。",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

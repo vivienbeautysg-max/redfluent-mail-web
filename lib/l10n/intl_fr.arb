@@ -6,7 +6,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -672,7 +672,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -822,7 +822,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1240,7 +1240,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Définissez la langue de Twake Mail.",
+  "languageSubtitle": "Définissez la langue de Redfluent Mail.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -1850,7 +1850,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -2112,7 +2112,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "textQuotasRunOutOfStorageContent": "Maintenant, vous ne pouvez temporairement pas envoyer ou recevoir d'e-mail. Veuillez libérer ou mettre à niveau votre espace de stockage pour bénéficier de toutes les fonctionnalités de Twake Mail.",
+  "textQuotasRunOutOfStorageContent": "Maintenant, vous ne pouvez temporairement pas envoyer ou recevoir d'e-mail. Veuillez libérer ou mettre à niveau votre espace de stockage pour bénéficier de toutes les fonctionnalités de Redfluent Mail.",
   "@textQuotasRunOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -2244,7 +2244,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "textQuotasRunningOutOfStorageContent": "Bientôt, vous ne pourrez plus envoyer d'e-mails via Twake Mail. Veuillez nettoyer votre stockage ou mettre à niveau votre stockage pour obtenir toutes les fonctionnalités de Twake Mail.",
+  "textQuotasRunningOutOfStorageContent": "Bientôt, vous ne pourrez plus envoyer d'e-mails via Redfluent Mail. Veuillez nettoyer votre stockage ou mettre à niveau votre stockage pour obtenir toutes les fonctionnalités de Redfluent Mail.",
   "@textQuotasRunningOutOfStorageContent": {
     "type": "text",
     "placeholders_order": [],
@@ -2952,7 +2952,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaWarningBannerMessage": "Bientôt, vous ne pourrez plus envoyer de messages dans Twake Mail. Veuillez nettoyer ou mettre à niveau votre stockage pour bénéficier de toutes les fonctionnalités de Twake Mail.",
+  "quotaWarningBannerMessage": "Bientôt, vous ne pourrez plus envoyer de messages dans Redfluent Mail. Veuillez nettoyer ou mettre à niveau votre stockage pour bénéficier de toutes les fonctionnalités de Redfluent Mail.",
   "@quotaWarningBannerMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -3046,7 +3046,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaErrorBannerMessage": "Bientôt, vous ne pourrez plus envoyer de messages dans Twake Mail. Veuillez nettoyer ou mettre à niveau votre stockage pour bénéficier de toutes les fonctionnalités de Twake Mail.",
+  "quotaErrorBannerMessage": "Bientôt, vous ne pourrez plus envoyer de messages dans Redfluent Mail. Veuillez nettoyer ou mettre à niveau votre stockage pour bénéficier de toutes les fonctionnalités de Redfluent Mail.",
   "@quotaErrorBannerMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -3738,7 +3738,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "La récupération est en cours. Vous pouvez continuer à utiliser Twake Mail",
+  "bannerProgressingRecoveryMessage": "La récupération est en cours. Vous pouvez continuer à utiliser Redfluent Mail",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -4088,7 +4088,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Veuillez autoriser les notifications de Twake Mail dans les réglages de l'appareil",
+  "pleaseAllowNotifications": "Veuillez autoriser les notifications de Redfluent Mail dans les réglages de l'appareil",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -4130,7 +4130,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Permet à Twake Mail de vous avertir quand un nouveau message arrive sur votre téléphone",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Permet à Redfluent Mail de vous avertir quand un nouveau message arrive sur votre téléphone",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
@@ -5070,7 +5070,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithPremium": "Pour continuer d'envoyer des messages et profiter de l'ensemble des fonctionnalités de Twake mail, veuillez nettoyer ou augmenter votre espace de stockage.",
+  "quotaBannerWarningSubtitleWithPremium": "Pour continuer d'envoyer des messages et profiter de l'ensemble des fonctionnalités de Redfluent Mail, veuillez nettoyer ou augmenter votre espace de stockage.",
   "@quotaBannerWarningSubtitleWithPremium": {
     "type": "text",
     "placeholders_order": [],
@@ -5082,7 +5082,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "quotaBannerWarningSubtitleWithoutPremium": "Pour continuer à envoyer vos messages et profiter de l'ensemble des fonctionnalités de Twake Mail, veuillez nettoyer votre boîte mail.",
+  "quotaBannerWarningSubtitleWithoutPremium": "Pour continuer à envoyer vos messages et profiter de l'ensemble des fonctionnalités de Redfluent Mail, veuillez nettoyer votre boîte mail.",
   "@quotaBannerWarningSubtitleWithoutPremium": {
     "type": "text",
     "placeholders_order": [],

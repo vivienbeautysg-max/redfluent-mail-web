@@ -41,7 +41,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Twake Mail",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],
@@ -3299,7 +3299,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "languageSubtitle": "Legen Sie die Sprache fest, die Sie in Twake Mail verwenden.",
+  "languageSubtitle": "Legen Sie die Sprache fest, die Sie in Redfluent Mail verwenden.",
   "@languageSubtitle": {
     "type": "text",
     "placeholders_order": [],
@@ -3459,7 +3459,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Twake Mail",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -3483,7 +3483,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Twake Mail",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -3567,7 +3567,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "pleaseAllowNotifications": "Bitte erlauben Sie Benachrichtigungen von Twake Mail in den Einstellungen des Geräts",
+  "pleaseAllowNotifications": "Bitte erlauben Sie Benachrichtigungen von Redfluent Mail in den Einstellungen des Geräts",
   "@pleaseAllowNotifications": {
     "type": "text",
     "placeholders_order": [],
@@ -3645,7 +3645,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Twake Mail",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -3663,7 +3663,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "bannerProgressingRecoveryMessage": "Die Wiederherstellung ist im Gange. Sie können Twake Mail weiterhin verwenden",
+  "bannerProgressingRecoveryMessage": "Die Wiederherstellung ist im Gange. Sie können Redfluent Mail weiterhin verwenden",
   "@bannerProgressingRecoveryMessage": {
     "type": "text",
     "placeholders_order": [],
@@ -3917,7 +3917,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Erlaubt Twake Mail, Sie zu benachrichtigen, wenn eine neue Nachricht auf Ihrem Telefon ankommt",
+  "allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": "Erlaubt Redfluent Mail, Sie zu benachrichtigen, wenn eine neue Nachricht auf Ihrem Telefon ankommt",
   "@allowsTwakeMailToNotifyYouWhenANewMessageArrivesOnYourPhone": {
     "type": "text",
     "placeholders_order": [],
