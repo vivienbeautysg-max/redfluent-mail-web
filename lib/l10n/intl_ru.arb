@@ -6053,5 +6053,57 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "headerStyleNormal": "Обычный",
+  "@headerStyleNormal": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleQuote": "Цитата",
+  "@headerStyleQuote": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleCode": "Код",
+  "@headerStyleCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "vacationTimeHint": "чч:мм",
+  "@vacationTimeHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "openSourceUnderAgpl": "Открытый исходный код по лицензии AGPL-3.0",
+  "@openSourceUnderAgpl": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sourceCode": "Исходный код",
+  "@sourceCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleHeading": "Заголовок {level}",
+  "@headerStyleHeading": {
+    "type": "text",
+    "placeholders_order": [
+      "level"
+    ],
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "replyToNone": "Нет",
+  "@replyToNone": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

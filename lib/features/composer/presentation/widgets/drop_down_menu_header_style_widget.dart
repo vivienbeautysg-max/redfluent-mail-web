@@ -6,6 +6,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:tmail_ui_user/features/composer/presentation/model/header_style_type.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 
 class DropDownMenuHeaderStyleWidget extends StatelessWidget {
 
@@ -28,6 +29,7 @@ class DropDownMenuHeaderStyleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context);
     return DropdownButtonHideUnderline(
       child: DropdownButton2<HeaderStyleType>(
         isExpanded: true,
@@ -39,7 +41,7 @@ class DropDownMenuHeaderStyleWidget extends StatelessWidget {
                       color: Colors.transparent,
                       height: heightItem,
                       alignment: AlignmentDirectional.centerStart,
-                      child: _buildItemDropdown(item),
+                      child: _buildItemDropdown(item, appLocalizations),
                     ),
                   ),
                 ))
@@ -70,7 +72,7 @@ class DropDownMenuHeaderStyleWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildItemDropdown(HeaderStyleType headerStyle) {
+  Widget _buildItemDropdown(HeaderStyleType headerStyle, AppLocalizations appLocalizations) {
     switch(headerStyle) {
       case HeaderStyleType.blockquote:
         return Container(
@@ -80,7 +82,7 @@ class DropDownMenuHeaderStyleWidget extends StatelessWidget {
                     width: 5.0))),
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: _buildHeaderStyle(
-                headerStyle.styleName,
+                headerStyle.getStyleName(appLocalizations),
                 headerStyle.textSize,
                 headerStyle.fontWeight));
       case HeaderStyleType.code:
@@ -92,12 +94,12 @@ class DropDownMenuHeaderStyleWidget extends StatelessWidget {
                 color: AppColor.colorBackgroundStyleCode),
             padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8),
             child: _buildHeaderStyle(
-                headerStyle.styleName,
+                headerStyle.getStyleName(appLocalizations),
                 headerStyle.textSize,
                 headerStyle.fontWeight));
       default:
         return _buildHeaderStyle(
-            headerStyle.styleName,
+            headerStyle.getStyleName(appLocalizations),
             headerStyle.textSize,
             headerStyle.fontWeight);
     }

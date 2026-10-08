@@ -73,7 +73,8 @@
           _flutter.loader.load({
             onEntrypointLoaded: async function(engineInitializer) {
               const appRunner = await engineInitializer.initializeEngine({
-                fontFallbackBaseUrl: ''
+                // Redfluent Mail rf4: the engine's fallback fonts are served from web/fonts/ (same origin)
+                fontFallbackBaseUrl: 'fonts/'
               });
               await setTimeout( async function () {
                 await appRunner.runApp();
@@ -85,7 +86,8 @@
       _flutter.loader.load({
         onEntrypointLoaded: async function(engineInitializer) {
           const appRunner = await engineInitializer.initializeEngine({
-            fontFallbackBaseUrl: ''
+            // Redfluent Mail rf4: the engine's fallback fonts are served from web/fonts/ (same origin)
+            fontFallbackBaseUrl: 'fonts/'
           });
           await setTimeout( async function () {
             await appRunner.runApp();

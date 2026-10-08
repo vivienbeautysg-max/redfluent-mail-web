@@ -3054,5 +3054,57 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "headerStyleNormal": "عادي",
+  "@headerStyleNormal": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleQuote": "اقتباس",
+  "@headerStyleQuote": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleCode": "رمز",
+  "@headerStyleCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "vacationTimeHint": "hh:mm ص/م",
+  "@vacationTimeHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "openSourceUnderAgpl": "مفتوح المصدر بموجب ترخيص AGPL-3.0",
+  "@openSourceUnderAgpl": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sourceCode": "الشيفرة المصدرية",
+  "@sourceCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleHeading": "عنوان {level}",
+  "@headerStyleHeading": {
+    "type": "text",
+    "placeholders_order": [
+      "level"
+    ],
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "replyToNone": "لا شيء",
+  "@replyToNone": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

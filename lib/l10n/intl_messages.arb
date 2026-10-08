@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-10-09T00:15:08.508496",
+  "@@last_modified": "2026-10-09T02:31:30.162239",
   "initializing_data": "Initializing data...",
   "@initializing_data": {
     "type": "text",
@@ -5676,6 +5676,58 @@
   },
   "changePassword": "Change password",
   "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleNormal": "Normal",
+  "@headerStyleNormal": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleQuote": "Quote",
+  "@headerStyleQuote": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleCode": "Code",
+  "@headerStyleCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "vacationTimeHint": "hh:min AM/PM",
+  "@vacationTimeHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "openSourceUnderAgpl": "Open source under AGPL-3.0",
+  "@openSourceUnderAgpl": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sourceCode": "Source code",
+  "@sourceCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleHeading": "Header {level}",
+  "@headerStyleHeading": {
+    "type": "text",
+    "placeholders_order": [
+      "level"
+    ],
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "replyToNone": "None",
+  "@replyToNone": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}

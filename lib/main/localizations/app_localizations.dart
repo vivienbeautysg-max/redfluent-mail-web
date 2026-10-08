@@ -6028,4 +6028,61 @@ class AppLocalizations {
       name: 'changePassword',
     );
   }
+
+  String get headerStyleNormal {
+    return Intl.message(
+      'Normal',
+      name: 'headerStyleNormal',
+    );
+  }
+
+  String get headerStyleQuote {
+    return Intl.message(
+      'Quote',
+      name: 'headerStyleQuote',
+    );
+  }
+
+  String get headerStyleCode {
+    return Intl.message(
+      'Code',
+      name: 'headerStyleCode',
+    );
+  }
+
+  String get vacationTimeHint {
+    return Intl.message(
+      'hh:min AM/PM',
+      name: 'vacationTimeHint',
+    );
+  }
+
+  String get openSourceUnderAgpl {
+    return Intl.message(
+      'Open source under AGPL-3.0',
+      name: 'openSourceUnderAgpl',
+    );
+  }
+
+  String get sourceCode {
+    return Intl.message(
+      'Source code',
+      name: 'sourceCode',
+    );
+  }
+
+  String headerStyleHeading(int level) {
+    return Intl.message(
+      'Header $level',
+      name: 'headerStyleHeading',
+      args: [level],
+    );
+  }
+
+  String get replyToNone {
+    return Intl.message(
+      'None',
+      name: 'replyToNone',
+    );
+  }
 }

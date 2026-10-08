@@ -11,9 +11,10 @@ License:    GNU Affero General Public License v3.0 (see LICENSE, unchanged from 
 Modified by Redfluent on 2026-10-08 and 2026-10-09 (first commit of this repository = the
 unmodified upstream v0.39.3 tree; the following commits = Redfluent's changes). The changes
 are branding (2026-10-08) and, on 2026-10-09, a Simplified Chinese language option, English as
-the default language, a "Change password" link and translation fixes, and (rf3) removal of
-the unused banner-text script and more "Change password" translations; see README.md, section
-"Changes from upstream".
+the default language, a "Change password" link and translation fixes, (rf3) removal of
+the unused banner-text script and more "Change password" translations, and (rf4) self-hosted
+fallback fonts (Noto, SIL Open Font License 1.1, web/fonts/) and more Chinese translations; see
+README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
 WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.

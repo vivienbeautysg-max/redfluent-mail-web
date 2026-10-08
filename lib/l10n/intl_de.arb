@@ -4880,5 +4880,57 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "headerStyleNormal": "Standard",
+  "@headerStyleNormal": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleQuote": "Zitat",
+  "@headerStyleQuote": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleCode": "Code",
+  "@headerStyleCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "vacationTimeHint": "hh:mm",
+  "@vacationTimeHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "openSourceUnderAgpl": "Open Source unter der Lizenz AGPL-3.0",
+  "@openSourceUnderAgpl": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sourceCode": "Quellcode",
+  "@sourceCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleHeading": "Überschrift {level}",
+  "@headerStyleHeading": {
+    "type": "text",
+    "placeholders_order": [
+      "level"
+    ],
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "replyToNone": "Keine",
+  "@replyToNone": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

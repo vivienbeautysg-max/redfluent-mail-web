@@ -2,6 +2,7 @@ import 'package:core/presentation/extensions/color_extension.dart';
 import 'package:core/presentation/utils/theme_utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 import 'package:tmail_ui_user/main/utils/app_config.dart';
 import 'package:tmail_ui_user/main/utils/app_utils.dart';
 
@@ -11,6 +12,7 @@ class SourceCodeLinkWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context);
     final style = ThemeUtils.defaultTextStyleInterFont.copyWith(
       color: AppColor.colorTextBody,
       fontSize: 12,
@@ -21,9 +23,9 @@ class SourceCodeLinkWidget extends StatelessWidget {
       text: TextSpan(
         style: style,
         children: [
-          const TextSpan(text: 'Open source under AGPL-3.0 \u00b7 '),
+          TextSpan(text: '${appLocalizations.openSourceUnderAgpl} \u00b7 '),
           TextSpan(
-            text: 'Source code',
+            text: appLocalizations.sourceCode,
             style: style.copyWith(color: AppColor.loginTextFieldFocusedBorder),
             recognizer: TapGestureRecognizer()..onTap = () => AppUtils.launchLink(AppConfig.sourceCodeUrl),
           ),

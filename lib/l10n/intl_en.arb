@@ -3314,5 +3314,57 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "headerStyleNormal": "Normal",
+  "@headerStyleNormal": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleQuote": "Quote",
+  "@headerStyleQuote": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleCode": "Code",
+  "@headerStyleCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "vacationTimeHint": "hh:min AM/PM",
+  "@vacationTimeHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "openSourceUnderAgpl": "Open source under AGPL-3.0",
+  "@openSourceUnderAgpl": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sourceCode": "Source code",
+  "@sourceCode": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "headerStyleHeading": "Header {level}",
+  "@headerStyleHeading": {
+    "type": "text",
+    "placeholders_order": [
+      "level"
+    ],
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "replyToNone": "None",
+  "@replyToNone": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

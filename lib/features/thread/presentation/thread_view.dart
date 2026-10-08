@@ -436,6 +436,7 @@ class ThreadView extends GetWidget<ThreadController>
         onDeepRefresh: controller.onCleanAndRefresh,
         pullDownToRefreshText: AppLocalizations.of(context).pullDownToRefresh,
         normalRefreshText: AppLocalizations.of(context).refresh,
+        releaseToText: AppLocalizations.of(context).releaseTo,
         deepRefreshText: AppLocalizations.of(context).deepRefresh,
         pullHarderForText: AppLocalizations.of(context).pullHarderFor,
         child: listView,
@@ -824,6 +825,7 @@ class ThreadView extends GetWidget<ThreadController>
             onDeepRefresh: controller.onCleanAndRefresh,
             pullDownToRefreshText: AppLocalizations.of(context).pullDownToRefresh,
             normalRefreshText: AppLocalizations.of(context).refresh,
+            releaseToText: AppLocalizations.of(context).releaseTo,
             deepRefreshText: AppLocalizations.of(context).deepRefresh,
             pullHarderForText: AppLocalizations.of(context).pullHarderFor,
             child: EmptyEmailsWidget(

@@ -45,6 +45,14 @@ final _systemFolderDisplayNameMap = Map<String, String Function(AppLocalizations
   PresentationMailbox.recoveredRole:      (l10n) => l10n.recoveredMailboxDisplayName,
 });
 
+/// Redfluent Mail: the mail engine has no "outbox" / "templates" role, so the app creates these
+/// folders by name (RoleExtension.mailboxName) and finds them again by name, case-insensitively.
+/// Show them under the same translated names as the role-bearing system folders.
+final _appCreatedFolderDisplayNameMap = Map<String, String Function(AppLocalizations)>.unmodifiable(<String, String Function(AppLocalizations)>{
+  PresentationMailbox.outboxRole:    (l10n) => l10n.outboxMailboxDisplayName,
+  PresentationMailbox.templatesRole: (l10n) => l10n.templatesMailboxDisplayName,
+});
+
 extension PresentationMailboxExtension on PresentationMailbox {
 
   String getDisplayName(BuildContext context) =>
@@ -54,6 +62,10 @@ extension PresentationMailboxExtension on PresentationMailbox {
     if (isLabelMailbox) return (this as PresentationLabelMailbox).label.safeDisplayName;
     if (isDefault) {
       final nameResolver = _systemFolderDisplayNameMap[role!.value.toLowerCase()];
+      if (nameResolver != null) return nameResolver(l10n);
+    }
+    if (!hasRole() && isPersonal && !hasParentId()) {
+      final nameResolver = _appCreatedFolderDisplayNameMap[name?.name.toLowerCase()];
       if (nameResolver != null) return nameResolver(l10n);
     }
     return name?.name ?? '';

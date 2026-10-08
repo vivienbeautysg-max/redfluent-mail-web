@@ -98,7 +98,7 @@ class VacationView extends GetWidget<VacationController> {
                       value: controller.vacationPresentation.value.startTime,
                       isEmpty: !controller.isVacationDeactivated &&
                           controller.vacationPresentation.value.starTimeIsNull,
-                      hintText: 'hh:min AM/PM',
+                      hintText: AppLocalizations.of(context).vacationTimeHint,
                       horizontalSpacing: 8,
                       arrangeHorizontally: !controller.responsiveUtils.isScreenWithShortestSide(context),
                       minWidth: controller.responsiveUtils.isScreenWithShortestSide(context) ? 117 : null,
@@ -171,7 +171,7 @@ class VacationView extends GetWidget<VacationController> {
                       value: controller.vacationPresentation.value.endTime,
                       isEmpty: controller.canChangeEndDate &&
                           controller.vacationPresentation.value.endTimeIsNull,
-                      hintText: 'hh:min AM/PM',
+                      hintText: AppLocalizations.of(context).vacationTimeHint,
                       horizontalSpacing: 8,
                       arrangeHorizontally: !controller.responsiveUtils.isScreenWithShortestSide(context),
                       minWidth: controller.responsiveUtils.isScreenWithShortestSide(context) ? 117 : null,

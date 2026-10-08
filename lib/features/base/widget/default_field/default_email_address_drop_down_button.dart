@@ -16,6 +16,9 @@ class DefaultEmailAddressDropDownButton extends StatelessWidget {
   final EmailAddress? emailAddressSelected;
   final OnEmailAddressSelected onEmailAddressSelected;
   final bool isEnabled;
+  /// Shown instead of the address of [noneEmailAddress] (a "no address" placeholder item).
+  final EmailAddress? noneEmailAddress;
+  final String? noneLabel;
 
   const DefaultEmailAddressDropDownButton({
     Key? key,
@@ -24,7 +27,16 @@ class DefaultEmailAddressDropDownButton extends StatelessWidget {
     required this.onEmailAddressSelected,
     this.emailAddressSelected,
     this.isEnabled = true,
+    this.noneEmailAddress,
+    this.noneLabel,
   }) : super(key: key);
+
+  String _label(EmailAddress? emailAddress) {
+    if (emailAddress != null && noneLabel != null && emailAddress == noneEmailAddress) {
+      return noneLabel!;
+    }
+    return emailAddress?.emailAddress ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +61,7 @@ class DefaultEmailAddressDropDownButton extends StatelessWidget {
               child: Row(children: [
                 Expanded(
                   child: Text(
-                    emailAddressSelected?.emailAddress ?? '',
+                    _label(emailAddressSelected),
                     style: ThemeUtils.textStyleBodyBody3(
                       color: AppColor.m3SurfaceBackground,
                     ),
@@ -105,7 +117,7 @@ class DefaultEmailAddressDropDownButton extends StatelessWidget {
         padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
         alignment: AlignmentDirectional.centerStart,
         child: Text(
-          emailAddressSelected?.emailAddress ?? '',
+          _label(emailAddressSelected),
           style: ThemeUtils.textStyleBodyBody3(
             color: AppColor.m3SurfaceBackground,
           ),
@@ -125,7 +137,7 @@ class DefaultEmailAddressDropDownButton extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                emailAddress.emailAddress,
+                _label(emailAddress),
                 style: ThemeUtils.textStyleInter400.copyWith(
                   fontSize: 15,
                   height: 20 / 15,

@@ -90,6 +90,8 @@ class IdentityCreatorView extends GetWidget<IdentityCreatorController> {
             Obx(() => DefaultEmailAddressDropDownButton(
               imagePaths: controller.imagePaths,
               emailAddresses: controller.listEmailAddressOfReplyTo,
+              noneEmailAddress: controller.noneEmailAddress,
+              noneLabel: appLocalizations.replyToNone,
               emailAddressSelected: controller.replyToOfIdentity.value,
               onEmailAddressSelected: (emailAddress) =>
                   controller.updaterReplyToOfIdentity(
@@ -229,6 +231,8 @@ class IdentityCreatorView extends GetWidget<IdentityCreatorController> {
                 child: Obx(() => DefaultEmailAddressDropDownButton(
                   imagePaths: controller.imagePaths,
                   emailAddresses: controller.listEmailAddressOfReplyTo,
+                  noneEmailAddress: controller.noneEmailAddress,
+                  noneLabel: appLocalizations.replyToNone,
                   emailAddressSelected: controller.replyToOfIdentity.value,
                   onEmailAddressSelected: (emailAddress) =>
                     controller.updaterReplyToOfIdentity(

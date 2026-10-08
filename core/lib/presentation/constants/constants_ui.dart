@@ -17,8 +17,8 @@ class ConstantsUI {
     'NotoSansArabic', // Arabic script
     'NotoSansTamil', // Tamil script
     'NotoSansThai', // Thai script
+    'NotoSansSC', // Simplified Chinese (zh_Hans); before KR so Hanzi get SC glyph shapes (Redfluent rf4)
     'NotoSansKR', // Korean
-    'NotoSansSC', // Simplified Chinese (zh_Hans)
     'NotoSansMath', // Math symbols (∑, ∫, √, etc.)
     'NotoSansEgyptianHieroglyphs', // Egyptian Hieroglyphs (𓀀)
     'NotoEmoji', // Monochrome emoji

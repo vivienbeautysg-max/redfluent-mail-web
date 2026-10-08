@@ -13,7 +13,7 @@ the hosted service can get the complete source of the version they use.
 
 ## Changes from upstream
 
-Branding (tag `v0.39.3-rf1`), plus the rows marked (rf2) and (rf3). Nothing else.
+Branding (tag `v0.39.3-rf1`), plus the rows marked (rf2), (rf3) and (rf4). Nothing else.
 
 | Area | Change |
 |---|---|
@@ -28,6 +28,8 @@ Branding (tag `v0.39.3-rf1`), plus the rows marked (rf2) and (rf3). Nothing else
 | Change password (rf2) | Web only: a "Change password" entry in the settings menu opens the self-service page `/account/password/` of the same server in the same tab (`lib/features/manage_account/presentation/menu/`) |
 | Translations (rf2) | Leftover "Twake" product names in some translations → "Redfluent Mail" (`lib/l10n/intl_*.arb`) |
 | Translations (rf3) | "Change password" translated in every language of the language picker: fr, vi, ru, ar, it, de, mn, pt_BR (`lib/l10n/intl_*.arb`) |
+| Fonts (rf4) | The web engine's fallback fonts are served from the same origin. Upstream sets `fontFallbackBaseUrl: ''` so that nothing is loaded from Google; the engine then requests font paths that do not exist on the site, and text drawn in the design-system font only (sidebar folders, Compose, ...) showed boxes instead of Chinese. `web/index.html` now sets `'fonts/'`, and `web/fonts/` holds exactly the 724 files of the Flutter 3.38.9 engine's fallback table (Noto, SIL Open Font License 1.1; `SHA256SUMS`, `OFL.txt` per family, `README.md`, made by `scripts/mirror_fallback_fonts.py`). Nothing is fetched from Google. `NotoSansSC` now comes before `NotoSansKR` in `webFontFamilyFallback` (`core/lib/presentation/constants/constants_ui.dart`) |
+| Translations (rf4) | The Outbox and Templates folders the app creates by name show their translated names (`lib/features/mailbox/presentation/extensions/presentation_mailbox_extension.dart`); composer heading styles, the vacation time hint, the login page source-code link and the "None" choice of an identity's Reply-to are translated (new keys in `lib/main/localizations/app_localizations.dart` and `lib/l10n/intl_*.arb`, in every language of the picker; Outbox / Templates added to Italian); the pull-to-refresh "release" text now uses its existing translation (`releaseTo`; de, ar and it have none and keep the English text) |
 
 ## Build
 

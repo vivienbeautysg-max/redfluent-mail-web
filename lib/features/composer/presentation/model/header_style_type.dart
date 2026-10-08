@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 
 enum HeaderStyleType {
   normal,
@@ -12,26 +13,26 @@ enum HeaderStyleType {
   h5,
   h6;
 
-  String get styleName {
+  String getStyleName(AppLocalizations appLocalizations) {
     switch (this) {
       case HeaderStyleType.normal:
-        return 'Normal';
+        return appLocalizations.headerStyleNormal;
       case HeaderStyleType.blockquote:
-        return 'Quote';
+        return appLocalizations.headerStyleQuote;
       case HeaderStyleType.code:
-        return 'Code';
+        return appLocalizations.headerStyleCode;
       case HeaderStyleType.h1:
-        return 'Header 1';
+        return appLocalizations.headerStyleHeading(1);
       case HeaderStyleType.h2:
-        return 'Header 2';
+        return appLocalizations.headerStyleHeading(2);
       case HeaderStyleType.h3:
-        return 'Header 3';
+        return appLocalizations.headerStyleHeading(3);
       case HeaderStyleType.h4:
-        return 'Header 4';
+        return appLocalizations.headerStyleHeading(4);
       case HeaderStyleType.h5:
-        return 'Header 5';
+        return appLocalizations.headerStyleHeading(5);
       case HeaderStyleType.h6:
-        return 'Header 6';
+        return appLocalizations.headerStyleHeading(6);
     }
   }
 
