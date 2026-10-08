@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2026-10-01T11:49:34.038239",
+  "@@last_modified": "2026-10-09T00:15:08.508496",
   "initializing_data": "Initializing data...",
   "@initializing_data": {
     "type": "text",
@@ -1688,6 +1688,12 @@
   },
   "languageBrazilianPortuguese": "Portuguese (Brazil)",
   "@languageBrazilianPortuguese": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "languageChineseSimplified": "Chinese (Simplified)",
+  "@languageChineseSimplified": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
@@ -5662,8 +5668,14 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "deepLinkCannotBeOpened": "This sign-in link isn't from Twake. Please sign in from the app.",
+  "deepLinkCannotBeOpened": "This sign-in link isn't from Redfluent Mail. Please sign in from the app.",
   "@deepLinkCannotBeOpened": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "changePassword": "Change password",
+  "@changePassword": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}

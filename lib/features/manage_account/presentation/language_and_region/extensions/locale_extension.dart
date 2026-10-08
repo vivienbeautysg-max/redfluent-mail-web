@@ -24,6 +24,8 @@ extension LocaleExtension on Locale {
         return appLocalizations.languageMongolian;
       case 'pt':
         return appLocalizations.languageBrazilianPortuguese;
+      case 'zh':
+        return appLocalizations.languageChineseSimplified;
       default:
         return '';
     }
@@ -49,6 +51,8 @@ extension LocaleExtension on Locale {
         return 'Монгол';
       case 'pt':
         return 'Português (Brasil)';
+      case 'zh':
+        return '简体中文'; // I18N-OK: native language name in the language picker
       default:
         return '';
     }

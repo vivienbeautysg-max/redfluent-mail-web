@@ -16,6 +16,7 @@ enum AccountMenuItem {
   contactSupport,
   storage,
   keyboardShortcuts,
+  changePassword,
   signOut,
   none;
 
@@ -43,6 +44,8 @@ enum AccountMenuItem {
         return imagePaths.icStorage;
       case AccountMenuItem.keyboardShortcuts:
         return imagePaths.icKeyboard;
+      case AccountMenuItem.changePassword:
+        return imagePaths.icLock;
       case AccountMenuItem.signOut:
         return imagePaths.icSignOut;
       case AccountMenuItem.none:
@@ -74,6 +77,8 @@ enum AccountMenuItem {
         return appLocalizations.storageQuotas;
       case AccountMenuItem.keyboardShortcuts:
         return appLocalizations.keyboardShortcuts;
+      case AccountMenuItem.changePassword:
+        return appLocalizations.changePassword;
       case AccountMenuItem.signOut:
         return appLocalizations.sign_out;
       case AccountMenuItem.none:
@@ -130,6 +135,8 @@ enum AccountMenuItem {
         return 'storage';
       case AccountMenuItem.keyboardShortcuts:
         return 'keyboard-shortcuts';
+      case AccountMenuItem.changePassword:
+        return 'change-password';
       case AccountMenuItem.signOut:
         return 'sign-out';
       case AccountMenuItem.none:

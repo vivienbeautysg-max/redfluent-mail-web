@@ -5721,7 +5721,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "deepLinkCannotBeOpened": "Энэ нэвтрэх холбоос Twake-ээс ирээгүй байна. Аппаас нэвтэрнэ үү.",
+  "deepLinkCannotBeOpened": "Энэ нэвтрэх холбоос Redfluent Mail-ээс ирээгүй байна. Аппаас нэвтэрнэ үү.",
   "@deepLinkCannotBeOpened": {
     "type": "text",
     "placeholders_order": [],

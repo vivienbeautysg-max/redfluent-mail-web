@@ -9,4 +9,5 @@ class LanguageCodeConstants {
   static const String arabic = 'ar';
   static const String mongolian = 'mn';
   static const String portuguese = 'pt';
+  static const String chinese = 'zh';
 }

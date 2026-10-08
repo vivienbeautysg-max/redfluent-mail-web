@@ -3,6 +3,7 @@ import 'package:core/presentation/extensions/color_extension.dart';
 import 'package:core/presentation/utils/theme_utils.dart';
 import 'package:core/presentation/views/button/tmail_button_widget.dart';
 import 'package:core/utils/direction_utils.dart';
+import 'package:core/utils/platform_info.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tmail_ui_user/features/home/domain/extensions/session_extensions.dart';
@@ -13,6 +14,7 @@ import 'package:tmail_ui_user/features/manage_account/presentation/menu/widgets/
 import 'package:tmail_ui_user/features/manage_account/presentation/model/account_menu_item.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 import 'package:tmail_ui_user/main/routes/app_routes.dart';
+import 'package:tmail_ui_user/main/utils/app_utils.dart';
 
 class ManageAccountMenuView extends GetWidget<ManageAccountMenuController> {
 
@@ -133,6 +135,19 @@ class ManageAccountMenuView extends GetWidget<ManageAccountMenuController> {
                  },
                );
              }),
+             if (PlatformInfo.isWeb)
+               AccountMenuItemTileBuilder(
+                 imagePaths: controller.imagePaths,
+                 responsiveUtils: controller.responsiveUtils,
+                 menuItem: AccountMenuItem.changePassword,
+                 padding: const EdgeInsetsDirectional.only(
+                   start: 8,
+                   end: 8,
+                   top: 4,
+                 ),
+                 onSelectAccountMenuItemAction: (_) =>
+                     AppUtils.openChangePasswordPage(),
+               ),
              AccountMenuItemTileBuilder(
                imagePaths: controller.imagePaths,
                responsiveUtils: controller.responsiveUtils,

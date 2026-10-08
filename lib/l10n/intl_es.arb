@@ -11,7 +11,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "appTitlePushNotification": "Correo de Twake",
+  "appTitlePushNotification": "Redfluent Mail",
   "@appTitlePushNotification": {
     "type": "text",
     "placeholders_order": [],
@@ -187,7 +187,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "app_name": "Correo de Twake",
+  "app_name": "Redfluent Mail",
   "@app_name": {
     "type": "text",
     "placeholders_order": [],
@@ -947,7 +947,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "page_name": "Correo de Twake",
+  "page_name": "Redfluent Mail",
   "@page_name": {
     "type": "text",
     "placeholders_order": [],
@@ -1151,7 +1151,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "login_text_slogan": "Correo de Twake",
+  "login_text_slogan": "Redfluent Mail",
   "@login_text_slogan": {
     "type": "text",
     "placeholders_order": [],

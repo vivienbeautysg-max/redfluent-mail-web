@@ -9,7 +9,11 @@ class AppLocalizations {
   }
 
   static Future<AppLocalizations> load(Locale locale) async {
-    final name = locale.countryCode == null ? locale.languageCode : locale.toString();
+    // A script subtag counts too: zh_Hans is looked up as 'zh_Hans'
+    // (intl_zh_Hans.arb), not as 'zh', which has no catalog.
+    final name = locale.countryCode == null && locale.scriptCode == null
+        ? locale.languageCode
+        : locale.toString();
 
     final localeName = Intl.canonicalizedLocale(name);
 
@@ -1710,6 +1714,12 @@ class AppLocalizations {
     return Intl.message(
       'Portuguese (Brazil)',
       name: 'languageBrazilianPortuguese');
+  }
+
+  String get languageChineseSimplified {
+    return Intl.message(
+      'Chinese (Simplified)',
+      name: 'languageChineseSimplified');
   }
 
   String get messageDialogSendEmailUploadingAttachment {
@@ -6007,8 +6017,15 @@ class AppLocalizations {
 
   String get deepLinkCannotBeOpened {
     return Intl.message(
-      'This sign-in link isn\'t from Twake. Please sign in from the app.',
+      'This sign-in link isn\'t from Redfluent Mail. Please sign in from the app.',
       name: 'deepLinkCannotBeOpened',
+    );
+  }
+
+  String get changePassword {
+    return Intl.message(
+      'Change password',
+      name: 'changePassword',
     );
   }
 }

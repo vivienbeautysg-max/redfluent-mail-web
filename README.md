@@ -8,12 +8,12 @@ v0.39.3 by LINAGORA**, licensed under the **GNU AGPL-3.0** (see [LICENSE](LICENS
 the hosted service can get the complete source of the version they use.
 
 - First commit: the unmodified upstream tree (tag `v0.39.3`, commit `a64d633`).
-- Later commits: Redfluent's changes. `git diff HEAD~1 HEAD` shows all of them.
+- Later commits: Redfluent's changes (one per release tag). `git diff $(git rev-list --max-parents=0 HEAD) HEAD` shows all of them.
 - The upstream README is kept as [README.upstream.md](README.upstream.md).
 
 ## Changes from upstream
 
-Branding only — no feature changes.
+Branding (tag `v0.39.3-rf1`), plus in `v0.39.3-rf2` the last four rows below. Nothing else.
 
 | Area | Change |
 |---|---|
@@ -23,6 +23,10 @@ Branding only — no feature changes.
 | Mobile banner | The "download the Twake Mail app" banner is removed (`web/index.html`) |
 | Login page | Upstream marketing column removed; "powered by LINAGORA" artwork replaced by the AGPL-3.0 source link (`lib/features/login/presentation/source_code_link_widget.dart`); privacy link → https://www.redfluent.com/privacy |
 | Colour | Primary blue → `#0A66D8` (`core/lib/presentation/extensions/color_extension.dart`) |
+| Language (rf2) | Simplified Chinese can be picked in Settings → Language (`lib/main/localizations/localization_service.dart`, `lib/l10n/intl_zh_Hans.arb`) |
+| Default language (rf2) | Always English until the user picks a language; the browser / OS language is not used (`LocalizationService.getInitialLocale`, `lib/main.dart`) |
+| Change password (rf2) | Web only: a "Change password" entry in the settings menu opens the self-service page `/account/password/` of the same server in the same tab (`lib/features/manage_account/presentation/menu/`) |
+| Translations (rf2) | Leftover "Twake" product names in some translations → "Redfluent Mail" (`lib/l10n/intl_*.arb`) |
 
 ## Build
 

@@ -15,6 +15,11 @@ class LocalizationService extends Translations {
     LanguageCodeConstants.portuguese,
     'BR',
   );
+  // No region subtag: the catalog is intl_zh_Hans.arb, looked up as 'zh_Hans'.
+  static const simplifiedChineseLocale = Locale.fromSubtags(
+    languageCode: LanguageCodeConstants.chinese,
+    scriptCode: 'Hans',
+  );
 
   static final supportedLanguageCodes = [
     LanguageCodeConstants.french,
@@ -25,7 +30,8 @@ class LocalizationService extends Translations {
     LanguageCodeConstants.italian,
     LanguageCodeConstants.german,
     LanguageCodeConstants.mongolian,
-    LanguageCodeConstants.portuguese
+    LanguageCodeConstants.portuguese,
+    LanguageCodeConstants.chinese,
   ];
 
   static const List<Locale> supportedLocales = [
@@ -37,7 +43,8 @@ class LocalizationService extends Translations {
     Locale(LanguageCodeConstants.italian, 'IT'),
     Locale(LanguageCodeConstants.german, 'DE'),
     Locale(LanguageCodeConstants.mongolian, 'MN'),
-    Locale(LanguageCodeConstants.portuguese, 'BR')
+    Locale(LanguageCodeConstants.portuguese, 'BR'),
+    simplifiedChineseLocale,
   ];
 
   static void changeLocale(Locale newLocale) {
@@ -54,18 +61,20 @@ class LocalizationService extends Translations {
     if (locale.languageCode == LanguageCodeConstants.portuguese) {
       return brazilianPortugueseLocale;
     }
+    // Same for Chinese: only zh_Hans ships a catalog, and LanguageCacheManager
+    // keeps no script subtag, so a stored zh_Hans comes back as plain zh.
+    if (locale.languageCode == LanguageCodeConstants.chinese) {
+      return simplifiedChineseLocale;
+    }
     return locale;
   }
 
+  // Redfluent Mail: English unless the user picked a language. The browser /
+  // OS language is deliberately not used.
   static Locale getInitialLocale() {
     try {
       final cachedLocale = _getCachedLocale();
       if (cachedLocale != null) return _normalizeLocale(cachedLocale);
-
-      final deviceLocale = _getDeviceLocale();
-      if (_isSupportedLocale(deviceLocale)) {
-        return _normalizeLocale(deviceLocale);
-      }
 
       return defaultLocale;
     } catch (e) {
@@ -84,8 +93,17 @@ class LocalizationService extends Translations {
     }
   }
 
-  static Locale _getDeviceLocale() =>
-      WidgetsBinding.instance.platformDispatcher.locale;
+  // GetMaterialApp.localeResolutionCallback. GetMaterialApp always passes its
+  // own `locale` here (see getInitialLocale); anything unsupported resolves to
+  // English, not to supportedLocales.first (French).
+  static Locale resolveLocale(Locale? locale, Iterable<Locale> supportedLocales) {
+    for (final supported in supportedLocales) {
+      if (supported.languageCode == locale?.languageCode) {
+        return locale!;
+      }
+    }
+    return defaultLocale;
+  }
 
   static String supportedLocalesToLanguageTags() {
     final listLanguageTags = supportedLocales.map((locale) => locale.toLanguageTag()).join(', ');
@@ -110,8 +128,6 @@ class LocalizationService extends Translations {
 
       if (_useCachedLocale()) return;
 
-      if (_useDeviceLocale()) return;
-
       _useDefaultLocale();
     } catch (e) {
       logWarning('LocalizationService::initializeAppLanguage: Exception: $e');
@@ -124,16 +140,6 @@ class LocalizationService extends Translations {
     if (currentLocale == null || !_isSupportedLocale(currentLocale)) {
       changeLocale(defaultLocale);
     }
-  }
-
-  static bool _useDeviceLocale() {
-    final deviceLocale = _getDeviceLocale();
-    log('LocalizationService::_useDeviceLocale: Device locale is $deviceLocale');
-    if (_isSupportedLocale(deviceLocale)) {
-      changeLocale(deviceLocale);
-      return true;
-    }
-    return false;
   }
 
   static bool _useCachedLocale() {

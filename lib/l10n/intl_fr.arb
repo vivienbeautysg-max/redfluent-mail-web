@@ -6024,7 +6024,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "deepLinkCannotBeOpened": "Ce lien de connexion ne provient pas de Twake. Veuillez vous connecter depuis l'application.",
+  "deepLinkCannotBeOpened": "Ce lien de connexion ne provient pas de Redfluent Mail. Veuillez vous connecter depuis l'application.",
   "@deepLinkCannotBeOpened": {
     "type": "text",
     "placeholders_order": [],

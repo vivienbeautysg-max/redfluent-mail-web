@@ -5718,5 +5718,105 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "languageBrazilianPortuguese": "葡萄牙语（巴西）",
+  "@languageBrazilianPortuguese": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "languageChineseSimplified": "简体中文",
+  "@languageChineseSimplified": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "sendMessageFailureWithInvalidRecipients": "邮件发送失败，因为以下收件人无效：{invalidRecipients}",
+  "@sendMessageFailureWithInvalidRecipients": {
+    "type": "text",
+    "placeholders_order": [
+      "invalidRecipients"
+    ],
+    "placeholders": {
+      "invalidRecipients": {}
+    }
+  },
+  "attending": "是否参加？",
+  "@attending": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "joinTheVideoConference": "加入视频会议",
+  "@joinTheVideoConference": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "copyLink": "复制链接",
+  "@copyLink": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "linkCopiedToClipboard": "链接已复制到剪贴板",
+  "@linkCopiedToClipboard": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "linkCannotBeOpened": "无法打开此链接",
+  "@linkCannotBeOpened": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "seeInYourCalendar": "在日历中查看",
+  "@seeInYourCalendar": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "errorReporting": "错误报告",
+  "@errorReporting": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "errorReportingSettingExplanation": "发送崩溃和错误报告，以便支持团队诊断您遇到的问题。报告绝不包含您的邮件、邮件内容或收件人。",
+  "@errorReportingSettingExplanation": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "errorReportingToggleDescription": "发送错误报告",
+  "@errorReportingToggleDescription": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "driveAttachmentAddedSuccessfully": "已从云盘添加附件。",
+  "@driveAttachmentAddedSuccessfully": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "driveAttachmentTransferFailed": "从云盘添加附件失败。",
+  "@driveAttachmentTransferFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "deepLinkCannotBeOpened": "此登录链接并非来自 Redfluent Mail。请在应用中登录。",
+  "@deepLinkCannotBeOpened": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "changePassword": "修改密码",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

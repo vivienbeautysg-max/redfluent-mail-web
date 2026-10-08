@@ -6042,7 +6042,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "deepLinkCannotBeOpened": "Эта ссылка для входа не от Twake. Пожалуйста, войдите через приложение.",
+  "deepLinkCannotBeOpened": "Эта ссылка для входа не от Redfluent Mail. Пожалуйста, войдите через приложение.",
   "@deepLinkCannotBeOpened": {
     "type": "text",
     "placeholders_order": [],

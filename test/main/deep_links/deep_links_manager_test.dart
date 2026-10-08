@@ -398,7 +398,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(toast.errors, ['This sign-in link isn\'t from Twake. Please sign in from the app.']);
+      expect(toast.errors, ['This sign-in link isn\'t from Redfluent Mail. Please sign in from the app.']);
       expect(failed, isTrue);
     });
 
@@ -420,7 +420,7 @@ void main() {
           onFailureCallback: () => failed = true,
         );
 
-        expect(toast.errors, ['This sign-in link isn\'t from Twake. Please sign in from the app.']);
+        expect(toast.errors, ['This sign-in link isn\'t from Redfluent Mail. Please sign in from the app.']);
         expect(failed, isTrue);
       },
     );

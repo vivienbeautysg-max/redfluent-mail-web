@@ -14,6 +14,7 @@ import 'package:tmail_ui_user/features/manage_account/presentation/model/account
 import 'package:tmail_ui_user/features/quotas/domain/extensions/quota_extensions.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 import 'package:tmail_ui_user/main/routes/app_routes.dart';
+import 'package:tmail_ui_user/main/utils/app_utils.dart';
 
 class SettingsFirstLevelView extends GetWidget<SettingsController> {
   const SettingsFirstLevelView({Key? key}) : super(key: key);
@@ -235,6 +236,16 @@ class SettingsFirstLevelView extends GetWidget<SettingsController> {
             ),
           ]);
         }),
+        if (PlatformInfo.isWeb)
+          ...[
+            divider,
+            _buildSettingItem(
+              context: context,
+              menuItem: AccountMenuItem.changePassword,
+              appLocalizations: appLocalizations,
+              onActionCallback: AppUtils.openChangePasswordPage,
+            ),
+          ],
         divider,
         _buildSettingItem(
           context: context,

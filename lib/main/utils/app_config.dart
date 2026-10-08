@@ -18,8 +18,12 @@ class AppConfig {
   static const String saasPlatform = 'saas';
   static const String linagoraPrivacyUrl = 'https://www.redfluent.com/privacy';
   static const String sourceCodeUrl = 'https://github.com/vivienbeautysg-max/redfluent-mail-web';
+  /// Self-service password page, served by the gateway on the webmail's own origin.
+  static const String changePasswordPath = '/account/password/';
   static const String saasRegistrationUrl = 'https://sign-up.twake.app';
   static const String saasJmapServerUrl = 'https://jmap.twake.app';
+
+  static Uri changePasswordUri([Uri? base]) => (base ?? Uri.base).resolve(changePasswordPath);
 
   static String get baseUrl => dotenv.get('SERVER_URL', fallback: '');
   static String get domainRedirectUrl => dotenv.get('DOMAIN_REDIRECT_URL', fallback: '');

@@ -64,14 +64,7 @@ class _TMailAppState extends State<TMailApp> {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        localeResolutionCallback: (deviceLocale, supportedLocales) {
-          for (var locale in supportedLocales) {
-            if (locale.languageCode == deviceLocale?.languageCode) {
-              return deviceLocale;
-            }
-          }
-          return supportedLocales.first;
-        },
+        localeResolutionCallback: LocalizationService.resolveLocale,
         locale: LocalizationService.getInitialLocale(),
         fallbackLocale: LocalizationService.fallbackLocale,
         translations: LocalizationService(),

@@ -6030,7 +6030,7 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "deepLinkCannotBeOpened": "Liên kết đăng nhập này không phải từ Twake. Vui lòng đăng nhập từ ứng dụng.",
+  "deepLinkCannotBeOpened": "Liên kết đăng nhập này không phải từ Redfluent Mail. Vui lòng đăng nhập từ ứng dụng.",
   "@deepLinkCannotBeOpened": {
     "type": "text",
     "placeholders_order": [],

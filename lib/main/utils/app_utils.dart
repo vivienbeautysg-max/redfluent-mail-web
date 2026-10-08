@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 import 'package:tmail_ui_user/main/localizations/language_code_constants.dart';
+import 'package:tmail_ui_user/main/utils/app_config.dart';
 import 'package:tmail_ui_user/main/universal_import/html_stub.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,6 +33,15 @@ class AppUtils {
         mode: LaunchMode.externalApplication,
       );
     }
+  }
+
+  /// Same tab on purpose: the password page links back to the webmail, and
+  /// after a change the webmail's saved credentials are stale anyway.
+  static Future<bool> openChangePasswordPage() {
+    return launchUrl(
+      AppConfig.changePasswordUri(),
+      webOnlyWindowName: '_self',
+    );
   }
 
   static bool isDirectionRTL(BuildContext context) {
