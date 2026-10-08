@@ -5,11 +5,11 @@
  import 'package:flutter/material.dart';
  import 'package:linagora_design_flutter/style/linagora_text_style.dart';
  
-@@ -9,11 +10,53 @@
+@@ -9,11 +10,70 @@
    static const String _package = 'linagora_design_flutter';
    static const String _fontFamily = 'TwakeInter';
  
-+  // Redfluent Mail patch (v0.39.3-rf6), see
++  // Redfluent Mail patch (v0.39.3-rf6, release-mode logging in rf7), see
 +  // https://github.com/linagora/linagora-design-flutter/issues/78
 +  //
 +  // The styles name the bundled family in full instead of through `package:`:
@@ -26,17 +26,34 @@
 +
 +  /// Families tried, in order, for characters TwakeInter does not have. Every
 +  /// style of this design system carries them. The styles are built once and
-+  /// cached, so set this before the first one is read; setting a different
-+  /// list afterwards throws instead of being silently ignored.
++  /// cached, so set this before the first one is read. Setting a different
++  /// list afterwards is a startup-order bug: debug and profile builds throw a
++  /// [StateError]; a release build logs it and keeps the list the styles were
++  /// built with, so the app still starts.
 +  static List<String>? get fontFamilyFallback => _fontFamilyFallback;
 +
-+  static set fontFamilyFallback(List<String>? families) {
++  static set fontFamilyFallback(List<String>? families) =>
++      _setFontFamilyFallback(families, releaseMode: kReleaseMode);
++
++  /// The [fontFamilyFallback] setter with the build mode as a parameter.
++  @visibleForTesting
++  static void debugSetFontFamilyFallback(
++    List<String>? families, {
++    required bool releaseMode,
++  }) =>
++      _setFontFamilyFallback(families, releaseMode: releaseMode);
++
++  static void _setFontFamilyFallback(
++    List<String>? families, {
++    required bool releaseMode,
++  }) {
 +    if (listEquals(families, _fontFamilyFallback)) return;
 +    if (_stylesBuilt) {
-+      throw StateError(
-+        'LinagoraTextTheme.fontFamilyFallback must be set before the first '
-+        'design system text style is built',
-+      );
++      const message = 'LinagoraTextTheme.fontFamilyFallback must be set '
++          'before the first design system text style is built';
++      if (!releaseMode) throw StateError(message);
++      debugPrint('$message; keeping the list the styles were built with.');
++      return;
 +    }
 +    _fontFamilyFallback = families == null ? null : List.unmodifiable(families);
 +  }
@@ -60,7 +77,7 @@
          displayLarge: tokens.displayLarge,
          displayMedium: tokens.displayMedium,
          displaySmall: tokens.displaySmall,
-@@ -29,7 +72,11 @@
+@@ -29,7 +89,11 @@
          bodyLarge: tokens.bodyLarge,
          bodyMedium: tokens.bodyMedium,
          bodySmall: tokens.bodySmall,
@@ -73,7 +90,7 @@
  }
  
  /// Material [TextTheme] is capped at 15 slot, the rest is
-@@ -64,10 +111,7 @@
+@@ -64,10 +128,7 @@
    factory LinagoraTextThemeExtension.material() => _material;
  
    static LinagoraTextThemeExtension _build(LinagoraTextStyle tokens) {

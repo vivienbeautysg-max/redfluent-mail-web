@@ -1,0 +1,4 @@
+# scripts/subset_noto_sans_sc.py: the versions assets/fonts/fallback/NotoSansSC-Regular.ttf was made with
+# (the output is byte-for-byte reproducible with them):  python3 -m pip install -r scripts/requirements-subset.txt
+fonttools==4.60.1
+brotli==1.1.0

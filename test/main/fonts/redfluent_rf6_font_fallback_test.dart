@@ -7,6 +7,7 @@ import 'package:core/presentation/utils/theme_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -32,6 +33,9 @@ import 'package:tmail_ui_user/main/localizations/localization_service.dart';
 /// glyph fallback (download a Noto slice from fonts/, re-layout) and showed boxes meanwhile.
 /// rf6 gives every design-system style the app's bundled fallback chain
 /// (ConstantsUI.webFontFamilyFallback, NotoSansSC before NotoSansKR), set by ThemeUtils.buildAppTheme.
+/// rf7: the chain is checked against the bundled families, the NotoSansSC subset against the whole of
+/// GB2312, and a late fallback change only throws in debug/profile builds. Every test sets up what it
+/// needs, so each one also passes when run alone.
 void main() {
   group('rf6: design-system text styles carry the bundled fallback chain', () {
     testWidgets('text theme, theme extension, typography and sidebar styles', _designSystemStyles);
@@ -42,8 +46,23 @@ void main() {
     testWidgets('every painted span resolves the bundled chain, never a packages/ fallback', _sidebarSpans);
   });
 
-  group('rf6: the bundled NotoSansSC subset', () {
-    test('maps every character of the Simplified Chinese UI, and is the subset, not upstream\'s 10.5 MB file', () {
+  group('rf7: the fallback chain names bundled families', () {
+    testWidgets('every family of ConstantsUI.webFontFamilyFallback but sans-serif is in FontManifest.json',
+        (tester) async {
+      final manifest = jsonDecode(await rootBundle.loadString('FontManifest.json')) as List<dynamic>;
+      final bundled = {for (final f in manifest) (f as Map<String, dynamic>)['family'] as String};
+      final missing = [
+        for (final family in ConstantsUI.webFontFamilyFallback)
+          if (family != 'sans-serif' && !bundled.contains(family)) family,
+      ];
+      // ignore: avoid_print
+      print('RF7-FAMILIES chain=${ConstantsUI.webFontFamilyFallback.length} notBundled=$missing');
+      expect(missing, isEmpty, reason: 'not declared under fonts: in pubspec.yaml, so never drawn');
+    });
+  });
+
+  group('rf6/rf7: the bundled NotoSansSC subset', () {
+    test('maps every zh_Hans UI character and every GB2312 character, and is not upstream\'s 10.5 MB file', () {
       final font = File('assets/fonts/fallback/NotoSansSC-Regular.ttf').readAsBytesSync();
       final cmap = _cmap(font);
       final arb = jsonDecode(File('lib/l10n/intl_zh_Hans.arb').readAsStringSync()) as Map<String, dynamic>;
@@ -53,22 +72,48 @@ void main() {
             for (final r in (e.value as String).runes)
               if (r >= 0x20 && !cmap.contains(r)) String.fromCharCode(r),
       };
+      // GB2312 as Python's gb2312 codec decodes it, one line per GB2312 row (scripts/subset_noto_sans_sc.py).
+      final gb2312 = File('test/main/fonts/gb2312.txt').readAsStringSync().runes.where((r) => r != 0x0A).toSet();
+      final missingGb2312 = [for (final r in gb2312) if (!cmap.contains(r)) String.fromCharCode(r)];
       // ignore: avoid_print
-      print('RF6-SUBSET bytes=${font.length} codePoints=${cmap.length} uiCharsMissing=${missing.length}');
+      print('RF6-SUBSET bytes=${font.length} codePoints=${cmap.length} uiCharsMissing=${missing.length} '
+          'gb2312=${gb2312.length} gb2312Missing=${missingGb2312.length}');
+      expect(gb2312.length, 7445, reason: 'test/main/fonts/gb2312.txt must hold the whole GB2312 set');
       expect(missing, isEmpty, reason: 'zh_Hans UI characters the bundled NotoSansSC cannot draw');
-      expect(cmap.length, greaterThan(7445), reason: 'GB2312 (7,445 characters) + Latin + punctuation + ...');
+      expect(missingGb2312, isEmpty, reason: 'GB2312 characters the bundled NotoSansSC cannot draw');
+      // rf7: common Traditional characters no other bundled font has (Big5 level 1) are drawn at once.
+      expect(cmap.containsAll('妳夠嗎啟'.runes), isTrue, reason: 'rf7 Big5 level-1 characters are gone');
       expect(font.length, lessThan(8 * 1024 * 1024), reason: 'upstream\'s full 10.5 MB NotoSansSC is back');
     });
   });
 
-  group('rf6: the design system fallback is set once', () {
-    test('setting the same list again is allowed; a different list after the styles were built throws', () {
-      // The earlier tests of this file built the design system styles with the app's list.
-      expect(LinagoraTextTheme.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
-      LinagoraTextTheme.fontFamilyFallback = List.of(ConstantsUI.webFontFamilyFallback);
-      expect(() => LinagoraTextTheme.fontFamilyFallback = const ['Roboto'], throwsStateError);
-      expect(LinagoraTextTheme.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
-    });
+  group('rf6/rf7: the design system fallback is set once', () {
+    testWidgets('same list again: allowed; a different list once the styles are built: StateError (debug, profile)',
+        (tester) => _onDesktop(() async {
+              await _pumpApp(tester, const SizedBox.shrink()); // builds the styles with the app's list
+              expect(LinagoraTextTheme.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
+              LinagoraTextTheme.fontFamilyFallback = List.of(ConstantsUI.webFontFamilyFallback);
+              expect(() => LinagoraTextTheme.fontFamilyFallback = const ['Roboto'], throwsStateError);
+              expect(() => LinagoraTextTheme.debugSetFontFamilyFallback(const ['Roboto'], releaseMode: false),
+                  throwsStateError);
+              expect(LinagoraTextTheme.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
+            }));
+
+    testWidgets('release build: logged, never thrown; the styles keep the list they were built with',
+        (tester) => _onDesktop(() async {
+              await _pumpApp(tester, const SizedBox.shrink());
+              final logged = <String>[];
+              final originalDebugPrint = debugPrint;
+              debugPrint = (String? message, {int? wrapWidth}) => logged.add(message ?? '');
+              try {
+                LinagoraTextTheme.debugSetFontFamilyFallback(const ['Roboto'], releaseMode: true);
+              } finally {
+                debugPrint = originalDebugPrint;
+              }
+              expect(logged.single, contains('must be set before the first design system text style is built'));
+              expect(LinagoraTextTheme.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
+              expect(LinagoraTextTheme.material().bodyMedium?.fontFamilyFallback, ConstantsUI.webFontFamilyFallback);
+            }));
   });
 }
 

@@ -20,8 +20,9 @@ without waiting for fonts: a patch to LINAGORA's linagora-design-flutter package
 scripts/prepare_design_system.sh to upstream commit 0d402e4f5a371cd88fb1a0671e2c7d902aaa2918;
 the package itself is not included here) and a subset of the bundled Noto Sans SC
 (assets/fonts/fallback/NotoSansSC-Regular.ttf, SIL Open Font License 1.1, made by
-scripts/subset_noto_sans_sc.py; its copyright and license name records are kept); see
-README.md, section "Changes from upstream".
+scripts/subset_noto_sans_sc.py; its copyright and license name records are kept), and (rf7)
+common Traditional Chinese characters added to that subset; see README.md, section "Changes
+from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
 WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.

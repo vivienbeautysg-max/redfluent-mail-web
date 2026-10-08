@@ -128,5 +128,5 @@ test-results
 /web/js/vendor/
 
 # Redfluent Mail (rf6): the patched design system, made by scripts/prepare_design_system.sh
-/third_party/linagora_design_flutter/
-/third_party/linagora_design_flutter.new/
+# (with its lock and temporary directories)
+/third_party/

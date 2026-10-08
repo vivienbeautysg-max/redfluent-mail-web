@@ -40,8 +40,9 @@ class ThemeUtils {
   /// button, version label...) then finds Chinese, Arabic, emoji... in the
   /// bundled fonts on its first frame instead of waiting for the web engine's
   /// glyph fallback (boxes until a font slice is downloaded). The design
-  /// system builds its styles once, so this runs before anything here reads
-  /// them; setting the same list again does nothing.
+  /// system builds its styles once, so every initializer here that reads
+  /// them calls this first, and so does [buildAppTheme]; setting the same
+  /// list again does nothing.
   static void _useAppFontFallbackInDesignSystem() {
     LinagoraTextTheme.fontFamilyFallback = ConstantsUI.fontFamilyFallback;
   }
@@ -51,14 +52,15 @@ class ThemeUtils {
   static final LinagoraTextThemeExtension _textThemeExtension =
       _buildTextThemeExtension();
 
-  /// Design system styles are built with `package: linagora_design_flutter`,
-  /// and [TextStyle.fontFamilyFallback] prefixes every entry it returns with
-  /// `packages/<package>/`. Passing our fallback list straight to a design
-  /// system style would therefore point it at families the design system does
-  /// not ship, silently disabling the whole fallback chain (emoji, Arabic,
-  /// CJK...). Rebuilding the style without a package keeps the chain intact.
-  ///
-  /// Drop this once the design system accepts a `fontFamilyFallback`:
+  /// Rebuilds a design system style with [ConstantsUI.fontFamilyFallback] and
+  /// no `package`: [TextStyle.fontFamilyFallback] prefixes every entry of a
+  /// packaged style with `packages/<package>/`, families the design system
+  /// does not ship, which silently disables the whole chain (emoji, Arabic,
+  /// CJK...). Since rf6 the patched design system
+  /// (patchs/linagora_design_flutter-font-fallback.patch) already builds its
+  /// styles that way with the same list, so this rebuild changes nothing; it
+  /// stays until upstream accepts a fallback (issue #78) and the patch is
+  /// dropped, when it and [_useAppFontFallbackInDesignSystem] are revisited:
   /// https://github.com/linagora/linagora-design-flutter/issues/78
   static TextStyle? _withFallback(TextStyle? style) {
     if (style == null) return null;
@@ -99,6 +101,7 @@ class ThemeUtils {
   }
 
   static TextTheme _buildTextTheme() {
+    _useAppFontFallbackInDesignSystem();
     final textTheme = LinagoraTextTheme.material();
     return TextTheme(
       displayLarge: _withFallback(textTheme.displayLarge),
@@ -120,6 +123,7 @@ class ThemeUtils {
   }
 
   static LinagoraTextThemeExtension _buildTextThemeExtension() {
+    _useAppFontFallbackInDesignSystem();
     final extension = LinagoraTextThemeExtension.material();
     return LinagoraTextThemeExtension(
       titleSemibold: _withFallbackRequired(extension.titleSemibold),
