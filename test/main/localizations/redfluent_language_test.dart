@@ -20,6 +20,7 @@ import 'package:tmail_ui_user/main/localizations/app_localizations_delegate.dart
 import 'package:tmail_ui_user/main/localizations/localization_service.dart';
 
 /// Redfluent Mail v0.39.3-rf2: Simplified Chinese, English by default, remembered choice.
+/// v0.39.3-rf3: "Change password" in every language of the picker.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -142,6 +143,35 @@ void main() {
     });
   });
 
+  group('"Change password" is translated in every language of the picker (rf3):', () {
+    const expected = {
+      'fr_FR': 'Modifier le mot de passe',
+      'en_US': 'Change password',
+      'vi_VN': 'Đổi mật khẩu',
+      'ru_RU': 'Изменить пароль',
+      'ar_TN': 'تغيير كلمة المرور',
+      'it_IT': 'Cambia password',
+      'de_DE': 'Passwort ändern',
+      'mn_MN': 'Нууц үг солих',
+      'pt_BR': 'Alterar senha',
+      'zh_Hans': '修改密码',
+    };
+
+    test('the expectations cover exactly the supported locales', () {
+      expect(
+        LocalizationService.supportedLocales.map((l) => l.toString()).toSet(),
+        expected.keys.toSet(),
+      );
+    });
+
+    for (final locale in LocalizationService.supportedLocales) {
+      test('$locale', () async {
+        await AppLocalizations.load(locale);
+        expect(AppLocalizations().changePassword, expected[locale.toString()]);
+      });
+    }
+  });
+
   group('English is the default language:', () {
     for (final device in const [
       Locale('zh', 'CN'),
@@ -197,7 +227,7 @@ void main() {
   group('An explicit choice is remembered:', () {
     for (final (picked, expectedText) in const [
       (zhHans, 'zh_Hans|修改密码'),
-      (Locale('fr', 'FR'), 'fr_FR|Change password'),
+      (Locale('fr', 'FR'), 'fr_FR|Modifier le mot de passe'),
       (Locale('en', 'US'), 'en_US|Change password'),
     ]) {
       testWidgets('${picked.toLanguageTag()} picked on the Language page survives a reload', (tester) async {

@@ -5756,5 +5756,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "changePassword": "Нууц үг солих",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

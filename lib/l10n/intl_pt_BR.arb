@@ -3738,5 +3738,11 @@
   "aiLabelCategorizationSettingExplanation": "Aplicar meus marcadores aos e-mails recebidos usando a descrição deles",
   "clearTrashSubfoldersSuccess": "Subpastas da lixeira excluídas",
   "clearTrashSubfoldersPartialSuccess": "Não foi possível excluir algumas subpastas da lixeira",
-  "clearTrashSubfoldersFailed": "Falha ao excluir subpastas da lixeira"
+  "clearTrashSubfoldersFailed": "Falha ao excluir subpastas da lixeira",
+  "changePassword": "Alterar senha",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  }
 }

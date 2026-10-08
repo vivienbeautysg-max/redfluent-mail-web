@@ -39,7 +39,6 @@
   <script type="application/javascript" src="assets/packages/flutter_inappwebview_web/assets/web/web_support.js" defer></script>
   <script type="application/javascript" src="assets/packages/flutter_charset_detector_web/assets/web/jschardet.min.js" defer></script>
   <script src="worker_service/worker_service.js"></script>
-  <script src="i18n/translater.js"></script>
   <script src="js/vendor/dotlottie-player/dotlottie-player.mjs" type="module"></script>
   <!-- Load self-hosted Sentry SDK first, then the interceptor that blocks any subsequent
        CDN injection attempted by sentry_flutter at runtime. Order matters: interceptor
@@ -57,7 +56,7 @@
     {{flutter_js}}
     {{flutter_build_config}}
     
-    loadLanguageResources().finally(initialTmailApp);
+    initialTmailApp();
 
     if ('serviceWorker' in navigator) {
       navigator

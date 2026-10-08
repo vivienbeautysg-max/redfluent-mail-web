@@ -6035,5 +6035,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "changePassword": "Đổi mật khẩu",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

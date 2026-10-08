@@ -6029,5 +6029,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "changePassword": "Modifier le mot de passe",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -3048,5 +3048,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "changePassword": "تغيير كلمة المرور",
+  "@changePassword": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }
