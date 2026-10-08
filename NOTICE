@@ -12,9 +12,10 @@ Modified by Redfluent on 2026-10-08 and 2026-10-09 (first commit of this reposit
 unmodified upstream v0.39.3 tree; the following commits = Redfluent's changes). The changes
 are branding (2026-10-08) and, on 2026-10-09, a Simplified Chinese language option, English as
 the default language, a "Change password" link and translation fixes, (rf3) removal of
-the unused banner-text script and more "Change password" translations, and (rf4) self-hosted
-fallback fonts (Noto, SIL Open Font License 1.1, web/fonts/) and more Chinese translations; see
-README.md, section "Changes from upstream".
+the unused banner-text script and more "Change password" translations, (rf4) self-hosted
+fallback fonts (Noto, SIL Open Font License 1.1, web/fonts/) and more Chinese translations, and
+(rf5) the Redfluent name of the "download all attachments" zip file; see README.md, section
+"Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
 WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.

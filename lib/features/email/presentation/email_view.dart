@@ -613,7 +613,7 @@ class EmailView extends GetWidget<SingleEmailController> {
           showDownloadAllAttachmentsButton: controller.downloadAllButtonIsEnabled(),
           onTapDownloadAllButton: () =>
               controller.handleDownloadAllAttachmentsAction(
-                'TwakeMail-${DateTime.now()}',
+                'RedfluentMail-${DateTime.now()}',
               ),
           singleEmailControllerTag: tag,
         );
