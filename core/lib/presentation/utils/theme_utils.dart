@@ -8,6 +8,7 @@ class ThemeUtils {
   ThemeUtils._();
 
   static ThemeData buildAppTheme(BuildContext context) {
+    _useAppFontFallbackInDesignSystem();
     return ThemeData(
       scaffoldBackgroundColor: Colors.white,
       fontFamily: _designSystemFontFamily,
@@ -28,8 +29,22 @@ class ThemeUtils {
 
   /// Resolved from the design system rather than named here, so that changing
   /// the font in `linagora_design_flutter` is enough to change it in the app.
-  static final String? _designSystemFontFamily =
-      LinagoraTextTheme.material().bodyMedium?.fontFamily;
+  static final String? _designSystemFontFamily = () {
+    _useAppFontFallbackInDesignSystem();
+    return LinagoraTextTheme.material().bodyMedium?.fontFamily;
+  }();
+
+  /// Redfluent Mail (rf6): every design system text style carries the app's
+  /// fallback chain, [ConstantsUI.fontFamilyFallback] (families bundled in
+  /// pubspec.yaml). Text the design system draws by itself (sidebar, Compose
+  /// button, version label...) then finds Chinese, Arabic, emoji... in the
+  /// bundled fonts on its first frame instead of waiting for the web engine's
+  /// glyph fallback (boxes until a font slice is downloaded). The design
+  /// system builds its styles once, so this runs before anything here reads
+  /// them; setting the same list again does nothing.
+  static void _useAppFontFallbackInDesignSystem() {
+    LinagoraTextTheme.fontFamilyFallback = ConstantsUI.fontFamilyFallback;
+  }
 
   static final TextTheme _textTheme = _buildTextTheme();
 

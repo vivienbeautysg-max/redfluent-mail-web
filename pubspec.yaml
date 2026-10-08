@@ -322,10 +322,11 @@ dependency_overrides:
       url: https://github.com/linagora/jmap-dart-client.git
       ref: main
 
+  # Redfluent Mail (rf6): upstream at the commit Twake Mail v0.39.3 resolved (0d402e4) plus
+  # patchs/linagora_design_flutter-font-fallback.patch, materialised by
+  # scripts/prepare_design_system.sh (run by scripts/prebuild.sh).
   linagora_design_flutter:
-    git:
-      url: https://github.com/linagora/linagora-design-flutter.git
-      ref: master
+    path: third_party/linagora_design_flutter
 
   ### Original dependency is abandoned, so we use fork
   intl_generator:

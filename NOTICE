@@ -13,9 +13,15 @@ unmodified upstream v0.39.3 tree; the following commits = Redfluent's changes). 
 are branding (2026-10-08) and, on 2026-10-09, a Simplified Chinese language option, English as
 the default language, a "Change password" link and translation fixes, (rf3) removal of
 the unused banner-text script and more "Change password" translations, (rf4) self-hosted
-fallback fonts (Noto, SIL Open Font License 1.1, web/fonts/) and more Chinese translations, and
-(rf5) the Redfluent name of the "download all attachments" zip file; see README.md, section
-"Changes from upstream".
+fallback fonts (Noto, SIL Open Font License 1.1, web/fonts/) and more Chinese translations,
+(rf5) the Redfluent name of the "download all attachments" zip file, and (rf6) Chinese drawn
+without waiting for fonts: a patch to LINAGORA's linagora-design-flutter package
+(patchs/linagora_design_flutter-font-fallback.patch, applied at build time by
+scripts/prepare_design_system.sh to upstream commit 0d402e4f5a371cd88fb1a0671e2c7d902aaa2918;
+the package itself is not included here) and a subset of the bundled Noto Sans SC
+(assets/fonts/fallback/NotoSansSC-Regular.ttf, SIL Open Font License 1.1, made by
+scripts/subset_noto_sans_sc.py; its copyright and license name records are kept); see
+README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
 WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.

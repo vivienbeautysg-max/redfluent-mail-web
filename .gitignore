@@ -126,3 +126,7 @@ test-results
 
 # Browser libs downloaded by scripts/fetch-web-vendor.sh
 /web/js/vendor/
+
+# Redfluent Mail (rf6): the patched design system, made by scripts/prepare_design_system.sh
+/third_party/linagora_design_flutter/
+/third_party/linagora_design_flutter.new/

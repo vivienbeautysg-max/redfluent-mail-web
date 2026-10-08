@@ -3,6 +3,9 @@
 set -e
 echo "Prebuild started..."
 
+# Redfluent Mail (rf6): the patched design system package (pubspec.yaml dependency_overrides)
+bash "$(dirname "$0")/prepare_design_system.sh"
+
 # Single pub get resolves the entire workspace (Dart pub workspaces)
 flutter pub get > /dev/null
 echo "[workspace] pub get done."
