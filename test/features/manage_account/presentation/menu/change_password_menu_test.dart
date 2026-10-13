@@ -18,7 +18,9 @@ import 'package:tmail_ui_user/features/manage_account/presentation/menu/settings
 import 'package:tmail_ui_user/features/manage_account/presentation/model/account_menu_item.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations_delegate.dart';
 import 'package:tmail_ui_user/main/localizations/localization_service.dart';
+import 'package:tmail_ui_user/main/universal_import/html_stub.dart' as html;
 import 'package:tmail_ui_user/main/utils/app_config.dart';
+import 'package:tmail_ui_user/main/utils/app_utils.dart';
 import 'package:tmail_ui_user/main/utils/twake_app_manager.dart';
 // ignore: depend_on_referenced_packages
 import 'package:url_launcher_platform_interface/link.dart';
@@ -207,6 +209,28 @@ void main() {
 
       expect(find.text('Change password'), findsNothing);
       expect(find.text('Sign out'), findsOneWidget);
+    });
+  });
+
+  group('Signed-in address handed to the password page (rf8):', () {
+    String? stored() => html.window.sessionStorage[AppUtils.changePasswordEmailKey];
+
+    setUp(() => html.window.sessionStorage.remove(AppUtils.changePasswordEmailKey));
+
+    test('the address goes into sessionStorage, never into the URL', () async {
+      await AppUtils.openChangePasswordPage(' alice@example.com ');
+      expect(stored(), 'alice@example.com');
+      expectSameTabPasswordPage();
+      expect(launcher.launches.single.url, isNot(contains('example.com')));
+    });
+
+    test('no address or not an address: nothing stale is left for the page', () async {
+      for (final email in [null, '', 'Max Gao', 'max@localhost']) {
+        html.window.sessionStorage[AppUtils.changePasswordEmailKey] = 'old@example.com';
+        await AppUtils.openChangePasswordPage(email);
+        expect(stored(), isNull, reason: '$email');
+      }
+      expect(launcher.launches, hasLength(4));
     });
   });
 }

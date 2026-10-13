@@ -243,7 +243,10 @@ class SettingsFirstLevelView extends GetWidget<SettingsController> {
               context: context,
               menuItem: AccountMenuItem.changePassword,
               appLocalizations: appLocalizations,
-              onActionCallback: AppUtils.openChangePasswordPage,
+              onActionCallback: () => AppUtils.openChangePasswordPage(controller
+                .manageAccountDashboardController
+                .sessionCurrent
+                ?.getOwnEmailAddressOrEmpty()),
             ),
           ],
         divider,

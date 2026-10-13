@@ -1,0 +1,3 @@
+# Redfluent Mail: the Dockerfile copies the whole checkout (COPY . .) and runs scripts/prebuild.sh,
+# which makes third_party/ itself. A host copy (with its lock or a half-built tree) must not reach the image.
+third_party/

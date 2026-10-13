@@ -35,9 +35,24 @@ class AppUtils {
     }
   }
 
+  /// sessionStorage key read by the password page (/account/password/app.js).
+  static const String changePasswordEmailKey = 'rf-pw-email';
+
   /// Same tab on purpose: the password page links back to the webmail, and
   /// after a change the webmail's saved credentials are stale anyway.
-  static Future<bool> openChangePasswordPage() {
+  /// The signed-in address goes along in this tab's sessionStorage (never in
+  /// the URL), so the page opens with it filled in.
+  static Future<bool> openChangePasswordPage([String? email]) {
+    final address = email?.trim() ?? '';
+    try {
+      if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(address)) {
+        html.window.sessionStorage[changePasswordEmailKey] = address;
+      } else {
+        html.window.sessionStorage.remove(changePasswordEmailKey);
+      }
+    } catch (e) {
+      logWarning('AppUtils::openChangePasswordPage: sessionStorage not available: $e');
+    }
     return launchUrl(
       AppConfig.changePasswordUri(),
       webOnlyWindowName: '_self',

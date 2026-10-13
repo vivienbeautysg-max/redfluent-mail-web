@@ -6,6 +6,7 @@ import 'package:core/utils/direction_utils.dart';
 import 'package:core/utils/platform_info.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:model/extensions/session_extension.dart';
 import 'package:tmail_ui_user/features/home/domain/extensions/session_extensions.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/model/profile_setting/profile_setting_action_type.dart';
 import 'package:tmail_ui_user/features/manage_account/presentation/extensions/handle_profile_setting_action_type_click_extension.dart';
@@ -146,7 +147,10 @@ class ManageAccountMenuView extends GetWidget<ManageAccountMenuController> {
                    top: 4,
                  ),
                  onSelectAccountMenuItemAction: (_) =>
-                     AppUtils.openChangePasswordPage(),
+                     AppUtils.openChangePasswordPage(controller
+                       .dashBoardController
+                       .sessionCurrent
+                       ?.getOwnEmailAddressOrEmpty()),
                ),
              AccountMenuItemTileBuilder(
                imagePaths: controller.imagePaths,

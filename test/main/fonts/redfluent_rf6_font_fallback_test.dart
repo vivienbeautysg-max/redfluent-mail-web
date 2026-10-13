@@ -34,7 +34,8 @@ import 'package:tmail_ui_user/main/localizations/localization_service.dart';
 /// rf6 gives every design-system style the app's bundled fallback chain
 /// (ConstantsUI.webFontFamilyFallback, NotoSansSC before NotoSansKR), set by ThemeUtils.buildAppTheme.
 /// rf7: the chain is checked against the bundled families, the NotoSansSC subset against the whole of
-/// GB2312, and a late fallback change only throws in debug/profile builds. Every test sets up what it
+/// GB2312 and the 253 Big5 level-1 characters rf7 added (test/main/fonts/big5_level1_rf7.txt), and a
+/// late fallback change only throws in debug/profile builds. Every test sets up what it
 /// needs, so each one also passes when run alone.
 void main() {
   group('rf6: design-system text styles carry the bundled fallback chain', () {
@@ -62,7 +63,7 @@ void main() {
   });
 
   group('rf6/rf7: the bundled NotoSansSC subset', () {
-    test('maps every zh_Hans UI character and every GB2312 character, and is not upstream\'s 10.5 MB file', () {
+    test('maps every zh_Hans UI, GB2312 and rf7 Big5 character, and is not upstream\'s 10.5 MB file', () {
       final font = File('assets/fonts/fallback/NotoSansSC-Regular.ttf').readAsBytesSync();
       final cmap = _cmap(font);
       final arb = jsonDecode(File('lib/l10n/intl_zh_Hans.arb').readAsStringSync()) as Map<String, dynamic>;
@@ -75,14 +76,19 @@ void main() {
       // GB2312 as Python's gb2312 codec decodes it, one line per GB2312 row (scripts/subset_noto_sans_sc.py).
       final gb2312 = File('test/main/fonts/gb2312.txt').readAsStringSync().runes.where((r) => r != 0x0A).toSet();
       final missingGb2312 = [for (final r in gb2312) if (!cmap.contains(r)) String.fromCharCode(r)];
+      // rf7: the Big5 level-1 characters outside GB2312 that no other bundled font draws and the subset
+      // newly keeps, as scripts/subset_noto_sans_sc.py listed them: drawn at once, never a box first.
+      final big5 = File('test/main/fonts/big5_level1_rf7.txt').readAsStringSync().runes.where((r) => r != 0x0A).toSet();
+      final missingBig5 = [for (final r in big5) if (!cmap.contains(r)) String.fromCharCode(r)];
       // ignore: avoid_print
       print('RF6-SUBSET bytes=${font.length} codePoints=${cmap.length} uiCharsMissing=${missing.length} '
-          'gb2312=${gb2312.length} gb2312Missing=${missingGb2312.length}');
+          'gb2312=${gb2312.length} gb2312Missing=${missingGb2312.length} '
+          'big5=${big5.length} big5Missing=${missingBig5.length}');
       expect(gb2312.length, 7445, reason: 'test/main/fonts/gb2312.txt must hold the whole GB2312 set');
       expect(missing, isEmpty, reason: 'zh_Hans UI characters the bundled NotoSansSC cannot draw');
       expect(missingGb2312, isEmpty, reason: 'GB2312 characters the bundled NotoSansSC cannot draw');
-      // rf7: common Traditional characters no other bundled font has (Big5 level 1) are drawn at once.
-      expect(cmap.containsAll('妳夠嗎啟'.runes), isTrue, reason: 'rf7 Big5 level-1 characters are gone');
+      expect(big5.length, 253, reason: 'test/main/fonts/big5_level1_rf7.txt must hold the 253 rf7 characters');
+      expect(missingBig5, isEmpty, reason: 'rf7 Big5 level-1 characters the bundled NotoSansSC cannot draw');
       expect(font.length, lessThan(8 * 1024 * 1024), reason: 'upstream\'s full 10.5 MB NotoSansSC is back');
     });
   });
