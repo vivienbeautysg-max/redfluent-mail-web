@@ -8,7 +8,7 @@ Upstream:   Twake Mail (tmail-flutter) by LINAGORA and contributors
             tag v0.39.3, commit a64d63305553697e0df3d03609cb8d88f1dacc9d
 License:    GNU Affero General Public License v3.0 (see LICENSE, unchanged from upstream)
 
-Modified by Redfluent on 2026-10-08, 2026-10-09 and 2026-10-13 (first commit of this repository = the
+Modified by Redfluent on 2026-10-08, 2026-10-09, 2026-10-13 and 2026-10-20 (first commit of this repository = the
 unmodified upstream v0.39.3 tree; the following commits = Redfluent's changes). The changes
 are branding (2026-10-08) and, on 2026-10-09, a Simplified Chinese language option, English as
 the default language, a "Change password" link and translation fixes, (rf3) removal of
@@ -21,8 +21,9 @@ scripts/prepare_design_system.sh to upstream commit 0d402e4f5a371cd88fb1a0671e2c
 the package itself is not included here) and a subset of the bundled Noto Sans SC
 (assets/fonts/fallback/NotoSansSC-Regular.ttf, SIL Open Font License 1.1, made by
 scripts/subset_noto_sans_sc.py; its copyright and license name records are kept), and (rf7)
-common Traditional Chinese characters added to that subset, and (rf8) the signed-in
-address handed to the "Change password" page; see README.md, section "Changes
+common Traditional Chinese characters added to that subset, (rf8) the signed-in
+address handed to the "Change password" page, and (rf9) the sign-in page's privacy link
+opening the Redfluent Mail privacy policy on the webmail's own host; see README.md, section "Changes
 from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed

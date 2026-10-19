@@ -7,9 +7,10 @@ import 'package:tmail_ui_user/main/utils/app_config.dart';
 import 'package:tmail_ui_user/main/utils/app_utils.dart';
 
 class PrivacyLinkWidget extends StatelessWidget {
-  final String privacyUrlString;
+  /// null: the privacy policy on this webmail's own host ([AppConfig.privacyPolicyUrl]).
+  final String? privacyUrlString;
 
-  const PrivacyLinkWidget({Key? key, this.privacyUrlString = AppConfig.linagoraPrivacyUrl}) : super(key: key);
+  const PrivacyLinkWidget({Key? key, this.privacyUrlString}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,8 @@ class PrivacyLinkWidget extends StatelessWidget {
             style: ThemeUtils.defaultTextStyleInterFont.copyWith(
               color: AppColor.loginTextFieldFocusedBorder,
               fontSize: 14),
-            recognizer: TapGestureRecognizer()..onTap = () => AppUtils.launchLink(privacyUrlString)
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => AppUtils.launchLink(privacyUrlString ?? AppConfig.privacyPolicyUrl())
           )
         )
       ],

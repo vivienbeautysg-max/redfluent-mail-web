@@ -16,7 +16,10 @@ class AppConfig {
   static const String iOSKeychainSharingGroupId = 'KUT463DS29.com.linagora.ios.teammail.shared';
   static const String iOSKeychainSharingService = 'com.linagora.ios.teammail.sessions';
   static const String saasPlatform = 'saas';
-  static const String linagoraPrivacyUrl = 'https://www.redfluent.com/privacy';
+  /// Redfluent Mail's privacy policy where there is no webmail host (the mobile apps' welcome page).
+  static const String linagoraPrivacyUrl = 'https://mail.redfluent.com/legal/privacy/';
+  /// Privacy policy page, served by the gateway on every webmail host (mail.redfluent.com, mail.<customer domain>).
+  static const String privacyPolicyPath = '/legal/privacy/';
   static const String sourceCodeUrl = 'https://github.com/vivienbeautysg-max/redfluent-mail-web';
   /// Self-service password page, served by the gateway on the webmail's own origin.
   static const String changePasswordPath = '/account/password/';
@@ -24,6 +27,24 @@ class AppConfig {
   static const String saasJmapServerUrl = 'https://jmap.twake.app';
 
   static Uri changePasswordUri([Uri? base]) => (base ?? Uri.base).resolve(changePasswordPath);
+
+  /// The privacy policy on the webmail's own origin, so a customer's staff stay on mail.<their domain>;
+  /// [linagoraPrivacyUrl] when the page has no http(s) host (mobile apps, VM tests).
+  static String privacyPolicyUrl([Uri? base]) {
+    final page = base ?? _currentPage();
+    if (page == null || !(page.isScheme('https') || page.isScheme('http')) || page.host.isEmpty) {
+      return linagoraPrivacyUrl;
+    }
+    return page.resolve(privacyPolicyPath).toString();
+  }
+
+  static Uri? _currentPage() {
+    try {
+      return Uri.base;
+    } catch (_) {
+      return null;
+    }
+  }
 
   static String get baseUrl => dotenv.get('SERVER_URL', fallback: '');
   static String get domainRedirectUrl => dotenv.get('DOMAIN_REDIRECT_URL', fallback: '');
