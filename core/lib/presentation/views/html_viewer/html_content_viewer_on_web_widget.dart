@@ -55,6 +55,11 @@ class HtmlContentViewerOnWeb extends StatefulWidget {
   final bool useLinkTooltipOverlay;
   final IframeTooltipOptions? iframeTooltipOptions;
 
+  /// cid -> data: URI of the pictures of the inline-image placeholders of [contentHtml] that have arrived, and the
+  /// cids whose picture could not be fetched. New entries are handed to the open document (no reload).
+  final Map<String, String> inlineImageSources;
+  final Set<String> failedInlineImages;
+
   const HtmlContentViewerOnWeb({
     Key? key,
     required this.contentHtml,
@@ -81,10 +86,20 @@ class HtmlContentViewerOnWeb extends StatefulWidget {
     this.onIFrameKeyboardShortcutAction,
     this.onIFrameClickAction,
     this.iframeTooltipOptions,
+    this.inlineImageSources = const {},
+    this.failedInlineImages = const {},
   }) : super(key: key);
 
   @override
   State<HtmlContentViewerOnWeb> createState() => _HtmlContentViewerOnWebState();
+
+  static final RegExp _inlineImageSource =
+      RegExp(r'^data:image/(?:png|jpeg|gif|webp|bmp);base64,[A-Za-z0-9+/]+={0,2}$');
+
+  /// The only kind of source an inline-image placeholder is given: a base64 data: URI of a raster image type
+  /// (png, jpeg, gif, webp, bmp), never svg. The document's script checks the same rule again.
+  @visibleForTesting
+  static bool isInlineImageSource(String source) => _inlineImageSource.hasMatch(source);
 
   /// Returns true when [scrollHeightWithBuffer] should become the new iframe
   /// height. Returns false when it already equals [currentActualHeight]
@@ -119,6 +134,9 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
   late double minHeight;
   late final StreamSubscription<html.MessageEvent> _onMessageSubscription;
   bool _iframeLoaded = false;
+  bool _inlineImagesReady = false;
+  final Set<String> _postedInlineImages = {};
+  final Set<String> _postedFailedImages = {};
   static const String iframeOnLoadMessage = 'iframeHasBeenLoaded';
   static const String onClickHyperLinkName = 'onClickHyperLink';
   static const String onScrollChangedEvent = 'onScrollChanged';
@@ -171,6 +189,8 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
 
       if (data['message'] == iframeOnLoadMessage) {
         _iframeLoaded = true;
+        _inlineImagesReady = true;
+        _postInlineImages();
       }
       if (!_iframeLoaded) return;
 
@@ -395,6 +415,7 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
         widget.direction != oldWidget.direction) {
       _setUpWeb();
     }
+    _postInlineImages();
 
     if (widget.heightContent != oldWidget.heightContent) {
       _actualHeight = widget.heightContent;
@@ -406,6 +427,26 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
   }
 
 
+
+  /// Hands the pictures that arrived since the last call to the open document, once it has loaded. Each picture is
+  /// posted once; a document that is set up again (new content) gets all of them again when it has loaded.
+  void _postInlineImages() {
+    if (!_inlineImagesReady) return;
+    widget.inlineImageSources.forEach((cid, source) {
+      if (_postedInlineImages.contains(cid) || !HtmlContentViewerOnWeb.isInlineImageSource(source)) return;
+      _postedInlineImages.add(cid);
+      _postToDocument({'type': 'toIframe: inlineImageLoaded', 'cid': cid, 'src': source});
+    });
+    for (final cid in widget.failedInlineImages) {
+      if (_postedFailedImages.add(cid)) {
+        _postToDocument({'type': 'toIframe: inlineImageFailed', 'cid': cid});
+      }
+    }
+  }
+
+  void _postToDocument(Map<String, dynamic> message) {
+    html.window.postMessage(json.encode({'view': _createdViewId, ...message}), '*');
+  }
 
   String _generateHtmlDocument(String content) {
     final webViewActionScripts = '''
@@ -521,6 +562,7 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
         : content;
 
     final combinedCss = [
+      HtmlTemplate.inlineImagePlaceholderCSS,
       if (widget.enableQuoteToggle) HtmlUtils.quoteToggleStyle,
       if (widget.disableScrolling) HtmlTemplate.disableScrollingStyleCSS,
     ].join();
@@ -530,6 +572,7 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
       HtmlInteraction.scriptsDisableZoom,
       HtmlInteraction.scriptsHandleLazyLoadingBackgroundImage,
       HtmlInteraction.generateNormalizeImageScript(widget.widthContent),
+      HtmlInteraction.scriptsSwapInlineImages(_createdViewId),
       if (widget.enableQuoteToggle) HtmlUtils.quoteToggleScript,
       if (widget.scrollController != null)
         PlatformInfo.isWebTouchDevice
@@ -567,6 +610,9 @@ class _HtmlContentViewerOnWebState extends State<HtmlContentViewerOnWeb>
 
   void _setUpWeb() {
     _createdViewId = HtmlUtils.getRandString(10);
+    _inlineImagesReady = false;
+    _postedInlineImages.clear();
+    _postedFailedImages.clear();
     _htmlData = _generateHtmlDocument(widget.contentHtml);
 
     _webInit = Future.value(true);

@@ -283,8 +283,10 @@ void main() {
       expect(identical(success.emailCurrent, fetched), isTrue);
     });
 
-    test('the email view asks: layouts other than 1-5 give exactly what they give without it', () async {
-      for (final key in mimeUnchangedLayouts) {
+    test('the email view asks: layouts other than 1-5 and 15 give exactly what they give without it', () async {
+      // layout 15 (no disposition + cid) is no longer listed under the attachments as well since rf13 (the dedupe
+      // of the view, see get_email_content_interactor_deferred_images_test.dart)
+      for (final key in mimeUnchangedLayouts.where((key) => key != 'outlook_signature')) {
         final fetched = loadMimeFixture(key);
         clearInteractions(mockEmailRepository);
         final plain = await run(fetched);

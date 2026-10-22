@@ -13,7 +13,25 @@ import 'package:html/dom.dart';
 
 class ImageTransformer extends DomTransformer {
 
-  const ImageTransformer();
+  /// An inline (cid:) image that is fetched after the text is shown carries its cid here and a state
+  /// (pending, loaded, failed) in [stateAttribute]; the web viewer swaps the picture in when it arrives.
+  static const String cidAttribute = 'data-rf-cid';
+  static const String stateAttribute = 'data-rf-state';
+
+  /// The aspect ratio (`width / height`) of a placeholder whose image declares both a width and a height, so that the
+  /// box has the shape of the picture to come; the viewer's script applies it and removes it when the picture arrives.
+  static const String ratioAttribute = 'data-rf-ratio';
+
+  /// What a pending inline image shows until its picture arrives: a transparent 1x1 GIF (the viewer's style sheet
+  /// draws the calm placeholder box).
+  static const String placeholderSrc =
+      'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+  /// true: a cid: image is not fetched here, it becomes a placeholder (see [cidAttribute]) and its picture is
+  /// fetched by the caller. false: fetched here and inlined as a data: URI, as before.
+  final bool deferCidImages;
+
+  const ImageTransformer({this.deferCidImages = false});
 
   @override
   Future<void> process({
@@ -27,12 +45,33 @@ class ImageTransformer extends DomTransformer {
       if (imageElements.isEmpty) return;
 
       await Future.wait(imageElements.map((imageElement) async {
+        if (deferCidImages) {
+          // the email's own markup must not be able to look like one of our placeholders
+          imageElement.attributes.remove(cidAttribute);
+          imageElement.attributes.remove(stateAttribute);
+          imageElement.attributes.remove(ratioAttribute);
+        }
+
         final src = imageElement.attributes['src'];
 
         if (src == null) return;
 
         final id = imageElement.attributes['id'] ?? '';
         final mimeType = imageElement.attributes['data-mimetype'];
+        if (src.startsWith('cid:') && deferCidImages) {
+          imageElement.attributes[cidAttribute] = src.replaceFirst('cid:', '').trim();
+          imageElement.attributes[stateAttribute] = 'pending';
+          final width = double.tryParse(imageElement.attributes['width'] ?? '');
+          final height = double.tryParse(imageElement.attributes['height'] ?? '');
+          if (width != null && height != null && width > 0 && height > 0) {
+            imageElement.attributes[ratioAttribute] = '$width / $height';
+          }
+          imageElement.attributes['src'] = placeholderSrc;
+          if (!id.startsWith('cid:')) {
+            imageElement.attributes['id'] = src;
+          }
+          return;
+        }
         if (src.startsWith('cid:') && mapUrlDownloadCID != null) {
           final imageBase64 = await _convertCidToBase64Image(
             dioClient: dioClient,

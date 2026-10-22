@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:jmap_dart_client/jmap/mail/email/email.dart';
 
-/// Layouts whose htmlBody has no non-text part, so the email view shows them as before (rf12).
+/// Layouts whose htmlBody has no non-text part and that name no photo by its Content-Location, so the email view
+/// shows them as before (rf12). content_location is not among them since rf13 (its photo is drawn from its location).
 const mimeUnchangedLayouts = [
   'apple_inline_pdf',
   'attachment_photo',
   'calendar_invite',
-  'content_location',
   'data_uri',
   'forwarded_rfc822',
   'gmail_inline',

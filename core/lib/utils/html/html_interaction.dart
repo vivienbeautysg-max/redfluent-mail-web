@@ -1,5 +1,61 @@
 
 class HtmlInteraction {
+
+  /// The only way a picture gets into an inline-image placeholder of the email view. The web viewer posts
+  /// `toIframe: inlineImageLoaded` (cid + a data: URI) or `toIframe: inlineImageFailed` (cid); this script
+  /// accepts a data: URI only for png, jpeg, gif, webp and bmp (never svg), matches the image by its
+  /// data-rf-cid attribute (a string comparison, no selector built from the message) and sets nothing but the
+  /// img's src property and its data-rf-state attribute. It starts no request and runs no markup.
+  static String scriptsSwapInlineImages(String viewId) => _swapInlineImagesTemplate.replaceAll('__VIEW_ID__', viewId);
+
+  static const String _swapInlineImagesTemplate = r'''
+    <script type="text/javascript">
+      (function () {
+        var viewId = '__VIEW_ID__';
+        var allowedSource = /^data:image\/(?:png|jpeg|gif|webp|bmp);base64,[A-Za-z0-9+\/]+={0,2}$/;
+        var ratio = /^[0-9]+(?:\.[0-9]+)? \/ [0-9]+(?:\.[0-9]+)?$/;
+        var shaped = document.querySelectorAll('img[data-rf-ratio]');
+        for (var k = 0; k < shaped.length; k++) {
+          var wanted = shaped[k].getAttribute('data-rf-ratio');
+          if (ratio.test(wanted)) shaped[k].style.aspectRatio = wanted;
+        }
+        function imagesOf(cid) {
+          var found = [];
+          var all = document.querySelectorAll('img[data-rf-cid]');
+          for (var i = 0; i < all.length; i++) {
+            if (all[i].getAttribute('data-rf-cid') === cid) found.push(all[i]);
+          }
+          return found;
+        }
+        function onMessage(e) {
+          if (!e || typeof e.data !== 'string' || e.data.indexOf('toIframe: inlineImage') < 0) return;
+          var data;
+          try { data = JSON.parse(e.data); } catch (error) { return; }
+          if (!data || data.view !== viewId || typeof data.cid !== 'string') return;
+          var targets = imagesOf(data.cid);
+          if (data.type === 'toIframe: inlineImageLoaded') {
+            if (typeof data.src !== 'string' || !allowedSource.test(data.src)) return;
+            for (var i = 0; i < targets.length; i++) {
+              targets[i].src = data.src;
+              targets[i].setAttribute('data-rf-state', 'loaded');
+              targets[i].style.removeProperty('aspect-ratio');
+            }
+          } else if (data.type === 'toIframe: inlineImageFailed') {
+            for (var j = 0; j < targets.length; j++) {
+              targets[j].setAttribute('data-rf-state', 'failed');
+            }
+          } else {
+            return;
+          }
+          window.parent.postMessage(JSON.stringify({"view": viewId, "type": "toIframe: getHeight"}), "*");
+        }
+        window.parent.addEventListener('message', onMessage, false);
+        window.addEventListener('pagehide', function () {
+          window.parent.removeEventListener('message', onMessage, false);
+        });
+      })();
+    </script>
+  ''';
   static const String scrollRightEndAction = 'ScrollRightEndAction';
   static const String scrollLeftEndAction = 'ScrollLeftEndAction';
   static const String scrollEventJSChannelName = 'ScrollEventListener';

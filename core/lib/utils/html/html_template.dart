@@ -334,6 +334,28 @@ class HtmlTemplate {
     }
   ''';
 
+  /// A pending inline image is a calm neutral box (a transparent GIF with this background), a failed one the same
+  /// box with a picture glyph; a loaded one is not styled at all. An image that has its own width/height keeps them.
+  static const String inlineImagePlaceholderCSS = '''
+    img[data-rf-cid]:not([data-rf-state="loaded"]) {
+      background-color: #EEF1F5;
+      border-radius: 10px;
+    }
+    img[data-rf-cid]:not([data-rf-state="loaded"]):not([width]):not([height]) {
+      display: block;
+      box-sizing: border-box;
+      width: min(100%, 360px);
+      aspect-ratio: 4 / 3;
+      height: auto;
+    }
+    img[data-rf-cid][data-rf-state="failed"] {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239AA3AE' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='3'/%3E%3Ccircle cx='9' cy='10' r='1.6'/%3E%3Cpath d='M4 18l5-5 4 4 3-3 4 4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 40px 40px;
+    }
+  ''';
+
   static const String disableScrollingStyleCSS = '''
     html, body {
       overflow: hidden;

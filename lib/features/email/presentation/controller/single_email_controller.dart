@@ -221,6 +221,10 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
   void handleSuccessViewState(Success success) {
     if (success is GetEmailContentSuccess) {
       _getEmailContentSuccess(success);
+    } else if (success is GetEmailContentInlineImageSuccess) {
+      _inlineImageArrived(success);
+    } else if (success is GetEmailContentInlineImageFailed) {
+      _inlineImageFailed(success);
     } else if (success is GetEmailContentFromCacheSuccess) {
       _getEmailContentOfflineSuccess(success);
     } else if (success is MarkAsEmailReadSuccess) {
@@ -485,10 +489,12 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     if (_currentEmailId != null && _threadDetailController?.cachedEmailLoaded[_currentEmailId] != null) {
       final emailLoaded = _threadDetailController!.cachedEmailLoaded[_currentEmailId]!;
       consumeState(Stream.value(Right(GetEmailContentFromThreadCacheSuccess(
-        htmlEmailContent: emailLoaded.htmlContent,
+        htmlEmailContent: emailLoaded.displayHtml,
         emailCurrent: emailLoaded.emailCurrent,
         attachments: emailLoaded.attachments,
         inlineImages: emailLoaded.inlineImages,
+        inlineImageSources: emailLoaded.inlineImageSources,
+        failedInlineImages: emailLoaded.failedInlineImages,
       ))));
       return;
     }
@@ -507,6 +513,7 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
           baseDownloadUrl,
           transformConfiguration,
           showInlinePhotos: true,
+          deferInlineImages: PlatformInfo.isWeb,
         ));
       } catch (e) {
         logWarning('SingleEmailController::_getEmailContentAction(): $e');
@@ -523,6 +530,7 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
                   ? TransformConfiguration.forPreviewEmailOnWeb()
                   : TransformConfiguration.forPreviewEmail(),
                 showInlinePhotos: true,
+                deferInlineImages: PlatformInfo.isWeb,
               ),
         ))));
       }
@@ -569,6 +577,43 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     }
   }
 
+  /// The picture of an inline image of the open email arrived: the view hands it to the open document.
+  void _inlineImageArrived(GetEmailContentInlineImageSuccess success) {
+    final loaded = currentEmailLoaded.value;
+    if (loaded == null || loaded.emailCurrent?.id != success.emailId) return;
+    _updateEmailLoaded(loaded.copyWith(
+      inlineImageSources: {...loaded.inlineImageSources, success.cid: success.source},
+    ));
+  }
+
+  /// An inline image could not be fetched: its placeholder shows a neutral box and the image is listed under the
+  /// attachments, where it can be downloaded.
+  void _inlineImageFailed(GetEmailContentInlineImageFailed failed) {
+    final loaded = currentEmailLoaded.value;
+    if (loaded == null || loaded.emailCurrent?.id != failed.emailId) return;
+    final image = loaded.inlineImages.firstWhereOrNull((item) => item.cid == failed.cid);
+    final listed = image == null || loaded.attachments.any((item) => item.blobId == image.blobId)
+        ? loaded.attachments
+        : [...loaded.attachments, image];
+    if (image?.blobId != null) {
+      attachmentsViewState[image!.blobId!] = Right(IdleDownloadAttachmentForWeb());
+    }
+    attachments.value = listed;
+    _updateEmailLoaded(loaded.copyWith(
+      attachments: listed,
+      failedInlineImages: {...loaded.failedInlineImages, failed.cid},
+    ));
+  }
+
+  void _updateEmailLoaded(EmailLoaded updated) {
+    currentEmailLoaded.value = updated;
+    _threadDetailController?.currentEmailLoaded.value = updated;
+    final emailId = currentEmail?.id;
+    if (!PlatformInfo.isMobile && emailId != null && !updated.hasPendingInlineImages) {
+      _threadDetailController?.cacheEmailLoaded(emailId, updated);
+    }
+  }
+
   void _getEmailContentSuccess(GetEmailContentSuccess success) {
     emailLoadedViewState.value = Right<Failure, Success>(success);
 
@@ -577,6 +622,8 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
       attachments: List.of(success.attachments ?? []),
       inlineImages: List.of(success.inlineImages ?? []),
       emailCurrent: success.emailCurrent,
+      inlineImageSources: success is GetEmailContentFromThreadCacheSuccess ? success.inlineImageSources : const {},
+      failedInlineImages: success is GetEmailContentFromThreadCacheSuccess ? success.failedInlineImages : const {},
     );
     _threadDetailController?.currentEmailLoaded.value = currentEmailLoaded.value;
 
@@ -615,7 +662,10 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
           accountId,
           detailedEmail
         );
-      } else if (currentEmail?.id != null && currentEmailLoaded.value != null) {
+      } else if (currentEmail?.id != null &&
+          currentEmailLoaded.value != null &&
+          !currentEmailLoaded.value!.hasPendingInlineImages) {
+        // an email whose pictures are still arriving is cached when the last one is in (_updateEmailLoaded)
         _threadDetailController?.cacheEmailLoaded(
           currentEmail!.id!,
           currentEmailLoaded.value!,
@@ -1259,7 +1309,7 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
 
   void _handleParseCalendarEventFailure(ParseCalendarEventFailure failure) {
     emailLoadedViewState.value = Left<Failure, Success>(failure);
-    emailContents.value = currentEmailLoaded.value?.htmlContent;
+    emailContents.value = currentEmailLoaded.value?.displayHtml;
   }
 
   void openNewTabAction(String link) {

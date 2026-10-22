@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:core/core.dart';
+import 'package:core/presentation/utils/html_transformer/dom/image_transformers.dart';
 import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide State;
@@ -18,6 +19,7 @@ import 'package:jmap_dart_client/jmap/mail/calendar/calendar_event.dart';
 import 'package:jmap_dart_client/jmap/mail/email/email.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:model/email/attachment.dart';
 import 'package:model/email/presentation_email.dart';
 import 'package:tmail_ui_user/features/caching/caching_manager.dart';
 import 'package:tmail_ui_user/features/download/presentation/controllers/download_controller.dart';
@@ -40,6 +42,7 @@ import 'package:tmail_ui_user/features/email/domain/usecases/store_opened_email_
 import 'package:tmail_ui_user/features/email/presentation/action/email_ui_action.dart';
 import 'package:tmail_ui_user/features/email/presentation/controller/single_email_controller.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/blob_calendar_event.dart';
+import 'package:tmail_ui_user/features/email/presentation/model/email_loaded.dart';
 import 'package:tmail_ui_user/features/login/data/network/interceptors/authorization_interceptors.dart';
 import 'package:tmail_ui_user/features/login/domain/usecases/delete_authority_oidc_interactor.dart';
 import 'package:tmail_ui_user/features/login/domain/usecases/delete_credential_interactor.dart';
@@ -516,6 +519,112 @@ void main() {
       Get.delete<SingleEmailController>();
     },
   );
+
+  group('inline images arriving after the text (rf13):', () {
+    final emailId = EmailId(Id('open-email'));
+    final logo = Attachment(blobId: Id('blob-logo'), cid: 'logo@x', name: 'logo.png');
+    final photo = Attachment(blobId: Id('blob-photo'), cid: 'photo@x', name: 'photo.png');
+    const html = '<html><head></head><body><p>text</p>'
+        '<img src="${ImageTransformer.placeholderSrc}" id="cid:logo@x" data-rf-cid="logo@x" data-rf-state="pending">'
+        '<img src="${ImageTransformer.placeholderSrc}" id="cid:photo@x" data-rf-cid="photo@x" data-rf-state="pending">'
+        '</body></html>';
+
+    setUp(() {
+      when(mailboxDashboardController.selectedEmail).thenReturn(Rxn(null));
+      singleEmailController.currentEmailLoaded.value = EmailLoaded(
+        htmlContent: html,
+        attachments: const [],
+        inlineImages: [logo, photo],
+        emailCurrent: Email(id: emailId),
+      );
+    });
+
+    test('a picture that arrives is handed to the view; the displayed HTML is not touched, Reply/Forward get the picture', () {
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageSuccess(
+        emailId: emailId,
+        cid: 'logo@x',
+        source: 'data:image/png;base64,AAAA',
+      ));
+
+      final loaded = singleEmailController.currentEmailLoaded.value!;
+      expect(loaded.inlineImageSources, {'logo@x': 'data:image/png;base64,AAAA'});
+      expect(loaded.displayHtml, html, reason: 'the open document is not reloaded');
+      expect(loaded.htmlContent, contains('src="data:image/png;base64,AAAA"'));
+      expect(loaded.htmlContent, contains('src="cid:photo@x"'), reason: 'still loading: back to its cid');
+      expect(loaded.hasPendingInlineImages, isTrue);
+    });
+
+    test('the last picture settles the email (nothing pending any more)', () {
+      for (final cid in ['logo@x', 'photo@x']) {
+        singleEmailController.handleSuccessViewState(GetEmailContentInlineImageSuccess(
+          emailId: emailId,
+          cid: cid,
+          source: 'data:image/png;base64,AAAA',
+        ));
+      }
+
+      expect(singleEmailController.currentEmailLoaded.value!.hasPendingInlineImages, isFalse);
+    });
+
+    test('a picture that could not be fetched is shown as failed and listed under the attachments (and can be downloaded there)', () {
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageFailed(emailId: emailId, cid: 'photo@x'));
+
+      final loaded = singleEmailController.currentEmailLoaded.value!;
+      expect(loaded.failedInlineImages, {'photo@x'});
+      expect(loaded.attachments, [photo]);
+      expect(singleEmailController.attachments, [photo]);
+      expect(singleEmailController.attachmentsViewState.containsKey(photo.blobId), isTrue);
+      expect(loaded.htmlContent, contains('src="cid:photo@x"'));
+    });
+
+    test('a failed picture is listed once even if it is reported again', () {
+      for (var i = 0; i < 2; i++) {
+        singleEmailController.handleSuccessViewState(GetEmailContentInlineImageFailed(emailId: emailId, cid: 'photo@x'));
+      }
+
+      expect(singleEmailController.currentEmailLoaded.value!.attachments, [photo]);
+    });
+
+    test('a failure leaves the other pictures alone', () {
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageSuccess(
+        emailId: emailId,
+        cid: 'logo@x',
+        source: 'data:image/png;base64,AAAA',
+      ));
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageFailed(emailId: emailId, cid: 'photo@x'));
+
+      final loaded = singleEmailController.currentEmailLoaded.value!;
+      expect(loaded.inlineImageSources, {'logo@x': 'data:image/png;base64,AAAA'});
+      expect(loaded.failedInlineImages, {'photo@x'});
+      expect(loaded.hasPendingInlineImages, isFalse);
+    });
+
+    test('a picture of another email (the user moved on) is ignored', () {
+      final before = singleEmailController.currentEmailLoaded.value;
+
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageSuccess(
+        emailId: EmailId(Id('another')),
+        cid: 'logo@x',
+        source: 'data:image/png;base64,AAAA',
+      ));
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageFailed(emailId: EmailId(Id('another')), cid: 'photo@x'));
+
+      expect(singleEmailController.currentEmailLoaded.value, before);
+      expect(singleEmailController.attachments, isEmpty);
+    });
+
+    test('a picture arriving with no email open does nothing', () {
+      singleEmailController.currentEmailLoaded.value = null;
+
+      singleEmailController.handleSuccessViewState(GetEmailContentInlineImageSuccess(
+        emailId: emailId,
+        cid: 'logo@x',
+        source: 'data:image/png;base64,AAAA',
+      ));
+
+      expect(singleEmailController.currentEmailLoaded.value, isNull);
+    });
+  });
 }
 
 class _TestView extends GetWidget<SingleEmailController> {

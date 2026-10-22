@@ -180,12 +180,19 @@ void main() {
       expect(rf12(email).html, rf11(email).html);
     });
 
-    test('9 content_location: unchanged, the Content-Location image stays in the panel (no inline by location)', () {
+    test('9 content_location: (rf13) the <img src="photo.png"> is drawn from the part with that Content-Location', () {
       final email = loadMimeFixture('content_location');
-      expect(identical(email.withInlinePhotos(), email), isTrue);
-      expect(rf12(email).panelNames, ['photo.png']);
-      expect(rf12(email).inline, isEmpty);
-      expect(rf12(email).html, contains('<img src="photo.png">'));
+      final cid = 'rf-loc-2-${partOf(email, '2').blobId!.value}';
+
+      expect(rf11(email).panelNames, ['photo.png'], reason: 'rf11 and rf12: listed, and the relative image is not drawn');
+      expect(rf11(email).inline, isEmpty);
+
+      final after = rf12(email);
+      expect(cidsIn(after.html), [cid]);
+      expect(after.html, isNot(contains('src="photo.png"')));
+      expect(after.html, contains('data-mimetype="image/png"'));
+      expect(after.inlineCids, [cid]);
+      expect(after.panel, isEmpty);
     });
 
     test('10 data_uri: unchanged, the data: image is part of the HTML and nothing is listed', () {
@@ -248,7 +255,12 @@ void main() {
 
     test('no image is shown twice: inline images are not in the panel, each is in the body once', () {
       // outlook_signature is the one layout where rf11 itself lists an inline image in the panel too (test 15).
-      for (final key in [...photoLayouts, 'apple_heic', ...mimeUnchangedLayouts.where((k) => k != 'outlook_signature')]) {
+      for (final key in [
+        ...photoLayouts,
+        'apple_heic',
+        'content_location',
+        ...mimeUnchangedLayouts.where((k) => k != 'outlook_signature'),
+      ]) {
         final after = rf12(loadMimeFixture(key));
         final inlineBlobs = after.inline.map((a) => a.blobId).toList();
         final panelBlobs = after.panel.map((a) => a.blobId).toList();
@@ -446,6 +458,83 @@ void main() {
       ));
       expect(photo.inlineCids, ['rf-photo-2-b2']);
       expect(photo.panel, isEmpty);
+    });
+
+    group('Content-Location::', () {
+      EmailBodyPart located(String partId, String blob, String location,
+              {String mime = 'image/png', String? disposition = 'inline', String? cid}) =>
+          EmailBodyPart(
+            partId: PartId(partId),
+            blobId: Id(blob),
+            type: MediaType.parse(mime),
+            disposition: disposition,
+            location: location,
+            cid: cid,
+            name: 'x',
+          );
+
+      Email withLocated(String html, Set<EmailBodyPart> attachments) => Email(
+            id: EmailId(Id('e')),
+            htmlBody: {htmlPart('1')},
+            bodyValues: {PartId('1'): EmailBodyValue(value: html, isEncodingProblem: false, isTruncated: false)},
+            attachments: attachments,
+          );
+
+      test('every <img> whose src is exactly the location is drawn from that part; the rest of the HTML is kept', () {
+        final after = rf12(withLocated(
+          '<p>a <img src="p.png" width="20"> b <img src="p.png"> <a href="p.png">link</a> <img src="other.png"></p>',
+          {located('2', 'b2', 'p.png')},
+        ));
+
+        expect(cidsIn(after.html), ['rf-loc-2-b2', 'rf-loc-2-b2']);
+        expect(after.html, contains('href="p.png"'), reason: 'only <img src> is rewritten');
+        expect(after.html, contains('src="other.png"'));
+        expect(after.html, contains('width="20"'));
+        expect(after.inline, hasLength(1), reason: 'one part, however often the HTML shows it');
+        expect(after.panel, isEmpty);
+      });
+
+      test('an absolute location works the same, and the remote image is no longer requested', () {
+        final after = rf12(withLocated(
+          '<img src="https://cdn.example.com/p.png">',
+          {located('2', 'b2', 'https://cdn.example.com/p.png')},
+        ));
+
+        expect(cidsIn(after.html), ['rf-loc-2-b2']);
+        expect(after.html, isNot(contains('cdn.example.com')));
+      });
+
+      test('nothing changes (the very same email) when no <img src> matches exactly', () {
+        for (final html in ['<img src="P.png">', '<img src="./p.png">', '<img src="p.png?x=1">', '<a href="p.png">p.png</a>', '<p>p.png</p>']) {
+          final email = withLocated(html, {located('2', 'b2', 'p.png')});
+          expect(identical(email.withInlinePhotos(), email), isTrue, reason: html);
+          expect(rf12(email).panelNames, ['x'], reason: html);
+        }
+      });
+
+      test('a part that is an attachment, has a cid, cannot be drawn, or cannot be downloaded is left alone', () {
+        for (final part in [
+          located('2', 'b2', 'p.png', disposition: 'attachment'),
+          located('2', 'b2', 'p.png', cid: 'c@x'),
+          located('2', 'b2', 'p.png', mime: 'image/svg+xml'),
+          located('2', 'b2', 'p.png', mime: 'image/heic'),
+          located('2', 'b2', 'p.png', mime: 'application/pdf'),
+          EmailBodyPart(partId: PartId('2'), type: MediaType('image', 'png'), location: 'p.png', disposition: 'inline'),
+        ]) {
+          final email = withLocated('<img src="p.png">', {part});
+          expect(identical(email.withInlinePhotos(), email), isTrue, reason: '${part.type} ${part.disposition} ${part.cid}');
+        }
+      });
+
+      test('two photos with two locations are both drawn, in the order of the HTML', () {
+        final after = rf12(withLocated(
+          '<img src="b.png"><img src="a.png">',
+          {located('2', 'ba', 'a.png'), located('3', 'bb', 'b.png')},
+        ));
+
+        expect(cidsIn(after.html), ['rf-loc-3-bb', 'rf-loc-2-ba']);
+        expect(after.inlineCids.toSet(), {'rf-loc-2-ba', 'rf-loc-3-bb'});
+      });
     });
 
     test('a message that is only a photo (no text part at all) shows the photo', () {

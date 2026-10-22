@@ -78,13 +78,21 @@ class TransformConfiguration {
     ],
   );
 
-  factory TransformConfiguration.forPreviewEmailOnWeb() => TransformConfiguration.create(
+  factory TransformConfiguration.forPreviewEmailOnWeb() =>
+      TransformConfiguration._previewEmailOnWeb(const ImageTransformer());
+
+  /// [forPreviewEmailOnWeb] with the inline (cid:) images left as placeholders the viewer fills in as each picture
+  /// arrives (see [ImageTransformer.deferCidImages]), instead of the body waiting for every download.
+  factory TransformConfiguration.forPreviewEmailOnWebWithDeferredImages() =>
+      TransformConfiguration._previewEmailOnWeb(const ImageTransformer(deferCidImages: true));
+
+  factory TransformConfiguration._previewEmailOnWeb(ImageTransformer imageTransformer) => TransformConfiguration.create(
     customDomTransformers: [
       const RemoveScriptTransformer(),
       const BlockQuotedTransformer(),
       const BlockCodeTransformer(),
       SanitizeHyperLinkTagInHtmlTransformer(),
-      const ImageTransformer(),
+      imageTransformer,
       const AddLazyLoadingForBackgroundImageTransformer(),
       const RemoveCollapsedSignatureButtonTransformer(),
       const NormalizeLineHeightInStyleTransformer(),

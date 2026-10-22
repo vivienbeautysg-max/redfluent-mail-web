@@ -23,6 +23,7 @@ void main() {
     'drafts': (TransformConfiguration.forDraftsEmail, Wiring.sanitizes),
     'edit drafts': (TransformConfiguration.forEditDraftsEmail, Wiring.sanitizes),
     'web viewer': (TransformConfiguration.forPreviewEmailOnWeb, Wiring.sanitizes),
+    'web viewer, deferred images': (TransformConfiguration.forPreviewEmailOnWebWithDeferredImages, Wiring.sanitizes),
     'mobile viewer': (TransformConfiguration.forPreviewEmail, Wiring.sanitizes),
     'restore': (TransformConfiguration.forRestoreEmail, Wiring.sanitizes),
     'signature identity': (TransformConfiguration.forSignatureIdentity, Wiring.sanitizes),

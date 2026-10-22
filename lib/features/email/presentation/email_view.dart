@@ -429,6 +429,8 @@ class EmailView extends GetWidget<SingleEmailController> {
                     key: controller.htmlViewKey,
                     widthContent: bodyConstraints.maxWidth,
                     contentHtml: allEmailContents,
+                    inlineImageSources: controller.currentEmailLoaded.value?.inlineImageSources ?? const {},
+                    failedInlineImages: controller.currentEmailLoaded.value?.failedInlineImages ?? const {},
                     mailtoDelegate: controller.openMailToLink,
                     direction: AppUtils.getCurrentDirection(context),
                     contentPadding: 0,

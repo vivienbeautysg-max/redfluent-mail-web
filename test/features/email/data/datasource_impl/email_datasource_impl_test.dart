@@ -176,5 +176,26 @@ void main() {
       expect(document.querySelectorAll('img[src^="cid:"]'), isEmpty);
       expect(document.querySelector('.file-name')!.text, 'IMG_0002.HEIC');
     });
+
+    test('SHOULD draw an inline image that the body references and not list it under the attachments too (rf13)', () async {
+      final analyzer = _PassThroughHtmlAnalyzer();
+      Get.replace<HtmlAnalyzer>(analyzer);
+      final dataSource = EmailDataSourceImpl(_FakeEmailAPI(), _FakeExceptionThrower());
+
+      final html = await dataSource.generatePreviewEmailEMLContent(requestFor(loadMimeFixture('outlook_signature')));
+
+      final document = parse(html);
+      expect(document.querySelectorAll('img[src="cid:image001.png@01DB2A3B.4C5D6E70"]'), hasLength(1));
+      expect(analyzer.cidUrls.expand((map) => map.keys).toSet(), {'image001.png@01DB2A3B.4C5D6E70'});
+      expect(document.querySelectorAll('.file-name'), isEmpty);
+    });
+
+    test('SHOULD still list an image that the body does not reference (rf13)', () async {
+      final dataSource = EmailDataSourceImpl(_FakeEmailAPI(), _FakeExceptionThrower());
+
+      final html = await dataSource.generatePreviewEmailEMLContent(requestFor(loadMimeFixture('orphan_cid')));
+
+      expect(parse(html).querySelector('.file-name')!.text, 'orphan.png');
+    });
   });
 }
