@@ -25,10 +25,11 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Redfluent Mail">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" href="favicon.ico" sizes="48x48"/>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
 
   <title>Redfluent Mail</title>
   <link rel="manifest" href="manifest.json">
@@ -47,7 +48,37 @@
   <script src="js/sentry-interceptor.js?v=1.0.2"></script>
 </head>
 <body>
-    <img src="splash/img/redfluent_logo.png" alt="Redfluent Mail" class="center" style="width: 176px; height: 176px">
+    <div id="rf-splash" class="center" role="img" aria-label="Redfluent Mail">
+      <svg class="rf-splash-anim" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+        <circle cx="60" cy="60" r="21" fill="#C62A22">
+          <animate attributeName="cy" dur="1.6s" fill="freeze" calcMode="spline"
+            values="-24;46;68;55;60" keyTimes="0;0.27;0.4;0.6;1"
+            keySplines=".55 0 .9 .5;.2 .6 .4 1;.4 0 .6 1;.4 0 .3 1"/>
+          <animate attributeName="opacity" dur="1.6s" fill="freeze" values="0;1;1" keyTimes="0;0.12;1"/>
+          <animate attributeName="cy" begin="1.6s" dur="1.8s" repeatCount="indefinite" calcMode="spline"
+            values="60;55.5;60" keyTimes="0;0.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/>
+        </circle>
+        <path d="M6 70H30C41 70 43 83.5 60 83.5S79 70 90 70H114" fill="none" stroke="#141414" stroke-width="5" stroke-linecap="round">
+          <animate attributeName="d" dur="1.6s" fill="freeze" calcMode="spline"
+            values="M6 70H30C41 70 43 70 60 70S79 70 90 70H114;M6 70H30C41 70 43 70 60 70S79 70 90 70H114;M6 70H24C38 70 40 91.5 60 91.5S82 70 96 70H114;M6 70H32C42 70 44 79 60 79S78 70 88 70H114;M6 70H30C41 70 43 83.5 60 83.5S79 70 90 70H114"
+            keyTimes="0;0.27;0.4;0.6;1"
+            keySplines=".55 0 .9 .5;.2 .6 .4 1;.4 0 .6 1;.4 0 .3 1"/>
+          <animate attributeName="d" begin="1.6s" dur="1.8s" repeatCount="indefinite" calcMode="spline"
+            values="M6 70H30C41 70 43 83.5 60 83.5S79 70 90 70H114;M6 70H32C42 70 44 79 60 79S78 70 88 70H114;M6 70H30C41 70 43 83.5 60 83.5S79 70 90 70H114"
+            keyTimes="0;0.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/>
+        </path>
+      </svg>
+      <svg class="rf-splash-static" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><circle cx="60" cy="60" r="21" fill="#C62A22"/><path d="M6 70H30C41 70 43 83.5 60 83.5S79 70 90 70H114" fill="none" stroke="#141414" stroke-width="5" stroke-linecap="round"/></svg>
+    </div>
+    <script>
+      // Redfluent Mail: the loading mark has done its job once Flutter has drawn its first frame; remove it so the
+      // endless SMIL loop does not keep running behind the app (the engine fires this event on window). Registered
+      // right after the mark, i.e. before Flutter's bootstrap script and before any blocking script that follows.
+      window.addEventListener('flutter-first-frame', function () {
+        var splash = document.getElementById('rf-splash');
+        if (splash) splash.remove();
+      }, { once: true });
+    </script>
 
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:

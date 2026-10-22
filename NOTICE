@@ -37,7 +37,8 @@ WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.
 "Twake" and "LINAGORA" are names of LINAGORA. This project is not affiliated with or
 endorsed by LINAGORA.
 
-The Redfluent logo files (assets/images/redfluent_logo_mark.png, web/favicon.png,
-web/icons/*.png, web/splash/img/redfluent_logo.png) are derived from
-https://www.redfluent.com/logo-transparent.png and identify Redfluent; they are not
-needed to build or run the program.
+The Redfluent logo files (assets/images/redfluent_lockup_mail_*.svg, web/favicon.*,
+web/apple-touch-icon.png, web/icons/*.png, the loading mark in web/index.html) are the
+Redfluent brand "Soft Landing" (2026-10-22) and identify Redfluent; they are not
+needed to build or run the program. Their wordmark is outlined from Fraunces
+(SIL Open Font License).
