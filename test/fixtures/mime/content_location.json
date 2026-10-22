@@ -1,0 +1,94 @@
+{
+ "attachments": [
+  {
+   "blobId": "cmuokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aabd3qwza",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": "photo.png",
+   "name": "photo.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "blobId": "cauokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aaba",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "ceuokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aabdsaspq",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 62,
+    "type": "text/html"
+   },
+   {
+    "blobId": "cmuokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aabd3qwza",
+    "charset": null,
+    "cid": null,
+    "disposition": "inline",
+    "language": null,
+    "location": "photo.png",
+    "name": "photo.png",
+    "partId": "2",
+    "size": 70,
+    "type": "image/png"
+   }
+  ],
+  "type": "multipart/related"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>loc <img src=\"photo.png\"></div></body></html>"
+  }
+ },
+ "hasAttachment": true,
+ "htmlBody": [
+  {
+   "blobId": "ceuokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aabdsaspq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 62,
+   "type": "text/html"
+  }
+ ],
+ "id": "baaaaaai",
+ "preview": "loc",
+ "subject": "rf11 content_location",
+ "textBody": [
+  {
+   "blobId": "ceuokifd2canky7yqrippk73xrxdxyvubaq2q3akfrpkcoh2dkpyy0aabdsaspq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 62,
+   "type": "text/html"
+  }
+ ]
+}

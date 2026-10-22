@@ -399,7 +399,7 @@ class EmailDataSourceImpl extends EmailDataSource {
   @override
   Future<String> generatePreviewEmailEMLContent(PreviewEmailEMLRequest previewEmailEMLRequest) {
     return Future.sync(() async {
-      final email = previewEmailEMLRequest.email;
+      final email = previewEmailEMLRequest.email.withInlinePhotos();
       final appLocalizations = previewEmailEMLRequest.appLocalizations;
       final locale = previewEmailEMLRequest.locale.toLanguageTag();
 

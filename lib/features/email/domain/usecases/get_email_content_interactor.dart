@@ -28,7 +28,7 @@ class GetEmailContentInteractor {
     EmailId emailId,
     String baseDownloadUrl,
     TransformConfiguration transformConfiguration,
-    {Properties? additionalProperties}
+    {Properties? additionalProperties, bool showInlinePhotos = false}
   ) async* {
     try {
       yield Right<Failure, Success>(GetEmailContentLoading());
@@ -48,7 +48,8 @@ class GetEmailContentInteractor {
           emailId,
           baseDownloadUrl,
           transformConfiguration,
-          additionalProperties: additionalProperties);
+          additionalProperties: additionalProperties,
+          showInlinePhotos: showInlinePhotos);
       }
     } catch (e) {
       log('GetEmailContentInteractor::execute(): exception = $e');
@@ -60,7 +61,8 @@ class GetEmailContentInteractor {
           emailId,
           baseDownloadUrl,
           transformConfiguration,
-          additionalProperties: additionalProperties
+          additionalProperties: additionalProperties,
+          showInlinePhotos: showInlinePhotos,
         ),
       ));
     }
@@ -72,7 +74,7 @@ class GetEmailContentInteractor {
     EmailId emailId,
     String baseDownloadUrl,
     TransformConfiguration transformConfiguration,
-    {Properties? additionalProperties}
+    {Properties? additionalProperties, bool showInlinePhotos = false}
   ) async* {
     try {
       final email = await emailRepository.getEmailContent(
@@ -80,17 +82,19 @@ class GetEmailContentInteractor {
         accountId,
         emailId,
         additionalProperties: additionalProperties);
-      final classified = email.toPresentationAttachments();
+      // The view shows photos that mail apps send inline without a Content-ID; the composer asks for the email as is.
+      final shownEmail = showInlinePhotos ? email.withInlinePhotos() : email;
+      final classified = shownEmail.toPresentationAttachments();
       final listAttachments = classified.attachments;
       final listInlineImages = classified.inlineImages;
       log('GetEmailContentInteractor::_getContentEmailFromServer: listAttachments = ${listAttachments.length} | listInlineImages = ${listInlineImages.length}');
-      if (email.emailContentList.isNotEmpty) {
+      if (shownEmail.emailContentList.isNotEmpty) {
         final mapCidImageDownloadUrl = listInlineImages.toMapCidImageDownloadUrl(
           accountId: accountId,
           downloadUrl: baseDownloadUrl
         );
         final newEmailContents = await emailRepository.transformEmailContent(
-          email.emailContentList,
+          shownEmail.emailContentList,
           mapCidImageDownloadUrl,
           transformConfiguration
         );
@@ -119,7 +123,8 @@ class GetEmailContentInteractor {
           emailId,
           baseDownloadUrl,
           transformConfiguration,
-          additionalProperties: additionalProperties
+          additionalProperties: additionalProperties,
+          showInlinePhotos: showInlinePhotos,
         ),
       ));
     }

@@ -1,0 +1,118 @@
+{
+ "attachments": [
+  {
+   "blobId": "cnt1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaasiawza",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0001.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "blobId": "cbt1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaaq",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cft1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaaswashq",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 30,
+    "type": "text/plain"
+   },
+   {
+    "blobId": "cnt1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaasiawza",
+    "charset": null,
+    "cid": null,
+    "disposition": "inline",
+    "language": null,
+    "location": null,
+    "name": "IMG_0001.png",
+    "partId": "2",
+    "size": 70,
+    "type": "image/png"
+   }
+  ],
+  "type": "multipart/mixed"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "Hi, plain text with a photo.\n"
+  }
+ },
+ "hasAttachment": false,
+ "htmlBody": [
+  {
+   "blobId": "cft1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaaswashq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 30,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cnt1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaasiawza",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0001.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "id": "qaaaaae",
+ "preview": "Hi, plain text with a photo.\n",
+ "subject": "rf11 apple_plain_photo",
+ "textBody": [
+  {
+   "blobId": "cft1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaaswashq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 30,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cnt1o9yzdxbdyilq9otd9mtwhp7gtfmcvexkepxrou9wc0xln2d1o0aaasiawza",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0001.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ]
+}

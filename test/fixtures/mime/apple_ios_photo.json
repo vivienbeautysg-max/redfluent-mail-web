@@ -1,0 +1,166 @@
+{
+ "attachments": [
+  {
+   "blobId": "cm1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaora2za",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0001.png",
+   "partId": "4",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "blobId": "ca1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaam",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaapuqsgy",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 27,
+    "type": "text/plain"
+   },
+   {
+    "blobId": null,
+    "charset": null,
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": null,
+    "size": null,
+    "subParts": [
+     {
+      "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaopaypq",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "3",
+      "size": 62,
+      "type": "text/html"
+     },
+     {
+      "blobId": "cm1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaora2za",
+      "charset": null,
+      "cid": null,
+      "disposition": "inline",
+      "language": null,
+      "location": null,
+      "name": "IMG_0001.png",
+      "partId": "4",
+      "size": 70,
+      "type": "image/png"
+     },
+     {
+      "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaojraki",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "5",
+      "size": 41,
+      "type": "text/html"
+     }
+    ],
+    "type": "multipart/mixed"
+   }
+  ],
+  "type": "multipart/alternative"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "Hi, this is a test email.\n"
+  },
+  "3": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>Hi, this is a test email.</div></body></html>"
+  },
+  "5": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div><br></div></body></html>"
+  }
+ },
+ "hasAttachment": false,
+ "htmlBody": [
+  {
+   "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaopaypq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "3",
+   "size": 62,
+   "type": "text/html"
+  },
+  {
+   "blobId": "cm1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaora2za",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0001.png",
+   "partId": "4",
+   "size": 70,
+   "type": "image/png"
+  },
+  {
+   "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaaojraki",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "5",
+   "size": 41,
+   "type": "text/html"
+  }
+ ],
+ "id": "maaaaad",
+ "preview": "Hi, this is a test email.\n",
+ "subject": "rf11 apple_ios_photo",
+ "textBody": [
+  {
+   "blobId": "ce1zhc1y3zybd2azgq9gjrzo1gjxapfhqxmhfmdevdgrqxctjfbnq0aaapuqsgy",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 27,
+   "type": "text/plain"
+  }
+ ]
+}

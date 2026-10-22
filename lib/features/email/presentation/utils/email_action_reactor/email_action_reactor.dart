@@ -818,6 +818,7 @@ class EmailActionReactor with LabelSubMenuMixin {
       emailId,
       baseDownloadUrl,
       transformConfiguration,
+      showInlinePhotos: true,
     ).last;
 
     return result.fold(

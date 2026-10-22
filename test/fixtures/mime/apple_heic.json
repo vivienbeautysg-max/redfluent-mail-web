@@ -1,0 +1,118 @@
+{
+ "attachments": [
+  {
+   "blobId": "cntaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaah0qu9a",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0002.HEIC",
+   "partId": "2",
+   "size": 76,
+   "type": "image/heic"
+  }
+ ],
+ "blobId": "cbtaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaae",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cftaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaagtasda",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 12,
+    "type": "text/plain"
+   },
+   {
+    "blobId": "cntaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaah0qu9a",
+    "charset": null,
+    "cid": null,
+    "disposition": "inline",
+    "language": null,
+    "location": null,
+    "name": "IMG_0002.HEIC",
+    "partId": "2",
+    "size": 76,
+    "type": "image/heic"
+   }
+  ],
+  "type": "multipart/mixed"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "heic photo\n"
+  }
+ },
+ "hasAttachment": false,
+ "htmlBody": [
+  {
+   "blobId": "cftaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaagtasda",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 12,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cntaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaah0qu9a",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0002.HEIC",
+   "partId": "2",
+   "size": 76,
+   "type": "image/heic"
+  }
+ ],
+ "id": "eaaaaab",
+ "preview": "heic photo\n",
+ "subject": "rf11 apple_heic",
+ "textBody": [
+  {
+   "blobId": "cftaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaagtasda",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 12,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cntaeaw7adyqbaw7r2l99qx7wjj0fb2h91moqbblqtzwfpnmcf2ow0aaah0qu9a",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "IMG_0002.HEIC",
+   "partId": "2",
+   "size": 76,
+   "type": "image/heic"
+  }
+ ]
+}

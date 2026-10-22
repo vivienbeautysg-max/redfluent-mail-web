@@ -1,0 +1,111 @@
+{
+ "attachments": [
+  {
+   "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa37axiib",
+   "charset": "utf-8",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "3",
+   "size": 161,
+   "type": "text/calendar"
+  }
+ ],
+ "blobId": "cblp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa2",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa17qsca",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 8,
+    "type": "text/plain"
+   },
+   {
+    "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa3fauky",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "2",
+    "size": 43,
+    "type": "text/html"
+   },
+   {
+    "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa37axiib",
+    "charset": "utf-8",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "3",
+    "size": 161,
+    "type": "text/calendar"
+   }
+  ],
+  "type": "multipart/alternative"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "invite\n"
+  },
+  "2": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>invite</div></body></html>"
+  }
+ },
+ "hasAttachment": true,
+ "htmlBody": [
+  {
+   "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa3fauky",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "2",
+   "size": 43,
+   "type": "text/html"
+  }
+ ],
+ "id": "2aaaaah",
+ "preview": "invite\n",
+ "subject": "rf11 calendar_invite",
+ "textBody": [
+  {
+   "blobId": "cflp7m7oqiiewpy7vvsbopztvt7df2mf9zfvebx7ejcfe2sf9w1im0aaa17qsca",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 8,
+   "type": "text/plain"
+  }
+ ]
+}

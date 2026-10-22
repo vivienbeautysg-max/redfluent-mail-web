@@ -1,0 +1,125 @@
+{
+ "attachments": [
+  {
+   "blobId": "cmpesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aabouq1za",
+   "charset": null,
+   "cid": "ii_m2abc123",
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "image.png",
+   "partId": "4",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "blobId": "capesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aabm",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": null,
+    "charset": null,
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": null,
+    "size": null,
+    "subParts": [
+     {
+      "blobId": "cepesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aabogqwfa",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "2",
+      "size": 20,
+      "type": "text/plain"
+     },
+     {
+      "blobId": "cepesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aaboxayvq",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "3",
+      "size": 86,
+      "type": "text/html"
+     }
+    ],
+    "type": "multipart/alternative"
+   },
+   {
+    "blobId": "cmpesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aabouq1za",
+    "charset": null,
+    "cid": "ii_m2abc123",
+    "disposition": "inline",
+    "language": null,
+    "location": null,
+    "name": "image.png",
+    "partId": "4",
+    "size": 70,
+    "type": "image/png"
+   }
+  ],
+  "type": "multipart/related"
+ },
+ "bodyValues": {
+  "2": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "[image: image.png]\n"
+  },
+  "3": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>gmail <img src=\"cid:ii_m2abc123\" alt=\"image.png\"></div></body></html>"
+  }
+ },
+ "hasAttachment": true,
+ "htmlBody": [
+  {
+   "blobId": "cepesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aaboxayvq",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "3",
+   "size": 86,
+   "type": "text/html"
+  }
+ ],
+ "id": "bmaaaaal",
+ "preview": "[image: image.png]\n",
+ "subject": "rf11 gmail_inline",
+ "textBody": [
+  {
+   "blobId": "cepesiymqidste17mektyfmvsuyafowprq1hsibisfawc01tgrdd10aabogqwfa",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "2",
+   "size": 20,
+   "type": "text/plain"
+  }
+ ]
+}

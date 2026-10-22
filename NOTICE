@@ -24,9 +24,10 @@ scripts/subset_noto_sans_sc.py; its copyright and license name records are kept)
 common Traditional Chinese characters added to that subset, (rf8) the signed-in
 address handed to the "Change password" page, (rf9) the sign-in page's privacy link
 opening the Redfluent Mail privacy policy on the webmail's own host, (rf10) the web client
-refreshing the mailbox by itself while WebSocket push is not connected, and (rf11) a
-"Set up on iPhone or Mac" link to the Apple Mail setup guide; see README.md, section "Changes
-from upstream".
+refreshing the mailbox by itself while WebSocket push is not connected, (rf11) a
+"Set up on iPhone or Mac" link to the Apple Mail setup guide, and (rf12) the email view
+showing the photos that mail apps send in the message body without a Content-ID; see
+README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
 WITHOUT ANY WARRANTY; see sections 15 and 16 of the LICENSE.

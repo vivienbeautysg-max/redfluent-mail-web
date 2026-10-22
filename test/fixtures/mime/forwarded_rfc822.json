@@ -1,0 +1,94 @@
+{
+ "attachments": [
+  {
+   "blobId": "cejhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabkoavtyj",
+   "charset": null,
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "2",
+   "size": 1231,
+   "type": "message/rfc822"
+  }
+ ],
+ "blobId": "cajhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabi",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cejhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabkzqsda",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 12,
+    "type": "text/plain"
+   },
+   {
+    "blobId": "cejhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabkoavtyj",
+    "charset": null,
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "2",
+    "size": 1231,
+    "type": "message/rfc822"
+   }
+  ],
+  "type": "multipart/mixed"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "forwarding\n"
+  }
+ },
+ "hasAttachment": true,
+ "htmlBody": [
+  {
+   "blobId": "cejhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabkzqsda",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 12,
+   "type": "text/plain"
+  }
+ ],
+ "id": "biaaaaak",
+ "preview": "forwarding\n",
+ "subject": "rf11 forwarded_rfc822",
+ "textBody": [
+  {
+   "blobId": "cejhwzkmop2rkqgyovrndy0zur71w7ihsvkkvpj0zjeqmhzfetrgo0aabkzqsda",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 12,
+   "type": "text/plain"
+  }
+ ]
+}

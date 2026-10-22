@@ -1,0 +1,154 @@
+{
+ "attachments": [
+  {
+   "blobId": "co10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaakaa2pq",
+   "charset": null,
+   "cid": null,
+   "disposition": "inline",
+   "language": null,
+   "location": null,
+   "name": "Quote.pdf",
+   "partId": "4",
+   "size": 45,
+   "type": "application/pdf"
+  }
+ ],
+ "blobId": "cc10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaai",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaalvqsci",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 9,
+    "type": "text/plain"
+   },
+   {
+    "blobId": null,
+    "charset": null,
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": null,
+    "size": null,
+    "subParts": [
+     {
+      "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaakhayla",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "3",
+      "size": 44,
+      "type": "text/html"
+     },
+     {
+      "blobId": "co10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaakaa2pq",
+      "charset": null,
+      "cid": null,
+      "disposition": "inline",
+      "language": null,
+      "location": null,
+      "name": "Quote.pdf",
+      "partId": "4",
+      "size": 45,
+      "type": "application/pdf"
+     },
+     {
+      "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaalfq1ki",
+      "charset": "us-ascii",
+      "cid": null,
+      "disposition": null,
+      "language": null,
+      "location": null,
+      "name": null,
+      "partId": "5",
+      "size": 41,
+      "type": "text/html"
+     }
+    ],
+    "type": "multipart/mixed"
+   }
+  ],
+  "type": "multipart/alternative"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "see pdf\n"
+  },
+  "3": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>see pdf</div></body></html>"
+  },
+  "5": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div><br></div></body></html>"
+  }
+ },
+ "hasAttachment": true,
+ "htmlBody": [
+  {
+   "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaakhayla",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "3",
+   "size": 44,
+   "type": "text/html"
+  },
+  {
+   "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaalfq1ki",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "5",
+   "size": 41,
+   "type": "text/html"
+  }
+ ],
+ "id": "iaaaaac",
+ "preview": "see pdf\n",
+ "subject": "rf11 apple_inline_pdf",
+ "textBody": [
+  {
+   "blobId": "cg10cta1sk0bdalbuse2xzwtryoosb2ay7n2sjnjhbyzmdcl1j1x10aaalvqsci",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 9,
+   "type": "text/plain"
+  }
+ ]
+}

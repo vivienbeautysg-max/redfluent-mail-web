@@ -505,7 +505,8 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
           accountId!,
           emailId,
           baseDownloadUrl,
-          transformConfiguration
+          transformConfiguration,
+          showInlinePhotos: true,
         ));
       } catch (e) {
         logWarning('SingleEmailController::_getEmailContentAction(): $e');
@@ -521,6 +522,7 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
                 PlatformInfo.isWeb
                   ? TransformConfiguration.forPreviewEmailOnWeb()
                   : TransformConfiguration.forPreviewEmail(),
+                showInlinePhotos: true,
               ),
         ))));
       }

@@ -1,0 +1,55 @@
+{
+ "attachments": [],
+ "blobId": "cb29hfged3lrs7n3x0mxkgq7shflkeihvzim1t3yzndv1z9ktbuxe0aabe",
+ "bodyStructure": {
+  "blobId": "cf29hfged3lrs7n3x0mxkgq7shflkeihvzim1t3yzndv1z9ktbuxe0aabhharlqb",
+  "charset": "us-ascii",
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": "0",
+  "size": 174,
+  "type": "text/html"
+ },
+ "bodyValues": {
+  "0": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "<html><body><div>data <img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\"></div></body></html>\n"
+  }
+ },
+ "hasAttachment": false,
+ "htmlBody": [
+  {
+   "blobId": "cf29hfged3lrs7n3x0mxkgq7shflkeihvzim1t3yzndv1z9ktbuxe0aabhharlqb",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "0",
+   "size": 174,
+   "type": "text/html"
+  }
+ ],
+ "id": "beaaaaaj",
+ "preview": "data",
+ "subject": "rf11 data_uri",
+ "textBody": [
+  {
+   "blobId": "cf29hfged3lrs7n3x0mxkgq7shflkeihvzim1t3yzndv1z9ktbuxe0aabhharlqb",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "0",
+   "size": 174,
+   "type": "text/html"
+  }
+ ]
+}

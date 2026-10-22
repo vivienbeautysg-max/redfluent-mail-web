@@ -1,0 +1,118 @@
+{
+ "attachments": [
+  {
+   "blobId": "cmfnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabxgquza",
+   "charset": null,
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": "scan.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "blobId": "cafnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabu",
+ "bodyStructure": {
+  "blobId": null,
+  "charset": null,
+  "cid": null,
+  "disposition": null,
+  "language": null,
+  "location": null,
+  "name": null,
+  "partId": null,
+  "size": null,
+  "subParts": [
+   {
+    "blobId": "cefnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabwyqsea",
+    "charset": "us-ascii",
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": null,
+    "partId": "1",
+    "size": 16,
+    "type": "text/plain"
+   },
+   {
+    "blobId": "cmfnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabxgquza",
+    "charset": null,
+    "cid": null,
+    "disposition": null,
+    "language": null,
+    "location": null,
+    "name": "scan.png",
+    "partId": "2",
+    "size": 70,
+    "type": "image/png"
+   }
+  ],
+  "type": "multipart/mixed"
+ },
+ "bodyValues": {
+  "1": {
+   "isEncodingProblem": false,
+   "isTruncated": false,
+   "value": "no disposition\n"
+  }
+ },
+ "hasAttachment": false,
+ "htmlBody": [
+  {
+   "blobId": "cefnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabwyqsea",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 16,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cmfnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabxgquza",
+   "charset": null,
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": "scan.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ],
+ "id": "buaaaaan",
+ "preview": "no disposition\n",
+ "subject": "rf11 no_disposition_no_cid",
+ "textBody": [
+  {
+   "blobId": "cefnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabwyqsea",
+   "charset": "us-ascii",
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": null,
+   "partId": "1",
+   "size": 16,
+   "type": "text/plain"
+  },
+  {
+   "blobId": "cmfnuhl2sn77agllwomg32nm9j3hvhslifok11s93xh7j7rzeyfxw0aabxgquza",
+   "charset": null,
+   "cid": null,
+   "disposition": null,
+   "language": null,
+   "location": null,
+   "name": "scan.png",
+   "partId": "2",
+   "size": 70,
+   "type": "image/png"
+  }
+ ]
+}
