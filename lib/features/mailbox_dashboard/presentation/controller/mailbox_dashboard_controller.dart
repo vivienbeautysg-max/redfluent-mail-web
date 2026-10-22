@@ -190,6 +190,7 @@ import 'package:tmail_ui_user/features/push_notification/presentation/controller
 import 'package:tmail_ui_user/features/push_notification/presentation/notification/local_notification_manager.dart';
 import 'package:tmail_ui_user/features/push_notification/presentation/services/fcm_service.dart';
 import 'package:tmail_ui_user/features/push_notification/presentation/utils/fcm_utils.dart';
+import 'package:tmail_ui_user/features/push_notification/presentation/websocket/push_fallback_poller.dart';
 import 'package:tmail_ui_user/features/search/email/presentation/notifier/search_email_presentation_notifier.dart';
 import 'package:tmail_ui_user/features/search/email/presentation/mixin/search_label_filter_modal_mixin.dart';
 import 'package:tmail_ui_user/features/search/email/presentation/service/dashboard_search_coordinator.dart';
@@ -365,6 +366,8 @@ class MailboxDashBoardController extends ReloadableController
 
   final StreamController<RefreshActionViewEvent> _refreshActionEventController =
     StreamController<RefreshActionViewEvent>.broadcast();
+
+  PushFallbackPoller? _pushFallbackPoller;
 
   final _notificationManager = LocalNotificationManager.instance;
   final _fcmService = FcmService.instance;
@@ -977,6 +980,8 @@ class MailboxDashBoardController extends ReloadableController
       getAllSendingEmails();
       _storeSessionAction(session);
     }
+
+    _startPushFallbackPoller();
 
     if (isLabelCapabilitySupported) {
       labelController.checkLabelSettingState(session, currentAccountId);
@@ -2451,6 +2456,23 @@ class MailboxDashBoardController extends ReloadableController
     dispatchAction(EmptyTrashAction());
   }
 
+  /// Web without WebSocket push: refresh like a push StateChange would, every 30 s while the tab is visible.
+  /// Safe to call again: a running poller is kept, never doubled. A session that arrives after the
+  /// controller was closed (handleReloaded is asynchronous) starts nothing.
+  void _startPushFallbackPoller() {
+    if (!PlatformInfo.isWeb || isClosed) return;
+    try {
+      _pushFallbackPoller ??= PushFallbackPoller(
+        isPushActive: () => WebSocketController.instance.isPushActive,
+        refresh: refreshActionWhenBackToApp,
+        visibility: const BrowserPageVisibilitySource(),
+      );
+      _pushFallbackPoller!.start();
+    } catch (e) {
+      logWarning('$runtimeType::_startPushFallbackPoller(): exception: $e');
+    }
+  }
+
   void refreshActionWhenBackToApp() {
     log('MailboxDashBoardController::refreshActionWhenBackToApp():');
     _refreshActionEventController.add(RefreshActionViewEvent());
@@ -3467,6 +3489,8 @@ class MailboxDashBoardController extends ReloadableController
 
   @override
   void onClose() {
+    _pushFallbackPoller?.stop();
+    _pushFallbackPoller = null;
     if (PlatformInfo.isWeb) {
       listSearchFilterScrollController?.dispose();
     }

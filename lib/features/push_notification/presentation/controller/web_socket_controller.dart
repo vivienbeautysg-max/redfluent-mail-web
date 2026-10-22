@@ -60,6 +60,11 @@ class WebSocketController extends PushBaseController {
   AppLifecycleListener? _appLifecycleListener;
   Debouncer<StateChange?>? _stateChangeDebouncer;
 
+  /// The push socket is connected, so StateChange messages arrive and [PushFallbackPoller] has nothing to do.
+  /// False when the server has no WebSocket ticket capability (`initialize` is never called), while the
+  /// socket connects, and after its retries ran out.
+  bool get isPushActive => _webSocketChannel != null;
+
   @override
   void handleFailureViewState(Failure failure) {
     logWarning('WebSocketController::handleFailureViewState():Failure $failure');
