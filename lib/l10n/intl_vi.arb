@@ -6093,5 +6093,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "setupGuide": "Thiết lập trên iPhone hoặc Mac",
+  "@setupGuide": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

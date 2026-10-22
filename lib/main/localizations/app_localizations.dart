@@ -6085,4 +6085,11 @@ class AppLocalizations {
       name: 'replyToNone',
     );
   }
+
+  String get setupGuide {
+    return Intl.message(
+      'Set up on iPhone or Mac',
+      name: 'setupGuide',
+    );
+  }
 }

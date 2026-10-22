@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:model/extensions/session_extension.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/controller/mailbox_dashboard_controller.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/model/profile_setting/profile_setting_action_type.dart';
+import 'package:tmail_ui_user/main/utils/app_utils.dart';
 
 extension HandleProfileSettingActionTypeClickExtension on MailboxDashBoardController {
   void handleProfileSettingActionTypeClick({
@@ -20,6 +21,9 @@ extension HandleProfileSettingActionTypeClickExtension on MailboxDashBoardContro
         break;
       case ProfileSettingActionType.manageAccount:
         goToSettings();
+        break;
+      case ProfileSettingActionType.setupGuide:
+        AppUtils.openSetupGuide(sessionCurrent?.getOwnEmailAddressOrEmpty());
         break;
     }
   }

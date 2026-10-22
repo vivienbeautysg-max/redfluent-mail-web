@@ -2760,5 +2760,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "setupGuide": "Configura su iPhone o Mac",
+  "@setupGuide": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

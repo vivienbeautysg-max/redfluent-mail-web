@@ -23,8 +23,9 @@ the package itself is not included here) and a subset of the bundled Noto Sans S
 scripts/subset_noto_sans_sc.py; its copyright and license name records are kept), and (rf7)
 common Traditional Chinese characters added to that subset, (rf8) the signed-in
 address handed to the "Change password" page, (rf9) the sign-in page's privacy link
-opening the Redfluent Mail privacy policy on the webmail's own host, and (rf10) the web client
-refreshing the mailbox by itself while WebSocket push is not connected; see README.md, section "Changes
+opening the Redfluent Mail privacy policy on the webmail's own host, (rf10) the web client
+refreshing the mailbox by itself while WebSocket push is not connected, and (rf11) a
+"Set up on iPhone or Mac" link to the Apple Mail setup guide; see README.md, section "Changes
 from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed

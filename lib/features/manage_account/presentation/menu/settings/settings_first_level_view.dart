@@ -248,6 +248,16 @@ class SettingsFirstLevelView extends GetWidget<SettingsController> {
                 .sessionCurrent
                 ?.getOwnEmailAddressOrEmpty()),
             ),
+            divider,
+            _buildSettingItem(
+              context: context,
+              menuItem: AccountMenuItem.setupGuide,
+              appLocalizations: appLocalizations,
+              onActionCallback: () => AppUtils.openSetupGuide(controller
+                .manageAccountDashboardController
+                .sessionCurrent
+                ?.getOwnEmailAddressOrEmpty()),
+            ),
           ],
         divider,
         _buildSettingItem(

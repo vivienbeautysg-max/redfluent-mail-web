@@ -35,6 +35,26 @@ class AppUtils {
     }
   }
 
+  /// localStorage key read once (then removed) by the guide page (/guide/app.js).
+  static const String setupGuideEmailKey = 'rf-guide-email';
+
+  /// The Apple Mail setup guide in a new tab. With the signed-in address it goes along in this
+  /// origin's localStorage (never in the URL), so the guide's profile form opens with it filled in;
+  /// without one (sign-in page) any address left from an earlier session is removed first.
+  static void openSetupGuide([String? email]) {
+    final address = email?.trim() ?? '';
+    try {
+      if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(address)) {
+        html.window.localStorage[setupGuideEmailKey] = address;
+      } else {
+        html.window.localStorage.remove(setupGuideEmailKey);
+      }
+    } catch (e) {
+      logWarning('AppUtils::openSetupGuide: localStorage not available: $e');
+    }
+    launchLink(AppConfig.setupGuideUrl());
+  }
+
   /// sessionStorage key read by the password page (/account/password/app.js).
   static const String changePasswordEmailKey = 'rf-pw-email';
 

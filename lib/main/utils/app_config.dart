@@ -23,6 +23,10 @@ class AppConfig {
   static const String sourceCodeUrl = 'https://github.com/vivienbeautysg-max/redfluent-mail-web';
   /// Self-service password page, served by the gateway on the webmail's own origin.
   static const String changePasswordPath = '/account/password/';
+  /// Apple Mail setup guide (iPhone / iPad / Mac), served by the gateway on every webmail host.
+  static const String setupGuidePath = '/guide/';
+  /// The guide where there is no webmail host (mobile apps, VM tests).
+  static const String setupGuideFallbackUrl = 'https://mail.redfluent.com/guide/';
   static const String saasRegistrationUrl = 'https://sign-up.twake.app';
   static const String saasJmapServerUrl = 'https://jmap.twake.app';
 
@@ -30,12 +34,19 @@ class AppConfig {
 
   /// The privacy policy on the webmail's own origin, so a customer's staff stay on mail.<their domain>;
   /// [linagoraPrivacyUrl] when the page has no http(s) host (mobile apps, VM tests).
-  static String privacyPolicyUrl([Uri? base]) {
+  static String privacyPolicyUrl([Uri? base]) =>
+      _onWebmailHost(privacyPolicyPath, linagoraPrivacyUrl, base);
+
+  /// The Apple Mail setup guide on the webmail's own origin; [setupGuideFallbackUrl] without an http(s) host.
+  static String setupGuideUrl([Uri? base]) =>
+      _onWebmailHost(setupGuidePath, setupGuideFallbackUrl, base);
+
+  static String _onWebmailHost(String path, String fallback, Uri? base) {
     final page = base ?? _currentPage();
     if (page == null || !(page.isScheme('https') || page.isScheme('http')) || page.host.isEmpty) {
-      return linagoraPrivacyUrl;
+      return fallback;
     }
-    return page.resolve(privacyPolicyPath).toString();
+    return page.resolve(path).toString();
   }
 
   static Uri? _currentPage() {

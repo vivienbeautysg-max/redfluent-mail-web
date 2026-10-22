@@ -9,6 +9,7 @@ import 'package:tmail_ui_user/features/base/widget/application_version_widget.da
 import 'package:tmail_ui_user/features/login/presentation/base_login_view.dart';
 import 'package:tmail_ui_user/features/login/presentation/login_form_type.dart';
 import 'package:tmail_ui_user/features/login/presentation/privacy_link_widget.dart';
+import 'package:tmail_ui_user/features/login/presentation/setup_guide_link_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/source_code_link_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/widgets/login_message_widget.dart';
 import 'package:tmail_ui_user/features/login/presentation/widgets/try_again_button.dart';
@@ -75,6 +76,10 @@ class LoginView extends BaseLoginView {
                 child: PrivacyLinkWidget(),
               ),
               const ApplicationVersionWidget(padding: EdgeInsets.only(top: 8)),
+              const Padding(
+                padding: EdgeInsets.only(top: 24, bottom: 72),
+                child: SetupGuideLinkWidget(),
+              ),
             ],
           )
         ),
@@ -154,6 +159,10 @@ class LoginView extends BaseLoginView {
                       child: PrivacyLinkWidget()
                     ),
                     const ApplicationVersionWidget(padding: EdgeInsets.only(top: 8)),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 24),
+                      child: SetupGuideLinkWidget(),
+                    ),
                   ],
                 )
               ),

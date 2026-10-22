@@ -5814,5 +5814,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "setupGuide": "iPhone эсвэл Mac дээр тохируулах",
+  "@setupGuide": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

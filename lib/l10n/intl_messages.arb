@@ -5731,5 +5731,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "setupGuide": "Set up on iPhone or Mac",
+  "@setupGuide": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }
