@@ -300,7 +300,11 @@ class MailboxAPI with HandleSetErrorMixin, SessionMixin, MailAPIMixin {
     final setMailboxMethod = SetMailboxMethod(accountId)
       ..addUpdates({
         request.mailboxId.id : PatchObject({
-          'parentId': request.destinationMailboxId?.id.value
+          'parentId': request.destinationMailboxId?.id.value,
+          // Redfluent (rf17): a moved folder keeps no place from its old
+          // parent (0: by name among folders nobody reordered, after the ones
+          // a user put in order); Undo writes its old place back.
+          'sortOrder': request.sortOrder,
         })
       });
 

@@ -6117,5 +6117,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Faites glisser un dossier par sa poignée pour changer l'ordre. L'ordre est enregistré dans votre compte : il est le même sur tous vos appareils. « Réinitialiser vers les paramètres par défaut » les trie par nom.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -3826,5 +3826,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Arraste uma pasta pela alça para mudar a ordem. A ordem fica salva na sua conta, então é a mesma em todos os seus dispositivos. \"Restaurar padrão\" ordena por nome.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

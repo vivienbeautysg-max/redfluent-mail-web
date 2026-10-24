@@ -12,6 +12,8 @@ class MoveMailboxSuccess extends UIState {
   final MailboxId? parentId;
   final MailboxId? destinationMailboxId;
   final String? destinationMailboxDisplayName;
+  /// Redfluent (rf17): MoveMailboxRequest.previousSortOrder, for Undo.
+  final int previousSortOrder;
 
   MoveMailboxSuccess(
     this.mailboxIdSelected,
@@ -20,6 +22,7 @@ class MoveMailboxSuccess extends UIState {
       this.parentId,
       this.destinationMailboxId,
       this.destinationMailboxDisplayName,
+      this.previousSortOrder = 0,
     }
   );
 
@@ -30,6 +33,7 @@ class MoveMailboxSuccess extends UIState {
     parentId,
     destinationMailboxId,
     destinationMailboxDisplayName,
+    previousSortOrder,
   ];
 }
 

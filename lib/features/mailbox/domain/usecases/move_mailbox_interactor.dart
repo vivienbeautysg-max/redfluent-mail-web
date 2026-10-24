@@ -23,6 +23,7 @@ class MoveMailboxInteractor {
             parentId: request.parentId,
             destinationMailboxId: request.destinationMailboxId,
             destinationMailboxDisplayName: request.destinationMailboxDisplayName,
+            previousSortOrder: request.previousSortOrder,
         ));
       } else {
         yield Left<Failure, Success>(MoveMailboxFailure(null));

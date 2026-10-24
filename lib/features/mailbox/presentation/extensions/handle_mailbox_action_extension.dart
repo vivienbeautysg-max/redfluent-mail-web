@@ -11,7 +11,6 @@ import 'package:tmail_ui_user/features/mailbox/presentation/mailbox_controller.d
 import 'package:tmail_ui_user/features/mailbox/presentation/model/context_item_mailbox_action.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/model/mailbox_actions.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/model/popup_menu_item_mailbox_action.dart';
-import 'package:tmail_ui_user/features/mailbox/presentation/utils/folder_order_utils.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/utils/mailbox_utils.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/handle_open_context_menu_extension.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
@@ -38,7 +37,7 @@ extension HandleMailboxActionExtension on MailboxController {
         imagePaths,
         AppLocalizations.of(context),
       ),
-      if (FolderOrderUtils.canReorderFrom(mailbox))
+      if (canOfferFolderReorder(mailbox))
         ContextMenuItemMailboxAction(
           MailboxActions.reorderFolders,
           AppLocalizations.of(context),
@@ -101,7 +100,7 @@ extension HandleMailboxActionExtension on MailboxController {
         deletedMessageVaultSupported,
         isSubAddressingSupported,
       ),
-      if (FolderOrderUtils.canReorderFrom(mailbox))
+      if (canOfferFolderReorder(mailbox))
         PopupMenuItemMailboxAction(
           MailboxActions.reorderFolders,
           AppLocalizations.of(context),

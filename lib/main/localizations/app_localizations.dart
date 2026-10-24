@@ -6120,4 +6120,11 @@ class AppLocalizations {
       name: 'folderOrderSaveFailed',
     );
   }
+
+  String get reorderFoldersByNameHint {
+    return Intl.message(
+      'Drag a folder by its handle to change the order. The order is saved to your account, so it is the same on all your devices. Reset to default sorts them by name.',
+      name: 'reorderFoldersByNameHint',
+    );
+  }
 }

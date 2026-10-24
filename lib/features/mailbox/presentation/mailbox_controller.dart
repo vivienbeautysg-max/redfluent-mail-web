@@ -1156,7 +1156,8 @@ class MailboxController extends BaseMailboxController
         moveAction,
         destinationMailboxId: destinationMailbox?.id,
         destinationMailboxDisplayName: destinationMailbox?.getDisplayName(context),
-        parentId: mailboxSelected.parentId)));
+        parentId: mailboxSelected.parentId,
+        previousSortOrder: TreeBuilder.sortOrderValueOf(mailboxSelected))));
   }
 
   void _moveMailboxSuccess(MoveMailboxSuccess success) {
@@ -1173,7 +1174,8 @@ class MailboxController extends BaseMailboxController
                 success.mailboxIdSelected,
                 MoveAction.undo,
                 destinationMailboxId: success.parentId,
-                parentId: success.destinationMailboxId));
+                parentId: success.destinationMailboxId,
+                sortOrder: success.previousSortOrder));
           },
           leadingSVGIcon: imagePaths.icFolderMailbox,
           leadingSVGIconColor: Colors.white,
@@ -1309,39 +1311,54 @@ class MailboxController extends BaseMailboxController
         mailboxDashBoardController.closeMailboxMenuDrawer();
         break;
       case MailboxActions.reorderFolders:
-        _openFolderOrderDialog(context);
+        _openFolderOrderDialog(context, mailbox);
         break;
       default:
         break;
     }
   }
 
-  /// Redfluent (rf16): the user drags the system folders into their own order.
-  Future<void> _openFolderOrderDialog(BuildContext context) async {
-    final folders = (defaultMailboxTree.value.root.childrenItems ?? <MailboxNode>[])
-      .map((node) => node.item)
-      .where((mailbox) => !mailbox.isVirtualFolder)
-      .toList();
+  /// Redfluent (rf16, rf17): the folders "Reorder folders" opened from
+  /// [mailbox] puts in order (FolderOrderUtils.foldersToReorderWith).
+  List<PresentationMailbox> foldersToReorderWith(PresentationMailbox mailbox) {
+    return FolderOrderUtils.foldersToReorderWith(
+      mailbox,
+      defaultTree: defaultMailboxTree.value,
+      personalTree: personalMailboxTree.value,
+    );
+  }
+
+  /// The sidebar menu offers "Reorder folders" only where there are at least
+  /// two folders to put in order.
+  bool canOfferFolderReorder(PresentationMailbox mailbox) {
+    return foldersToReorderWith(mailbox).length >= 2;
+  }
+
+  /// Redfluent (rf16, rf17): the user drags the system folders, or the
+  /// folders next to [mailbox], into their own order.
+  Future<void> _openFolderOrderDialog(BuildContext context, PresentationMailbox mailbox) async {
+    final folders = foldersToReorderWith(mailbox);
     if (folders.length < 2) {
-      logWarning('MailboxController::_openFolderOrderDialog: ${folders.length} system folder(s), nothing to reorder');
+      logWarning('MailboxController::_openFolderOrderDialog: ${folders.length} folder(s) to reorder with ${mailbox.id.asString}, nothing to reorder');
       return;
     }
+    final scope = FolderOrderUtils.scopeOf(mailbox);
 
     final ordered = await showDialog<List<PresentationMailbox>>(
       context: context,
-      builder: (_) => FolderOrderDialog(folders: folders, imagePaths: imagePaths),
+      builder: (_) => FolderOrderDialog(folders: folders, imagePaths: imagePaths, scope: scope),
     );
     if (ordered == null) return;
-    if (FolderOrderUtils.isSameOrder(folders, ordered)) {
-      log('MailboxController::_openFolderOrderDialog: order unchanged, nothing saved');
+    if (!FolderOrderUtils.needsSave(folders, ordered, scope: scope)) {
+      log('MailboxController::_openFolderOrderDialog: nothing to save');
       return;
     }
-    await _saveFolderOrder(ordered);
+    await _saveFolderOrder(ordered, scope);
   }
 
   /// Writes the order as sortOrder (one Mailbox/set), then refreshes the
   /// mailboxes so the sidebar, the cache and the user's other devices follow.
-  Future<void> _saveFolderOrder(List<PresentationMailbox> ordered) async {
+  Future<void> _saveFolderOrder(List<PresentationMailbox> ordered, FolderOrderScope scope) async {
     var saved = false;
     try {
       if (session == null || accountId == null) {
@@ -1350,7 +1367,7 @@ class MailboxController extends BaseMailboxController
       final result = await Get.find<MailboxAPI>().updateMailboxSortOrders(
         session!,
         accountId!,
-        FolderOrderUtils.sortOrderPatches(ordered),
+        FolderOrderUtils.sortOrderPatches(ordered, scope: scope),
       );
       saved = result.notUpdated.isEmpty;
       if (!saved) {

@@ -9,17 +9,20 @@ import 'package:tmail_ui_user/features/mailbox/presentation/extensions/presentat
 import 'package:tmail_ui_user/features/mailbox/presentation/utils/folder_order_utils.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 
-/// Redfluent (rf16): lets the user drag the system folders into their own
-/// order. Pops with the new order on Save, with null on Cancel; saving it is
-/// up to the caller (MailboxController writes it to the server).
+/// Redfluent (rf16, rf17): lets the user drag folders into their own order:
+/// the system folders, or the user's own folders that share a parent
+/// ([scope]). Pops with the new order on Save, with null on Cancel; saving it
+/// is up to the caller (MailboxController writes it to the server).
 class FolderOrderDialog extends StatefulWidget {
   final List<PresentationMailbox> folders;
   final ImagePaths imagePaths;
+  final FolderOrderScope scope;
 
   const FolderOrderDialog({
     super.key,
     required this.folders,
     required this.imagePaths,
+    this.scope = FolderOrderScope.systemFolders,
   });
 
   @override
@@ -28,6 +31,7 @@ class FolderOrderDialog extends StatefulWidget {
 
 class _FolderOrderDialogState extends State<FolderOrderDialog> {
   late List<PresentationMailbox> _folders = List.of(widget.folders);
+  bool _resetPressed = false;
 
   void _moveFolder(int oldIndex, int newIndex) {
     setState(() {
@@ -37,7 +41,10 @@ class _FolderOrderDialogState extends State<FolderOrderDialog> {
   }
 
   void _resetToDefault() {
-    setState(() => _folders = FolderOrderUtils.defaultOrder(_folders));
+    setState(() {
+      _folders = FolderOrderUtils.defaultOrder(_folders, scope: widget.scope);
+      _resetPressed = true;
+    });
   }
 
   @override
@@ -82,7 +89,9 @@ class _FolderOrderDialogState extends State<FolderOrderDialog> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        appLocalizations.reorderFoldersHint,
+                        widget.scope == FolderOrderScope.systemFolders
+                          ? appLocalizations.reorderFoldersHint
+                          : appLocalizations.reorderFoldersByNameHint,
                         style: ThemeUtils.textStyleM3BodyMedium1.copyWith(
                           fontSize: 14,
                           height: 20 / 14,
@@ -118,7 +127,10 @@ class _FolderOrderDialogState extends State<FolderOrderDialog> {
   }
 
   Widget _buildActions(BuildContext context, AppLocalizations appLocalizations) {
-    final isDefaultOrder = FolderOrderUtils.isDefaultOrder(_folders);
+    // rf17: also offered on the default order while the server still keeps
+    // places for these folders (Save then writes 0 for each of them).
+    final canReset = !FolderOrderUtils.isDefaultOrder(_folders, scope: widget.scope)
+      || (!_resetPressed && FolderOrderUtils.hasStoredOrder(_folders));
 
     // Wraps onto a second line instead of being cut off in long languages.
     final resetButton = TextButton(
@@ -130,13 +142,13 @@ class _FolderOrderDialogState extends State<FolderOrderDialog> {
           borderRadius: BorderRadius.all(Radius.circular(100)),
         ),
       ),
-      onPressed: isDefaultOrder ? null : _resetToDefault,
+      onPressed: canReset ? _resetToDefault : null,
       child: Text(
         appLocalizations.resetToDefault,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: ThemeUtils.textStyleM3LabelLarge(
-          color: isDefaultOrder ? AppColor.m3Tertiary : AppColor.primaryMain,
+          color: canReset ? AppColor.primaryMain : AppColor.m3Tertiary,
         ),
       ),
     );

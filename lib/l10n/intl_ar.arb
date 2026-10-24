@@ -3136,5 +3136,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "اسحب أي مجلد من مقبضه لتغيير الترتيب. يُحفظ الترتيب في حسابك، فيبقى نفسه على جميع أجهزتك. يرتّب «إعادة التعيين إلى الوضع الافتراضي» المجلدات حسب الاسم.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

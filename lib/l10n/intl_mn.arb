@@ -5844,5 +5844,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Дарааллыг өөрчлөхийн тулд хавтсыг бариулаас нь чирнэ үү. Дараалал таны бүртгэлд хадгалагдах тул бүх төхөөрөмж дээр ижил байна. «Анхны төлөвт буцаах» нь нэрээр нь эрэмбэлнэ.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

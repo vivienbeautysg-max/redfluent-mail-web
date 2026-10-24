@@ -6123,5 +6123,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Kéo thư mục bằng tay cầm để thay đổi thứ tự. Thứ tự được lưu vào tài khoản của bạn nên mọi thiết bị đều giống nhau. \"Đặt lại về mặc định\" sẽ sắp xếp theo tên.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

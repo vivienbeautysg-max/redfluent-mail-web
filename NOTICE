@@ -28,8 +28,8 @@ refreshing the mailbox by itself while WebSocket push is not connected, (rf11) a
 "Set up on iPhone or Mac" link to the Apple Mail setup guide, (rf12) the email view
 showing the photos that mail apps send in the message body without a Content-ID,
 (rf13) the email view showing the text of a message before its pictures and no longer
-listing under the attachments an inline image that it draws, and (rf16) the system
-folders shown in the usual order (Inbox first) or in the order each user chooses; see
+listing under the attachments an inline image that it draws, and (rf16, rf17) the
+folders shown in the usual order (Inbox first, own folders by name) or in the order each user chooses; see
 README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed

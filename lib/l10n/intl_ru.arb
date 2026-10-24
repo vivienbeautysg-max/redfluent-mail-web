@@ -6135,5 +6135,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Перетащите папку за значок, чтобы изменить порядок. Порядок сохраняется в вашей учётной записи и одинаков на всех устройствах. «Сбросить до настроек по умолчанию» сортирует папки по имени.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -163,17 +163,21 @@ class TreeBuilder {
 
   void _finalizeTrees(MailboxTree defaultTree, MailboxTree personalTree, MailboxTree teamMailboxTree) {
     sortNodeChildren(defaultTree.root);
-    defaultTree.root.childrenItems?.forEach(_sortChildrenAlphabetically);
-    _sortChildrenAlphabetically(personalTree.root);
+    defaultTree.root.childrenItems?.forEach(_sortChildrenByUserOrder);
+    _sortChildrenByUserOrder(personalTree.root);
     _applyTeamMailboxSorting(teamMailboxTree.root);
   }
 
-  void _sortChildrenAlphabetically(MailboxNode node) {
+  /// Redfluent (rf17): personal folders and the subfolders of every folder of
+  /// the user's own account in the user's order ([compareFoldersByUserOrder]),
+  /// by name as before when nobody reordered them. Team mailboxes keep their
+  /// own sorting ([_applyTeamMailboxSorting]).
+  void _sortChildrenByUserOrder(MailboxNode node) {
     final children = node.childrenItems;
     if (children == null || children.isEmpty) return;
-    sortByMailboxNameNodeChildren(node);
+    children.sort((a, b) => compareFoldersByUserOrder(a.item, b.item));
     for (final child in children) {
-      _sortChildrenAlphabetically(child);
+      _sortChildrenByUserOrder(child);
     }
   }
 
@@ -188,14 +192,34 @@ class TreeBuilder {
   /// 10, 20, 30, ...; a folder still at 0 was never placed by the user (for
   /// example one created later) and comes after the placed ones.
   static int compareSystemFolders(PresentationMailbox a, PresentationMailbox b) {
+    final byUserOrder = compareByUserSortOrder(a, b);
+    if (byUserOrder != 0) return byUserOrder;
+    return compareByDefaultFolderOrder(a, b);
+  }
+
+  /// Redfluent (rf17): the user's own folders: sortOrder as for the system
+  /// folders, then the name (their order before rf17, when nobody reordered
+  /// them).
+  static int compareFoldersByUserOrder(PresentationMailbox a, PresentationMailbox b) {
+    final byUserOrder = compareByUserSortOrder(a, b);
+    if (byUserOrder != 0) return byUserOrder;
+    return compareByName(a, b);
+  }
+
+  /// The user's order: lower sortOrder first, a folder at 0 (never placed by
+  /// the user) after the placed ones; 0 when both have the same sortOrder.
+  static int compareByUserSortOrder(PresentationMailbox a, PresentationMailbox b) {
     final aSortOrder = sortOrderValueOf(a);
     final bSortOrder = sortOrderValueOf(b);
-    if (aSortOrder != bSortOrder) {
-      if (aSortOrder == 0) return 1;
-      if (bSortOrder == 0) return -1;
-      return aSortOrder.compareTo(bSortOrder);
-    }
-    return compareByDefaultFolderOrder(a, b);
+    if (aSortOrder == bSortOrder) return 0;
+    if (aSortOrder == 0) return 1;
+    if (bSortOrder == 0) return -1;
+    return aSortOrder.compareTo(bSortOrder);
+  }
+
+  /// By name, ignoring case, like [MailboxName.compareAlphabetically].
+  static int compareByName(PresentationMailbox a, PresentationMailbox b) {
+    return (a.name?.name.toLowerCase() ?? '').compareTo(b.name?.name.toLowerCase() ?? '');
   }
 
   /// Inbox, Drafts, Outbox, Sent, Trash, Spam, Junk, Templates, Archive, then

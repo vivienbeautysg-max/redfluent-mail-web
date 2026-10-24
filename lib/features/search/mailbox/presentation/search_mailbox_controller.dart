@@ -544,7 +544,8 @@ class SearchMailboxController extends BaseMailboxController with MailboxActionHa
         moveAction,
         destinationMailboxId: destinationMailbox?.id,
         destinationMailboxDisplayName: destinationMailbox?.getDisplayName(context),
-        parentId: mailboxSelected.parentId
+        parentId: mailboxSelected.parentId,
+        previousSortOrder: TreeBuilder.sortOrderValueOf(mailboxSelected),
       )
     ));
   }
@@ -560,7 +561,8 @@ class SearchMailboxController extends BaseMailboxController with MailboxActionHa
             success.mailboxIdSelected,
             MoveAction.undo,
             destinationMailboxId: success.parentId,
-            parentId: success.destinationMailboxId)
+            parentId: success.destinationMailboxId,
+            sortOrder: success.previousSortOrder)
           );
         },
         leadingSVGIconColor: Colors.white,

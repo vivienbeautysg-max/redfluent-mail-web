@@ -5900,5 +5900,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "按住文件夹右侧的拖动图标即可调整顺序。顺序保存在你的账户里，所有设备上都一样。「重置为默认」会按名称排序。",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

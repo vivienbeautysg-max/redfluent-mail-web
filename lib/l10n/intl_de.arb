@@ -4962,5 +4962,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFoldersByNameHint": "Ziehen Sie einen Ordner am Griff, um die Reihenfolge zu ändern. Die Reihenfolge wird in Ihrem Konto gespeichert und ist auf allen Ihren Geräten gleich. „Auf Standardwerte zurücksetzen“ sortiert sie nach Namen.",
+  "@reorderFoldersByNameHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }
