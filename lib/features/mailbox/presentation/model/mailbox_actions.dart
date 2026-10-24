@@ -26,7 +26,8 @@ enum MailboxActions {
   confirmMailSpam,
   recoverDeletedMessages,
   allowSubaddressing,
-  disallowSubaddressing;
+  disallowSubaddressing,
+  reorderFolders;
 }
 
 extension MailboxActionsExtension on MailboxActions {
@@ -87,6 +88,8 @@ extension MailboxActionsExtension on MailboxActions {
         return appLocalizations.allowSubaddressing;
       case MailboxActions.disallowSubaddressing:
         return appLocalizations.disallowSubaddressing;
+      case MailboxActions.reorderFolders:
+        return appLocalizations.reorderFolders;
       default:
         return '';
     }
@@ -132,6 +135,8 @@ extension MailboxActionsExtension on MailboxActions {
         return imagePaths.icSubaddressingAllow;
       case MailboxActions.disallowSubaddressing:
         return imagePaths.icSubaddressingDisallow;
+      case MailboxActions.reorderFolders:
+        return imagePaths.icReorderFolders;
       default:
         return '';
     }

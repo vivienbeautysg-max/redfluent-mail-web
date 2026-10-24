@@ -5876,5 +5876,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "调整文件夹顺序",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "按住文件夹右侧的拖动图标即可调整顺序。顺序保存在你的账户里，所有设备上都一样。星标邮件始终排在收件箱后面。",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "文件夹顺序已保存",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "文件夹顺序保存失败，请重试。",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

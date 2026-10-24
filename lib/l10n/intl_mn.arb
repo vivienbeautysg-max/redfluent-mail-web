@@ -5820,5 +5820,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Хавтасны дарааллыг өөрчлөх",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Дарааллыг өөрчлөхийн тулд хавтсыг бариулаас нь чирнэ үү. Дараалал таны бүртгэлд хадгалагдах тул бүх төхөөрөмж дээр ижил байна. Одтой нь үргэлж Ирсэн-ийн дараа байрлана.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Хавтасны дараалал хадгалагдлаа",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Хавтасны дарааллыг хадгалж чадсангүй. Дахин оролдоно уу.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

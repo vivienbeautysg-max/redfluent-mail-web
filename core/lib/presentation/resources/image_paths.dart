@@ -262,6 +262,7 @@ class ImagePaths {
   String get icKeyboard => _getImagePath('ic_keyboard.svg');
   String get icLock => _getImagePath('ic_lock.svg');
   String get icPhoneSetup => _getImagePath('ic_phone_setup.svg');
+  String get icReorderFolders => _getImagePath('ic_reorder_folders.svg');
   String get icMessage => _getImagePath('ic_message.svg');
   String get icNavigation => _getImagePath('ic_navigation.svg');
   String get icReading => _getImagePath('ic_reading.svg');

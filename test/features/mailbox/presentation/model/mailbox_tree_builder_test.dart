@@ -432,7 +432,7 @@ void main() {
     });
 
     test(
-        'Regression: Virtual folders with null sortOrder sort to top when passed to generateMailboxTreeInUI',
+        'Regression: Virtual folders with null sortOrder sort to the bottom when passed to generateMailboxTreeInUI (rf16)',
         () async {
       final testCaseWithVirtualFolders = [
         PresentationMailbox(MailboxId(Id("4")),
@@ -460,10 +460,10 @@ void main() {
         reason: 'Virtual folder must have been routed to the default tree',
       );
       expect(
-        children.first.item.id,
+        children.last.item.id,
         equals(virtualStarred.id),
         reason:
-            'Virtual folder with null sortOrder sorts to top — controller must pass allMailboxes.withoutVirtualMailbox to buildTree',
+            'Virtual folder with null sortOrder sorts after the folders that have one (rf16) — controller must pass allMailboxes.withoutVirtualMailbox to buildTree',
       );
     });
   });

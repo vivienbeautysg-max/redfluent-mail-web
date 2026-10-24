@@ -5737,5 +5737,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Reorder folders",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Drag a folder by its handle to change the order. The order is saved to your account, so it is the same on all your devices. Starred always comes right after Inbox.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Folder order saved",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Could not save the folder order. Please try again.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -327,6 +327,52 @@ class MailboxAPI with HandleSetErrorMixin, SessionMixin, MailAPIMixin {
     });
   }
 
+  /// Redfluent (rf16): writes the sortOrder of several mailboxes in one
+  /// Mailbox/set. Returns the new mailbox state and the mailboxes the server
+  /// did not update.
+  Future<({State? newState, Set<Id> notUpdated})> updateMailboxSortOrders(
+    Session session,
+    AccountId accountId,
+    Map<MailboxId, int> sortOrders,
+  ) async {
+    final setMailboxMethod = SetMailboxMethod(accountId)
+      ..addUpdates({
+        for (final entry in sortOrders.entries)
+          entry.key.id: PatchObject({'sortOrder': entry.value}),
+      });
+
+    final requestBuilder = JmapRequestBuilder(httpClient, ProcessingInvocation());
+
+    final setMailboxInvocation = requestBuilder.invocation(setMailboxMethod);
+
+    final capabilities = setMailboxMethod.requiredCapabilities
+      .toCapabilitiesSupportTeamMailboxes(session, accountId);
+
+    final response = await (requestBuilder
+        ..usings(capabilities))
+      .build()
+      .execute();
+
+    final setMailboxResponse = response.parse<SetMailboxResponse>(
+      setMailboxInvocation.methodCallId,
+      SetMailboxResponse.deserialize);
+
+    final refused = setMailboxResponse?.notUpdated;
+    if (refused != null && refused.isNotEmpty) {
+      logWarning('MailboxAPI::updateMailboxSortOrders: notUpdated: '
+        '${refused.map((id, error) => MapEntry(id.value, '${error.type.value} ${error.description ?? ''}'))}');
+    }
+
+    final updatedIds = setMailboxResponse?.updated?.keys.toSet() ?? <Id>{};
+    return (
+      newState: setMailboxResponse?.newState,
+      notUpdated: sortOrders.keys
+        .map((mailboxId) => mailboxId.id)
+        .where((id) => !updatedIds.contains(id))
+        .toSet(),
+    );
+  }
+
   Future<bool> subscribeMailbox(Session session, AccountId accountId, SubscribeMailboxRequest request) async {
     final setMailboxMethod = SetMailboxMethod(accountId)
       ..addUpdates({

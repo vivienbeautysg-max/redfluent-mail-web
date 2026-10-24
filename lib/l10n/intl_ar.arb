@@ -3112,5 +3112,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "إعادة ترتيب المجلدات",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "اسحب أي مجلد من مقبضه لتغيير الترتيب. يُحفظ الترتيب في حسابك، فيبقى نفسه على جميع أجهزتك. يأتي Starred دائمًا بعد الوارد مباشرةً.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "تم حفظ ترتيب المجلدات",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "تعذّر حفظ ترتيب المجلدات. يرجى المحاولة مرة أخرى.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

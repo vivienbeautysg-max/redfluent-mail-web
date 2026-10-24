@@ -2766,5 +2766,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Riordina le cartelle",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Trascina una cartella dalla sua maniglia per cambiare l'ordine. L'ordine viene salvato nel tuo account, quindi è lo stesso su tutti i tuoi dispositivi. Starred viene sempre subito dopo Inbox.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Ordine delle cartelle salvato",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Impossibile salvare l'ordine delle cartelle. Riprova.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

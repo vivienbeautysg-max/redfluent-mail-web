@@ -8,7 +8,7 @@ Upstream:   Twake Mail (tmail-flutter) by LINAGORA and contributors
             tag v0.39.3, commit a64d63305553697e0df3d03609cb8d88f1dacc9d
 License:    GNU Affero General Public License v3.0 (see LICENSE, unchanged from upstream)
 
-Modified by Redfluent on 2026-10-08, 2026-10-09, 2026-10-13, 2026-10-20 and 2026-10-22 (first commit of this repository = the
+Modified by Redfluent on 2026-10-08, 2026-10-09, 2026-10-13, 2026-10-20, 2026-10-22 and 2026-10-24 (first commit of this repository = the
 unmodified upstream v0.39.3 tree; the following commits = Redfluent's changes). The changes
 are branding (2026-10-08) and, on 2026-10-09, a Simplified Chinese language option, English as
 the default language, a "Change password" link and translation fixes, (rf3) removal of
@@ -26,9 +26,10 @@ address handed to the "Change password" page, (rf9) the sign-in page's privacy l
 opening the Redfluent Mail privacy policy on the webmail's own host, (rf10) the web client
 refreshing the mailbox by itself while WebSocket push is not connected, (rf11) a
 "Set up on iPhone or Mac" link to the Apple Mail setup guide, (rf12) the email view
-showing the photos that mail apps send in the message body without a Content-ID, and
+showing the photos that mail apps send in the message body without a Content-ID,
 (rf13) the email view showing the text of a message before its pictures and no longer
-listing under the attachments an inline image that it draws; see
+listing under the attachments an inline image that it draws, and (rf16) the system
+folders shown in the usual order (Inbox first) or in the order each user chooses; see
 README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed

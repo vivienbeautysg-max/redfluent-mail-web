@@ -6093,5 +6093,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Réorganiser les dossiers",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Faites glisser un dossier par sa poignée pour changer l'ordre. L'ordre est enregistré dans votre compte : il est le même sur tous vos appareils. Favoris suit toujours Boîte de réception.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Ordre des dossiers enregistré",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Impossible d'enregistrer l'ordre des dossiers. Veuillez réessayer.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

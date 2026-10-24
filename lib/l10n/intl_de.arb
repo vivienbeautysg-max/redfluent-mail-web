@@ -4938,5 +4938,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Ordner neu anordnen",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Ziehen Sie einen Ordner am Griff, um die Reihenfolge zu ändern. Die Reihenfolge wird in Ihrem Konto gespeichert und ist auf allen Ihren Geräten gleich. Starred steht immer direkt nach Posteingang.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Ordnerreihenfolge gespeichert",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Die Ordnerreihenfolge konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

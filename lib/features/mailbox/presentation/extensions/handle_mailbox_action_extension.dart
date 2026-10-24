@@ -8,6 +8,10 @@ import 'package:tmail_ui_user/features/base/mixin/popup_context_menu_action_mixi
 import 'package:tmail_ui_user/features/base/widget/popup_menu/popup_menu_item_action_widget.dart';
 import 'package:tmail_ui_user/features/home/domain/extensions/session_extensions.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/mailbox_controller.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/model/context_item_mailbox_action.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/model/mailbox_actions.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/model/popup_menu_item_mailbox_action.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/utils/folder_order_utils.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/utils/mailbox_utils.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/handle_open_context_menu_extension.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
@@ -25,14 +29,22 @@ extension HandleMailboxActionExtension on MailboxController {
     final isSubAddressingSupported =
       session?.isSubAddressingSupported(accountId) ?? false;
 
-    final contextMenuActions = listContextMenuItemAction(
-      mailbox,
-      mailboxDashBoardController.enableSpamReport,
-      deletedMessageVaultSupported,
-      isSubAddressingSupported,
-      imagePaths,
-      AppLocalizations.of(context),
-    );
+    final contextMenuActions = [
+      ...listContextMenuItemAction(
+        mailbox,
+        mailboxDashBoardController.enableSpamReport,
+        deletedMessageVaultSupported,
+        isSubAddressingSupported,
+        imagePaths,
+        AppLocalizations.of(context),
+      ),
+      if (FolderOrderUtils.canReorderFrom(mailbox))
+        ContextMenuItemMailboxAction(
+          MailboxActions.reorderFolders,
+          AppLocalizations.of(context),
+          imagePaths,
+        ),
+    ];
 
     if (contextMenuActions.isEmpty) {
       return;
@@ -80,14 +92,22 @@ extension HandleMailboxActionExtension on MailboxController {
     final isSubAddressingSupported =
       session?.isSubAddressingSupported(accountId) ?? false;
 
-    final popupMenuActions = getListPopupMenuItemAction(
-      AppLocalizations.of(context),
-      imagePaths,
-      mailbox,
-      mailboxDashBoardController.enableSpamReport,
-      deletedMessageVaultSupported,
-      isSubAddressingSupported,
-    );
+    final popupMenuActions = [
+      ...getListPopupMenuItemAction(
+        AppLocalizations.of(context),
+        imagePaths,
+        mailbox,
+        mailboxDashBoardController.enableSpamReport,
+        deletedMessageVaultSupported,
+        isSubAddressingSupported,
+      ),
+      if (FolderOrderUtils.canReorderFrom(mailbox))
+        PopupMenuItemMailboxAction(
+          MailboxActions.reorderFolders,
+          AppLocalizations.of(context),
+          imagePaths,
+        ),
+    ];
 
     if (popupMenuActions.isEmpty) return Future.value();
 

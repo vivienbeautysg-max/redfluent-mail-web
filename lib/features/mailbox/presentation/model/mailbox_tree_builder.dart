@@ -178,7 +178,37 @@ class TreeBuilder {
   }
 
   void sortNodeChildren(MailboxNode mailboxNode) {
-    mailboxNode.childrenItems?.sort((a, b) => a.compareTo(b));
+    mailboxNode.childrenItems?.sort((a, b) => compareSystemFolders(a.item, b.item));
+  }
+
+  /// Redfluent (rf16): sidebar order of the system folders. Stalwart reports
+  /// sortOrder 0 for all of them, so sorting by sortOrder alone left the order
+  /// to the server (Spam could come first). Equal sortOrders now fall back to
+  /// [compareByDefaultFolderOrder]. A user's own order is saved as sortOrder
+  /// 10, 20, 30, ...; a folder still at 0 was never placed by the user (for
+  /// example one created later) and comes after the placed ones.
+  static int compareSystemFolders(PresentationMailbox a, PresentationMailbox b) {
+    final aSortOrder = sortOrderValueOf(a);
+    final bSortOrder = sortOrderValueOf(b);
+    if (aSortOrder != bSortOrder) {
+      if (aSortOrder == 0) return 1;
+      if (bSortOrder == 0) return -1;
+      return aSortOrder.compareTo(bSortOrder);
+    }
+    return compareByDefaultFolderOrder(a, b);
+  }
+
+  /// Inbox, Drafts, Outbox, Sent, Trash, Spam, Junk, Templates, Archive, then
+  /// any other folder by name.
+  static int compareByDefaultFolderOrder(PresentationMailbox a, PresentationMailbox b) {
+    final byRole = systemFolderSortIndexOf(a).compareTo(systemFolderSortIndexOf(b));
+    if (byRole != 0) return byRole;
+    return (a.name?.name.toLowerCase() ?? '').compareTo(b.name?.name.toLowerCase() ?? '');
+  }
+
+  /// The JMAP sortOrder, 0 when the server sent none (its RFC 8621 default).
+  static int sortOrderValueOf(PresentationMailbox mailbox) {
+    return mailbox.sortOrder?.value.value.toInt() ?? 0;
   }
 
   void sortByMailboxNameNodeChildren(MailboxNode mailboxNode) {
@@ -200,16 +230,18 @@ class TreeBuilder {
     PresentationMailbox.archiveRole:   8,
   };
 
-  int _systemFolderSortIndex(MailboxNode node) {
-    final roleValue = node.item.role?.value ?? '';
+  int _systemFolderSortIndex(MailboxNode node) => systemFolderSortIndexOf(node.item);
+
+  static int systemFolderSortIndexOf(PresentationMailbox mailbox) {
+    final roleValue = mailbox.role?.value ?? '';
     if (roleValue.isNotEmpty) {
       return _systemFolderRoleIndex[roleValue] ?? _systemFolderRoleIndex.length;
     }
     // No role: mayDelete=false means the server does not allow deletion,
     // which identifies a system folder. Fall back to case-insensitive name
     // matching to determine its canonical sort position.
-    if (node.item.myRights?.mayDelete == false) {
-      final nameLower = node.item.name?.name.toLowerCase() ?? '';
+    if (mailbox.myRights?.mayDelete == false) {
+      final nameLower = mailbox.name?.name.toLowerCase() ?? '';
       return _systemFolderRoleIndex[nameLower] ?? _systemFolderRoleIndex.length;
     }
     return _systemFolderRoleIndex.length;

@@ -6092,4 +6092,32 @@ class AppLocalizations {
       name: 'setupGuide',
     );
   }
+
+  String get reorderFolders {
+    return Intl.message(
+      'Reorder folders',
+      name: 'reorderFolders',
+    );
+  }
+
+  String get reorderFoldersHint {
+    return Intl.message(
+      'Drag a folder by its handle to change the order. The order is saved to your account, so it is the same on all your devices. Starred always comes right after Inbox.',
+      name: 'reorderFoldersHint',
+    );
+  }
+
+  String get folderOrderSaved {
+    return Intl.message(
+      'Folder order saved',
+      name: 'folderOrderSaved',
+    );
+  }
+
+  String get folderOrderSaveFailed {
+    return Intl.message(
+      'Could not save the folder order. Please try again.',
+      name: 'folderOrderSaveFailed',
+    );
+  }
 }

@@ -30,6 +30,7 @@ import 'package:tmail_ui_user/features/email/domain/state/mark_as_email_read_sta
 import 'package:tmail_ui_user/features/email/domain/state/move_to_mailbox_state.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/composer_arguments.dart';
 import 'package:tmail_ui_user/features/home/data/exceptions/session_exceptions.dart';
+import 'package:tmail_ui_user/features/mailbox/data/network/mailbox_api.dart';
 import 'package:tmail_ui_user/features/mailbox/domain/constants/mailbox_constants.dart';
 import 'package:tmail_ui_user/features/mailbox/domain/exceptions/null_session_or_accountid_exception.dart';
 import 'package:tmail_ui_user/features/mailbox/domain/exceptions/set_mailbox_name_exception.dart';
@@ -78,7 +79,9 @@ import 'package:tmail_ui_user/features/mailbox/presentation/model/mailbox_catego
 import 'package:tmail_ui_user/features/mailbox/presentation/model/mailbox_node.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/model/mailbox_tree_builder.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/model/open_mailbox_view_event.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/utils/folder_order_utils.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/utils/mailbox_action_reactor.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/widgets/folder_order_dialog.dart';
 import 'package:tmail_ui_user/features/mailbox_creator/domain/usecases/verify_name_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_creator/presentation/model/mailbox_creator_arguments.dart';
 import 'package:tmail_ui_user/features/mailbox_creator/presentation/model/new_mailbox_arguments.dart';
@@ -1305,8 +1308,68 @@ class MailboxController extends BaseMailboxController
         );
         mailboxDashBoardController.closeMailboxMenuDrawer();
         break;
+      case MailboxActions.reorderFolders:
+        _openFolderOrderDialog(context);
+        break;
       default:
         break;
+    }
+  }
+
+  /// Redfluent (rf16): the user drags the system folders into their own order.
+  Future<void> _openFolderOrderDialog(BuildContext context) async {
+    final folders = (defaultMailboxTree.value.root.childrenItems ?? <MailboxNode>[])
+      .map((node) => node.item)
+      .where((mailbox) => !mailbox.isVirtualFolder)
+      .toList();
+    if (folders.length < 2) {
+      logWarning('MailboxController::_openFolderOrderDialog: ${folders.length} system folder(s), nothing to reorder');
+      return;
+    }
+
+    final ordered = await showDialog<List<PresentationMailbox>>(
+      context: context,
+      builder: (_) => FolderOrderDialog(folders: folders, imagePaths: imagePaths),
+    );
+    if (ordered == null) return;
+    if (FolderOrderUtils.isSameOrder(folders, ordered)) {
+      log('MailboxController::_openFolderOrderDialog: order unchanged, nothing saved');
+      return;
+    }
+    await _saveFolderOrder(ordered);
+  }
+
+  /// Writes the order as sortOrder (one Mailbox/set), then refreshes the
+  /// mailboxes so the sidebar, the cache and the user's other devices follow.
+  Future<void> _saveFolderOrder(List<PresentationMailbox> ordered) async {
+    var saved = false;
+    try {
+      if (session == null || accountId == null) {
+        throw const NullSessionOrAccountIdException();
+      }
+      final result = await Get.find<MailboxAPI>().updateMailboxSortOrders(
+        session!,
+        accountId!,
+        FolderOrderUtils.sortOrderPatches(ordered),
+      );
+      saved = result.notUpdated.isEmpty;
+      if (!saved) {
+        logWarning('MailboxController::_saveFolderOrder: not updated: ${result.notUpdated}');
+      }
+      final newState = result.newState;
+      if (newState != null) {
+        _refreshMailboxChanges(newState: newState);
+      }
+    } catch (e) {
+      logWarning('MailboxController::_saveFolderOrder: Exception: $e');
+    }
+
+    if (currentOverlayContext == null || currentContext == null) return;
+    final appLocalizations = AppLocalizations.of(currentContext!);
+    if (saved) {
+      appToast.showToastSuccessMessage(currentOverlayContext!, appLocalizations.folderOrderSaved);
+    } else {
+      appToast.showToastErrorMessage(currentOverlayContext!, appLocalizations.folderOrderSaveFailed);
     }
   }
 

@@ -6099,5 +6099,29 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "reorderFolders": "Sắp xếp lại thư mục",
+  "@reorderFolders": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "reorderFoldersHint": "Kéo thư mục bằng tay cầm để thay đổi thứ tự. Thứ tự được lưu vào tài khoản của bạn nên mọi thiết bị đều giống nhau. Quan trọng luôn đứng ngay sau Hộp thư đến.",
+  "@reorderFoldersHint": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaved": "Đã lưu thứ tự thư mục",
+  "@folderOrderSaved": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "folderOrderSaveFailed": "Không thể lưu thứ tự thư mục. Vui lòng thử lại.",
+  "@folderOrderSaveFailed": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }
