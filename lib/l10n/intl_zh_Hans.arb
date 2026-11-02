@@ -5906,5 +5906,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "aiAccess": "AI 接入",
+  "@aiAccess": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

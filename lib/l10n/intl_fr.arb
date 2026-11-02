@@ -6123,5 +6123,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "aiAccess": "Accès IA",
+  "@aiAccess": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

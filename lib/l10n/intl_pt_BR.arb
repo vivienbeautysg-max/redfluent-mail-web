@@ -3832,5 +3832,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "aiAccess": "Acesso de IA",
+  "@aiAccess": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -18,6 +18,7 @@ enum AccountMenuItem {
   keyboardShortcuts,
   changePassword,
   setupGuide,
+  aiAccess,
   signOut,
   none;
 
@@ -49,6 +50,8 @@ enum AccountMenuItem {
         return imagePaths.icLock;
       case AccountMenuItem.setupGuide:
         return imagePaths.icPhoneSetup;
+      case AccountMenuItem.aiAccess:
+        return imagePaths.icAiAccess;
       case AccountMenuItem.signOut:
         return imagePaths.icSignOut;
       case AccountMenuItem.none:
@@ -84,6 +87,8 @@ enum AccountMenuItem {
         return appLocalizations.changePassword;
       case AccountMenuItem.setupGuide:
         return appLocalizations.setupGuide;
+      case AccountMenuItem.aiAccess:
+        return appLocalizations.aiAccess;
       case AccountMenuItem.signOut:
         return appLocalizations.sign_out;
       case AccountMenuItem.none:
@@ -144,6 +149,8 @@ enum AccountMenuItem {
         return 'change-password';
       case AccountMenuItem.setupGuide:
         return 'setup-guide';
+      case AccountMenuItem.aiAccess:
+        return 'ai-access';
       case AccountMenuItem.signOut:
         return 'sign-out';
       case AccountMenuItem.none:

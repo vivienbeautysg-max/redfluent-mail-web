@@ -6129,5 +6129,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "aiAccess": "Truy cập AI",
+  "@aiAccess": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

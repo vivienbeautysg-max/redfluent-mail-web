@@ -3142,5 +3142,11 @@
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
+  },
+  "aiAccess": "وصول الذكاء الاصطناعي",
+  "@aiAccess": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
   }
 }

@@ -127,11 +127,11 @@ void main() {
   });
 
   group('menus', () {
-    test('avatar menu: Manage account, Set up on iPhone or Mac, Sign out', () async {
+    test('avatar menu: Manage account, Set up on iPhone or Mac, AI access (rf18), Sign out', () async {
       await AppLocalizations.load(LocalizationService.defaultLocale);
       final l10n = AppLocalizations();
       expect(ProfileSettingActionType.values.map((t) => t.getTitle(l10n)),
-          ['Manage account', 'Set up on iPhone or Mac', 'Sign out']);
+          ['Manage account', 'Set up on iPhone or Mac', 'AI access', 'Sign out']);
       expect(ProfileSettingActionType.setupGuide.getIcon(ImagePaths()), 'assets/images/ic_phone_setup.svg');
     });
 

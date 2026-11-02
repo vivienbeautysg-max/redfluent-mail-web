@@ -6127,4 +6127,11 @@ class AppLocalizations {
       name: 'reorderFoldersByNameHint',
     );
   }
+
+  String get aiAccess {
+    return Intl.message(
+      'AI access',
+      name: 'aiAccess',
+    );
+  }
 }

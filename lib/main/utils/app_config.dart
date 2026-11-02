@@ -27,6 +27,10 @@ class AppConfig {
   static const String setupGuidePath = '/guide/';
   /// The guide where there is no webmail host (mobile apps, VM tests).
   static const String setupGuideFallbackUrl = 'https://mail.redfluent.com/guide/';
+  /// AI access page (the user's keys for their own AI tools), served by the gateway on every webmail host.
+  static const String aiAccessPath = '/account/ai/';
+  /// The AI access page where there is no webmail host (mobile apps, VM tests).
+  static const String aiAccessFallbackUrl = 'https://mail.redfluent.com/account/ai/';
   static const String saasRegistrationUrl = 'https://sign-up.twake.app';
   static const String saasJmapServerUrl = 'https://jmap.twake.app';
 
@@ -40,6 +44,10 @@ class AppConfig {
   /// The Apple Mail setup guide on the webmail's own origin; [setupGuideFallbackUrl] without an http(s) host.
   static String setupGuideUrl([Uri? base]) =>
       _onWebmailHost(setupGuidePath, setupGuideFallbackUrl, base);
+
+  /// The AI access page on the webmail's own origin; [aiAccessFallbackUrl] without an http(s) host.
+  static String aiAccessUrl([Uri? base]) =>
+      _onWebmailHost(aiAccessPath, aiAccessFallbackUrl, base);
 
   static String _onWebmailHost(String path, String fallback, Uri? base) {
     final page = base ?? _currentPage();

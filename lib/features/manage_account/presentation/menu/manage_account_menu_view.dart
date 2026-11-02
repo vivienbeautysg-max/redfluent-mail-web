@@ -168,6 +168,22 @@ class ManageAccountMenuView extends GetWidget<ManageAccountMenuController> {
                        .sessionCurrent
                        ?.getOwnEmailAddressOrEmpty()),
                ),
+             if (PlatformInfo.isWeb)
+               AccountMenuItemTileBuilder(
+                 imagePaths: controller.imagePaths,
+                 responsiveUtils: controller.responsiveUtils,
+                 menuItem: AccountMenuItem.aiAccess,
+                 padding: const EdgeInsetsDirectional.only(
+                   start: 8,
+                   end: 8,
+                   top: 4,
+                 ),
+                 onSelectAccountMenuItemAction: (_) =>
+                     AppUtils.openAiAccess(controller
+                       .dashBoardController
+                       .sessionCurrent
+                       ?.getOwnEmailAddressOrEmpty()),
+               ),
              AccountMenuItemTileBuilder(
                imagePaths: controller.imagePaths,
                responsiveUtils: controller.responsiveUtils,

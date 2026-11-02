@@ -25,6 +25,9 @@ extension HandleProfileSettingActionTypeClickExtension on MailboxDashBoardContro
       case ProfileSettingActionType.setupGuide:
         AppUtils.openSetupGuide(sessionCurrent?.getOwnEmailAddressOrEmpty());
         break;
+      case ProfileSettingActionType.aiAccess:
+        AppUtils.openAiAccess(sessionCurrent?.getOwnEmailAddressOrEmpty());
+        break;
     }
   }
 }

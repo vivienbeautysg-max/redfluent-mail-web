@@ -55,6 +55,26 @@ class AppUtils {
     launchLink(AppConfig.setupGuideUrl());
   }
 
+  /// localStorage key read once (then removed) by the AI access page (/account/ai/app.js).
+  static const String aiAccessEmailKey = 'rf-ai-email';
+
+  /// The AI access page (the user's keys for their own AI tools) in a new tab. The signed-in address goes along
+  /// in this origin's localStorage (never in the URL), so the page opens at the password; without a valid one
+  /// any address left from an earlier session is removed first.
+  static void openAiAccess([String? email]) {
+    final address = email?.trim() ?? '';
+    try {
+      if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(address)) {
+        html.window.localStorage[aiAccessEmailKey] = address;
+      } else {
+        html.window.localStorage.remove(aiAccessEmailKey);
+      }
+    } catch (e) {
+      logWarning('AppUtils::openAiAccess: localStorage not available: $e');
+    }
+    launchLink(AppConfig.aiAccessUrl());
+  }
+
   /// sessionStorage key read by the password page (/account/password/app.js).
   static const String changePasswordEmailKey = 'rf-pw-email';
 

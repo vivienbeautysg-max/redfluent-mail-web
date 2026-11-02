@@ -5,6 +5,7 @@ import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 enum ProfileSettingActionType {
   manageAccount,
   setupGuide,
+  aiAccess,
   signOut;
 
   String getTitle(AppLocalizations appLocalizations) {
@@ -13,6 +14,8 @@ enum ProfileSettingActionType {
         return appLocalizations.manage_account;
       case ProfileSettingActionType.setupGuide:
         return appLocalizations.setupGuide;
+      case ProfileSettingActionType.aiAccess:
+        return appLocalizations.aiAccess;
       case ProfileSettingActionType.signOut:
         return appLocalizations.sign_out;
     }
@@ -24,6 +27,8 @@ enum ProfileSettingActionType {
         return imagePaths.icSetting;
       case ProfileSettingActionType.setupGuide:
         return imagePaths.icPhoneSetup;
+      case ProfileSettingActionType.aiAccess:
+        return imagePaths.icAiAccess;
       case ProfileSettingActionType.signOut:
         return imagePaths.icLogout;
     }
@@ -33,6 +38,7 @@ enum ProfileSettingActionType {
     return switch (this) {
       ProfileSettingActionType.manageAccount => name,
       ProfileSettingActionType.setupGuide => name,
+      ProfileSettingActionType.aiAccess => name,
       _ => null,
     };
   }
