@@ -263,10 +263,10 @@ class SettingsFirstLevelView extends GetWidget<SettingsController> {
               context: context,
               menuItem: AccountMenuItem.aiAccess,
               appLocalizations: appLocalizations,
-              onActionCallback: () => AppUtils.openAiAccess(controller
-                .manageAccountDashboardController
-                .sessionCurrent
-                ?.getOwnEmailAddressOrEmpty()),
+              onActionCallback: () => AppUtils.openAiAccess(
+                controller.manageAccountDashboardController.sessionCurrent?.getOwnEmailAddressOrEmpty(),
+                controller.manageAccountDashboardController.authorizationInterceptors.basicAuthorizationHeader,
+              ),
             ),
           ],
         divider,

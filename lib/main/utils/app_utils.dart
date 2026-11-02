@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:core/core.dart';
 import 'package:core/utils/external_link_policy.dart';
 import 'package:date_format/date_format.dart' as date_format;
@@ -58,10 +61,32 @@ class AppUtils {
   /// localStorage key read once (then removed) by the AI access page (/account/ai/app.js).
   static const String aiAccessEmailKey = 'rf-ai-email';
 
+  /// What the AI access page posts to the tab that opened it once it can be signed in (rf19).
+  static const String aiAccessReadyMessage = 'rf-ai-ready';
+
+  /// `type` of the one answer to [aiAccessReadyMessage]: this tab's credentials.
+  static const String aiAccessAuthType = 'rf-ai-auth';
+
+  /// How long this tab answers the AI access tab it has just opened; nothing is handed over after that.
+  static const Duration aiAccessHandoverWindow = Duration(seconds: 60);
+
+  static final RegExp _basicAuthorization = RegExp(r'^Basic [A-Za-z0-9+/=]{4,2048}$');
+
+  /// The answer posted to a just-opened AI access page: this tab's Basic `Authorization` header, so the page
+  /// opens signed in instead of asking for the password again. Null for anything but a Basic header (OIDC,
+  /// signed out), which leaves the page at its sign-in form.
+  static String? aiAccessHandoverMessage(String? authorization) =>
+      authorization != null && _basicAuthorization.hasMatch(authorization)
+          ? jsonEncode({'type': aiAccessAuthType, 'authorization': authorization})
+          : null;
+
   /// The AI access page (the user's keys for their own AI tools) in a new tab. The signed-in address goes along
-  /// in this origin's localStorage (never in the URL), so the page opens at the password; without a valid one
-  /// any address left from an earlier session is removed first.
-  static void openAiAccess([String? email]) {
+  /// in this origin's localStorage (never in the URL) for the page's sign-in form; without a valid one any
+  /// address left from an earlier session is removed first. With this tab's Basic [authorization] (web) the page
+  /// opens signed in (rf19): this tab keeps a handle on the new one and answers its [aiAccessReadyMessage] once,
+  /// within [aiAccessHandoverWindow], with [aiAccessHandoverMessage] - posted to that tab and this origin only,
+  /// never stored or put in the URL.
+  static void openAiAccess([String? email, String? authorization]) {
     final address = email?.trim() ?? '';
     try {
       if (RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(address)) {
@@ -72,7 +97,49 @@ class AppUtils {
     } catch (e) {
       logWarning('AppUtils::openAiAccess: localStorage not available: $e');
     }
-    launchLink(AppConfig.aiAccessUrl());
+    final url = AppConfig.aiAccessUrl();
+    final handover = PlatformInfo.isWeb ? aiAccessHandoverMessage(authorization) : null;
+    if (handover == null || !_openAiAccessSignedIn(url, handover)) {
+      launchLink(url);
+    }
+  }
+
+  static bool _openAiAccessSignedIn(String url, String handover) {
+    StreamSubscription<html.MessageEvent>? asked;
+    Timer? expiry;
+    void stop() {
+      asked?.cancel();
+      expiry?.cancel();
+    }
+
+    try {
+      final origin = html.window.location.origin ?? '';
+      if (origin.isEmpty) return false;
+      html.WindowBase? opened;
+      asked = html.window.onMessage.listen((event) {
+        final tab = opened;
+        if (tab == null || event.origin != origin || event.data != aiAccessReadyMessage) return;
+        stop();
+        try {
+          tab.postMessage(handover, origin);
+        } catch (e) {
+          logWarning('AppUtils::openAiAccess: credentials not handed over: $e');
+        }
+      });
+      expiry = Timer(aiAccessHandoverWindow, stop);
+      // A page of this origin: no noopener, so it can ask this tab (it drops the handle itself afterwards).
+      opened = html.window.open(url, '_blank');
+      // A blocked popup gives null or (dart2js) a wrapper around null, whose closed throws into the catch below.
+      if (opened == null || opened.closed == true) {
+        stop();
+        return false;
+      }
+      return true;
+    } catch (e) {
+      stop();
+      logWarning('AppUtils::openAiAccess: opening signed in not available: $e');
+      return false;
+    }
   }
 
   /// sessionStorage key read by the password page (/account/password/app.js).

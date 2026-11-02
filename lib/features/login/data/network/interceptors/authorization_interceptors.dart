@@ -95,6 +95,13 @@ class AuthorizationInterceptors extends QueuedInterceptorsWrapper {
 
   AuthenticationType get authenticationType => _authenticationType;
 
+  /// This session's `Authorization` header while signed in with a password (Basic), else null. Handed to the
+  /// AI access page so that it opens signed in (rf19).
+  String? get basicAuthorizationHeader =>
+      _authenticationType == AuthenticationType.basic && _authorization != null
+          ? _getAuthorizationAsBasicHeader(_authorization)
+          : null;
+
   String? get currentOidcIdToken => _token?.tokenId.uuid;
 
   TokenOIDC? get currentToken =>

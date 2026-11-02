@@ -179,10 +179,10 @@ class ManageAccountMenuView extends GetWidget<ManageAccountMenuController> {
                    top: 4,
                  ),
                  onSelectAccountMenuItemAction: (_) =>
-                     AppUtils.openAiAccess(controller
-                       .dashBoardController
-                       .sessionCurrent
-                       ?.getOwnEmailAddressOrEmpty()),
+                     AppUtils.openAiAccess(
+                       controller.dashBoardController.sessionCurrent?.getOwnEmailAddressOrEmpty(),
+                       controller.dashBoardController.authorizationInterceptors.basicAuthorizationHeader,
+                     ),
                ),
              AccountMenuItemTileBuilder(
                imagePaths: controller.imagePaths,

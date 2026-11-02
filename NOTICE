@@ -30,7 +30,8 @@ showing the photos that mail apps send in the message body without a Content-ID,
 (rf13) the email view showing the text of a message before its pictures and no longer
 listing under the attachments an inline image that it draws, (rf16, rf17) the
 folders shown in the usual order (Inbox first, own folders by name) or in the order each user chooses, and (rf18)
-an "AI access" link to the page where users make keys for their own AI tools; see
+an "AI access" link to the page where users make keys for their own AI tools, opened
+already signed in (rf19); see
 README.md, section "Changes from upstream".
 
 All copyright notices of the upstream work are preserved. This program is distributed
